@@ -403,7 +403,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                                         <a href="#"
                                             onclick="confirmArchive('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Archive
                                             Pet</a>
-                                        <!--<a href="#" onclick="confirmDelete('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Delete</a>-->
+                                        <a href="#" onclick="confirmDelete('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Delete</a>
                                     </div>
                                 </div>
 
