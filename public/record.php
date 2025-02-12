@@ -26,41 +26,22 @@ $params = [];
 // Handle search
 if (!empty($_GET['search'])) {
     $search = '%' . $_GET['search'] . '%';
-
     $where_clause[] = "(
         (Pets.Name LIKE ?)
         OR (Pets.PetCode LIKE ?)
         OR (Owners.FirstName LIKE ?)
         OR (Owners.LastName LIKE ?)
         OR (Species.SpeciesName LIKE ?)
-        OR (Services.ServiceName LIKE ?)
     )";
-
-    $params = array_fill(0, 6, $search);
+    $params = array_fill(0, 5, $search); // Ensure exactly 5 placeholders
 }
 
-$orderBy = 'Pets.Name';
-if (isset($_GET['filter'])) {
-    if ($_GET['filter'] === 'pet_service') {
-        $orderBy = 'Services.ServiceName';
-    }
-}
+// Handle archived filter
+$where_clause[] = isset($_GET['archived']) && $_GET['archived'] === '1' ? "Pets.IsArchived = 1" : "Pets.IsArchived = 0";
 
-// Sort Order
-$order = 'ASC';
-if (isset($_GET['order']) && $_GET['order'] === 'desc') {
-    $order = 'DESC';
-}
-
-if (isset($_GET['archived']) && $_GET['archived'] === '1') {
-    $where_clause[] = "Pets.IsArchived = 1";
-} else {
-    $where_clause[] = "Pets.IsArchived = 0";
-}
-
+// Construct final SQL query
 $where_sql = !empty($where_clause) ? 'WHERE ' . implode(' AND ', $where_clause) : '';
 
-// Apply stricter joins and avoid unnecessary GROUP BY
 $query = "
     SELECT 
         Owners.OwnerId,
@@ -93,14 +74,20 @@ $query = "
     FROM Pets
     INNER JOIN Owners ON Pets.OwnerId = Owners.OwnerId
     LEFT JOIN Species ON Pets.SpeciesId = Species.Id
-    WHERE Pets.IsArchived = 0
+    $where_sql
     ORDER BY LatestDate DESC
     LIMIT ?, ?
 ";
 
+// Append pagination parameters
 $params[] = $offset;
 $params[] = $recordsPerPage;
 
+// Debugging: Print parameters before executing
+//var_dump($params);
+//die();
+
+// Execute the query
 $stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $pets = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -138,9 +125,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                             <hr>
                             <!-- Add Pet Button -->
                             <div style="text-align: center; margin-top: 10px;">
-                                <a href="add_pet.php?OwnerId=<?= htmlspecialchars($pet['OwnerId']) ?>" 
-                                class="add-pet-button">
-                                + Add Pet
+                                <a href="add_pet.php?owner_id=<?= htmlspecialchars($pet['OwnerId']) ?>" class="add-pet-button">
+                                    + Add Pet
                                 </a>
                             </div>
                         </div>
@@ -177,12 +163,10 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
 }
 
 $countQuery = "
-    SELECT COUNT(*) 
+    SELECT COUNT(DISTINCT Pets.PetId) 
     FROM Pets
-    LEFT JOIN Owners ON Pets.OwnerId = Owners.OwnerId
+    INNER JOIN Owners ON Pets.OwnerId = Owners.OwnerId
     LEFT JOIN Species ON Pets.SpeciesId = Species.Id
-    LEFT JOIN Services ON Pets.PetId = Services.ServiceId
-    LEFT JOIN Appointments ON Pets.PetId = Appointments.PetId
     $where_sql
 ";
 
@@ -402,8 +386,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                                         </div>
                                         <hr>
                                         <div style="text-align: center; margin-top: 10px;">
-                                            <a href="add_pet.php?OwnerId=<?= htmlspecialchars($pet['OwnerId']) ?>"
-                                                class="add-pet-button">
+                                            <a href="add_pet.php?owner_id=<?= htmlspecialchars($pet['OwnerId']) ?>" class="add-pet-button">
                                                 + Add Pet
                                             </a>
                                         </div>
@@ -467,15 +450,6 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 <?php endif; ?>
             </tbody>
         </table>
-        <div id="toastContainer" class="toast-container">
-            <?php if (!empty($_SESSION['success'])): ?>
-                <div class="success-toast" id="successToast">
-                    <i class="fas fa-check-circle"></i>
-                    <?= htmlspecialchars($_SESSION['success']); ?>
-                </div>
-                <?php unset($_SESSION['success']);?>
-            <?php endif; ?>
-        </div>
         <div class="pagination">
             <a href="?page=<?= max(0, $currentPage - 1) ?>">&laquo; Previous</a>
             <?php for ($i = 0; $i < $totalPages; $i++): ?>
@@ -487,18 +461,32 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             <?php endfor; ?>
             <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
         </div>
-        <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                const toast = document.getElementById("successToast");
-                if (toast) {
-                    // Remove the toast after 4 seconds
-                    setTimeout(() => {
-                        toast.remove();
-                    }, 4000);
-                }
-            });
-        </script>
         <script src="../assets/js/record.js?v=<?= time(); ?>"></script>
+        <?php if (isset($_SESSION['errors']['duplicate'])): ?>
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    Swal.fire({
+                        title: "Duplicate Entry",
+                        text: "<?= htmlspecialchars($_SESSION['errors']['duplicate']) ?>",
+                        icon: "error",
+                        confirmButtonText: "OK"
+                    });
+                });
+            </script>
+            <?php unset($_SESSION['errors']['duplicate']); // Clear error after displaying ?>
+        <?php endif; ?>
+        <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    Swal.fire({
+                        title: "Success!",
+                        text: "Pet added successfully!",
+                        icon: "success",
+                        confirmButtonText: "OK"
+                    });
+                });
+            </script>
+        <?php endif; ?>
         <script>
             function confirmConfine(petId) {
                 Swal.fire({

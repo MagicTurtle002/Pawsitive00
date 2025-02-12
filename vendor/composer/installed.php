@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '194bee1ace26e174390295732d89aa07cb53a357',
+        'reference' => '0f8b560497d571dae079ebb920ec3a68a76f1bf7',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '194bee1ace26e174390295732d89aa07cb53a357',
+            'reference' => '0f8b560497d571dae079ebb920ec3a68a76f1bf7',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -324,6 +324,15 @@
             'install_path' => __DIR__ . '/../theseer/tokenizer',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'twilio/sdk' => array(
+            'pretty_version' => '8.3.14',
+            'version' => '8.3.14.0',
+            'reference' => 'cb20c1876f9a9b00f3c8b9c38dee17fcb5ae6254',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../twilio/sdk',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'vlucas/phpdotenv' => array(
             'pretty_version' => 'v5.6.1',
