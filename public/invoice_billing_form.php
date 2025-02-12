@@ -108,7 +108,7 @@ $unpaidInvoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td><?= htmlspecialchars($invoice['PetName']) ?></td>
                     <td><?= htmlspecialchars($invoice['OwnerName']) ?></td>
                     <td><?= htmlspecialchars($invoice['ServiceName']) ?></td>
-                    <td>$<?= number_format($invoice['TotalAmount'], 2) ?></td>
+                    <td>₱<?= number_format($invoice['TotalAmount'], 2) ?></td>
                     <td><?= htmlspecialchars($invoice['Status']) ?></td>
                     <td>
                         <button class="mark-paid-btn" data-id="<?= $invoice['InvoiceId'] ?>">Mark as Paid</button>
