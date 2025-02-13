@@ -26,21 +26,33 @@ $checkInvoice->execute([$appointmentId, $petId]);
 $invoiceExists = $checkInvoice->fetchColumn();
 
 if ($invoiceExists > 0) {
-    // ❌ Prevent duplicate invoice generation
     echo json_encode(["success" => false, "message" => "⚠️ An invoice has already been generated for this appointment."]);
     exit;
 }
 
-// ✅ Step 2: Generate a new invoice
-$invoiceNumber = 'INV-' . time(); // Unique invoice number
-$vaccineCost = 50.00; // Adjust cost as needed
-
+// ✅ Step 2: Fetch the service price using the `ServiceId` from `Appointments`
 try {
+    $stmt = $pdo->prepare("
+        SELECT s.Price 
+        FROM Appointments a
+        JOIN Services s ON a.ServiceId = s.ServiceId
+        WHERE a.AppointmentId = ?
+    ");
+    $stmt->execute([$appointmentId]);
+    $servicePrice = $stmt->fetchColumn();
+
+    if ($servicePrice === false) {
+        echo json_encode(["success" => false, "message" => "⚠️ No valid service found for this appointment."]);
+        exit;
+    }
+
+    // ✅ Step 3: Generate and insert the invoice
+    $invoiceNumber = 'INV-' . time();
     $stmt = $pdo->prepare("
         INSERT INTO Invoices (AppointmentId, PetId, InvoiceNumber, InvoiceDate, TotalAmount, Status) 
         VALUES (?, ?, ?, NOW(), ?, 'Pending')
     ");
-    $stmt->execute([$appointmentId, $petId, $invoiceNumber, $vaccineCost]);
+    $stmt->execute([$appointmentId, $petId, $invoiceNumber, $servicePrice]);
 
     echo json_encode(["success" => true, "message" => "✅ Invoice generated successfully!"]);
 } catch (PDOException $e) {

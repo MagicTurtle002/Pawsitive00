@@ -534,26 +534,44 @@ try {
     </script>
     <script>
         function sendReminder(phone, petName, ownerName, followUpDate, notes) {
-            const message = `Hello ${ownerName}, this is a reminder from Pawsitive. 
-            ${petName} has a follow-up on ${followUpDate}. Notes: ${notes}.`;
+            if (!phone) {
+                Swal.fire('Error!', 'Phone number is missing.', 'error');
+                return;
+            }
 
-            fetch('../src/send_sms.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `phone=${encodeURIComponent(phone)}&message=${encodeURIComponent(message)}`
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        Swal.fire('Success!', data.message, 'success');
-                    } else {
-                        Swal.fire('Error!', data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    Swal.fire('Error!', 'Failed to send SMS.', 'error');
-                    console.error('Error:', error);
-                });
+            Swal.fire({
+                title: 'Send Reminder?',
+                text: `Do you want to send a reminder to ${ownerName} for ${petName}'s follow-up on ${followUpDate}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Send Reminder',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const message = `Hello ${ownerName}, this is a reminder from Pawsitive. 
+                ${petName} has a follow-up on ${followUpDate}. Notes: ${notes}.`;
+
+                    fetch('../src/send_sms.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `phone=${encodeURIComponent(phone)}&message=${encodeURIComponent(message)}`
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                Swal.fire('Success!', 'Reminder sent successfully!', 'success');
+                            } else {
+                                Swal.fire('Error!', data.message, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire('Error!', 'Failed to send SMS.', 'error');
+                            console.error('Error:', error);
+                        });
+                }
+            });
         }
     </script>
     <script>

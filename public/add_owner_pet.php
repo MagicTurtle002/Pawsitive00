@@ -140,6 +140,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         if (empty($weight) || $weight <= 0) {
             $errors['Weight'] = "Weight is required.";
+        } elseif ($weight < 0.1 || $weight > 500) {
+            $errors['Weight'] = "Weight must be between 0.1 and 500 kg.";
         }
 
         if (!empty($errors)) {

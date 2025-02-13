@@ -61,13 +61,13 @@ $unpaidInvoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <ul class="nav-links">
             <li><a href="main_dashboard.php">
                     <img src="../assets/images/Icons/Chart 1.png" alt="Overview Icon">Overview</a></li>
-            <li class="active"><a href="record.php">
+            <li><a href="record.php">
                     <img src="../assets/images/Icons/Record 3.png" alt="Record Icon">Record</a></li>
             <li><a href="staff.php">
                     <img src="../assets/images/Icons/Staff 1.png" alt="Contacts Icon">Staff</a></li>
             <li><a href="appointment.php">
                     <img src="../assets/images/Icons/Schedule 1.png" alt="Schedule Icon">Schedule</a></li>
-            <li><a href="invoice_billing_form.php">
+            <li class="active"><a href="invoice_billing_form.php">
                     <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice and Billing</a></s>
         </ul>
     </nav>
@@ -108,7 +108,7 @@ $unpaidInvoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td><?= htmlspecialchars($invoice['PetName']) ?></td>
                     <td><?= htmlspecialchars($invoice['OwnerName']) ?></td>
                     <td><?= htmlspecialchars($invoice['ServiceName']) ?></td>
-                    <td>$<?= number_format($invoice['TotalAmount'], 2) ?></td>
+                    <td>₱<?= number_format($invoice['TotalAmount'], 2) ?></td>
                     <td><?= htmlspecialchars($invoice['Status']) ?></td>
                     <td>
                         <button class="mark-paid-btn" data-id="<?= $invoice['InvoiceId'] ?>">Mark as Paid</button>
