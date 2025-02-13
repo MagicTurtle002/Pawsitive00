@@ -34,89 +34,134 @@ $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Invoices - Pawsitive</title>
-    <link rel="icon" type="image/x-icon" href="../assets/images/logo/LOGO.png">
+    <title>Pawsitive | Invoice</title>
+    <link rel="icon" type="image/x-icon" href="../../../assets/images/logo/LOGO.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="../assets/css/owner_dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="invoice.css">
 </head>
-
 <body>
-    <div class="main-content">
-        <h2>Invoice History</h2>
-        <p>View all your past invoices related to pet services.</p>
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="../../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.php">Home</a></li>
+                <li><a href="../appointment/book_appointment.php">Appointment</a></li>
+                <li><a href="../pet/pet_add.php">Pets</a></li>
+                <li><a href="../record/pet_record.php">Record</a></li>
+                <li><a href="invoice.php" class="active">Invoice</a></li>
+            </ul>
+            <div class="profile-dropdown">
+                <img src="../../../assets/images/Icons/User 1.png" alt="Profile Icon" class="profile-icon">
+                <div class="dropdown-content">
+                    <a href=""><img src="../../../assets/images/Icons/Settings 2.png" alt="Settings">Settings</a>
+                    <a href=""><img src="../../../assets/images/Icons/Sign out.png" alt="Sign Out">Sign Out</a>
+                </div>
+            </div>
+        </nav>
+    </header>
 
-        <table class="invoice-table">
-            <thead>
-                <tr>
-                    <th>Invoice #</th>
-                    <th>Invoice Date</th>
-                    <th>Appointment Date</th>
-                    <th>Pet Name</th>
-                    <th>Service</th>
-                    <th>Total Amount</th>
-                    <th>Status</th>
-                    <th>Paid At</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($invoices)): ?>
-                    <?php foreach ($invoices as $invoice): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($invoice['InvoiceNumber']) ?></td>
-                            <td><?= htmlspecialchars($invoice['InvoiceDate']) ?></td>
-                            <td><?= htmlspecialchars($invoice['AppointmentDate']) ?></td>
-                            <td><?= htmlspecialchars($invoice['PetName']) ?></td>
-                            <td><?= htmlspecialchars($invoice['ServiceName']) ?></td>
-                            <td>$<?= number_format($invoice['TotalAmount'], 2) ?></td>
-                            <td>
-                                <?php if ($invoice['Status'] === 'Paid'): ?>
-                                    <span class="status paid">Paid</span>
-                                <?php elseif ($invoice['Status'] === 'Overdue'): ?>
-                                    <span class="status overdue">Overdue</span>
+    <main>
+        <section class="hero">
+            <div class="hero-text">
+                <h1>Invoice History</h1>
+            </div>
+        </section>
+        <div class="main-content">
+            <div class="container">
+                <!-- Right Section: Add Pet Form -->
+                <div class="right-section">
+                    <!-- <h2>Add a New Pet</h2> -->
+                    <form class="staff-form" action="add_pet.php" method="POST">
+                        <section id="appointments-section" class="appointments-section">
+                            <div class="appointments-container">
+                                <?php if (!empty($invoices)): ?>
+                                    <table class="invoice-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Invoice #</th>
+                                                <th>Invoice Date</th>
+                                                <th>Appointment Date</th>
+                                                <th>Pet Name</th>
+                                                <th>Service</th>
+                                                <th>Total Amount</th>
+                                                <th>Status</th>
+                                                <th>Paid At</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        <?php foreach ($invoices as $invoice): ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($invoice['InvoiceNumber']) ?></td>
+                                            <td><?= htmlspecialchars($invoice['InvoiceDate']) ?></td>
+                                            <td><?= htmlspecialchars($invoice['AppointmentDate']) ?></td>
+                                            <td><?= htmlspecialchars($invoice['PetName']) ?></td>
+                                            <td><?= htmlspecialchars($invoice['ServiceName']) ?></td>
+                                            <td>$<?= number_format($invoice['TotalAmount'], 2) ?></td>
+                                            <td>
+                                                <?php if ($invoice['Status'] === 'Paid'): ?>
+                                                    <span class="status paid">Paid</span>
+                                                <?php elseif ($invoice['Status'] === 'Overdue'): ?>
+                                                    <span class="status overdue">Overdue</span>
+                                                <?php else: ?>
+                                                    <span class="status pending">Pending</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td><?= $invoice['PaidAt'] ? htmlspecialchars($invoice['PaidAt']) : '-' ?></td>
+                                            <td>
+                                                <button class="download-btn" data-id="<?= $invoice['InvoiceId'] ?>">
+                                                    <i class="fas fa-download"></i> Download
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
                                 <?php else: ?>
-                                    <span class="status pending">Pending</span>
+                                    <tr><td colspan="9">No invoices found.</td></tr>
                                 <?php endif; ?>
-                            </td>
-                            <td><?= $invoice['PaidAt'] ? htmlspecialchars($invoice['PaidAt']) : '-' ?></td>
-                            <td>
-                                <button class="download-btn" data-id="<?= $invoice['InvoiceId'] ?>">
-                                    <i class="fas fa-download"></i> Download
-                                </button>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr><td colspan="9">No invoices found.</td></tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
+                            </div>
+                        </section>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        document.querySelectorAll(".download-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                const invoiceId = this.dataset.id;
-                window.location.href = `download_invoice.php?invoice_id=${invoiceId}`;
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".download-btn").forEach(button => {
+                button.addEventListener("click", function () {
+                    const invoiceId = this.dataset.id;
+                    window.location.href = `download_invoice.php?invoice_id=${invoiceId}`;
+                });
             });
         });
-    });
     </script>
 
-    <style>
-        body { font-family: 'Arial', sans-serif; }
-        .main-content { max-width: 90%; margin: auto; padding: 20px; }
-        .invoice-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .invoice-table th, .invoice-table td { padding: 10px; border: 1px solid #ddd; text-align: center; }
-        .invoice-table th { background-color: #f4f4f4; }
-        .status { padding: 5px 10px; border-radius: 5px; font-weight: bold; }
-        .status.paid { background-color: #4CAF50; color: white; }
-        .status.pending { background-color: #FFC107; color: white; }
-        .status.overdue { background-color: #E74C3C; color: white; }
-        .download-btn { background: #3498db; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 5px; }
-        .download-btn:hover { background: #2980b9; }
-    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const profileIcon = document.querySelector('.profile-icon');
+            const dropdownContent = document.querySelector('.dropdown-content');
+
+            profileIcon.addEventListener('click', function () {
+                dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+            });
+
+            window.addEventListener('click', function (event) {
+                if (!event.target.matches('.profile-icon')) {
+                    if (dropdownContent.style.display === 'block') {
+                        dropdownContent.style.display = 'none';
+                    }
+                }
+            });
+        });
+    </script>
+    
 </body>
 </html>

@@ -304,7 +304,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 <li><a href="appointment.php">
                         <img src="../assets/images/Icons/Schedule 1.png" alt="Schedule Icon">Schedule</a></li>
                 <li><a href="invoice_billing_form.php">
-                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice and Billing</a></s>
+                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice</a></li>
             </ul>
         </nav>
         <div class="sidebar-bottom">

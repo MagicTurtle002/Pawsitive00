@@ -996,4 +996,9 @@ main {
     font-weight: bold;
 }
 
+.required-asterisk, .required {
+  color: red;
+  font-weight: bold;
+}
+
 

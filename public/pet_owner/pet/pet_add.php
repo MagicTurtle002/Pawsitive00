@@ -45,23 +45,21 @@ try {
     die("Database Error: " . $e->getMessage());
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pawsitive</title>
+    <title>Pawsitive | Pets</title>
     <link rel="icon" type="image/x-icon" href="../../../assets/images/logo/LOGO.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-        rel="stylesheet">
-
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="pet_add.css">
+
     <script>
         const bookedTimesByDate = <?= json_encode($bookedTimesByDate); ?>;
     </script>
@@ -76,17 +74,13 @@ try {
             <ul class="nav-links">
                 <li><a href="../index.php">Home</a></li>
                 <li><a href="../appointment/book_appointment.php">Appointment</a></li>
-                <li><a href="../pet/pet_add.php" class="active">Pets</a></li>
+                <li><a href="pet_add.php" class="active">Pets</a></li>
                 <li><a href="../record/pet_record.php">Record</a></li>
-                <li><a href="../record/record.php">Billing</a></li>
+                <li><a href="../invoice/invoice.php">Invoice</a></li>
             </ul>
             <div class="profile-dropdown">
                 <img src="../../../assets/images/Icons/User 1.png" alt="Profile Icon" class="profile-icon">
                 <div class="dropdown-content">
-                    <a href="profile/index.php"><img src="../../../assets/images/Icons/Profile.png"
-                            alt="Profile Icon">Profile</a>
-                    <a href=""><img src="../../../assets/images/Icons/Change Password.png"
-                            alt="Change Password Icon">Change Password</a>
                     <a href=""><img src="../../../assets/images/Icons/Settings 2.png" alt="Settings">Settings</a>
                     <a href=""><img src="../../../assets/images/Icons/Sign out.png" alt="Sign Out">Sign Out</a>
                 </div>
@@ -95,88 +89,11 @@ try {
     </header>
 
     <main>
-        <section class="hero">
+    <section class="hero">
             <div class="hero-text">
                 <h1>Pets</h1>
             </div>
         </section>
-
-        <div class="main-content">
-            <div class="container">
-
-                <!-- Right Section: Add Pet Form -->
-                <div class="right-section">
-                <h2>Add a New Pet</h2>
-                    <!-- <h2>Add a New Pet</h2> -->
-                    <form class="staff-form" action="add_pet.php" method="POST">
-                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
-
-                        <div class="form-row">
-                    <div class="input-container">
-                        <label for="Name">Pet Name:</label>
-                        <input type="text" id="Name" name="Name" required minlength="3" aria-invalid="false" placeholder="Enter pet name">
-                    </div>
-                    <div class="input-container">
-                        <label for="Gender">Gender:</label>
-                        <select id="Gender" name="Gender" required>
-                            <option value="">Select gender</option>
-                            <option value="1">Male</option>
-                            <option value="2">Female</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="input-container">
-                        <label for="PetType">Pet Type:</label>
-                        <select id="PetType" name="PetType" required>
-                            <option value="">Select pet type</option>
-                            <?php foreach ($petTypes as $petType): ?>
-                                <option value="<?php echo $petType['Id']; ?>">
-                                    <?php echo $petType['SpeciesName']; ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="input-container">
-                        <label for="Breed">Breed:</label>
-                        <select id="Breed" name="Breed" required>
-                            <option value="">Select breed</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="input-container">
-                        <label for="Birthday">Birthday or Birth Year:</label>
-                        <input type="text" id="Birthday" name="Birthday" placeholder="YYYY-MM-DD or YYYY" required>
-                    </div>
-                    <div class="input-container">
-                        <label for="CalculatedAge">Age:</label>
-                        <input type="text" id="CalculatedAge" name="CalculatedAge" required placeholder="Enter pet's age">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="input-container">
-                        <label for="ProfilePicture">Upload Profile Picture:</label>
-                        <input type="file" id="ProfilePicture" name="ProfilePicture" accept="image/*" optional>
-                    </div>
-                    <div class="input-container">
-                        <label for="Weight">Weight:</label>
-                        <input type="number" step="0.01" id="Weight" name="Weight" required placeholder="Enter pet's weight">
-                    </div>
-                </div>
-
-                <div class="form-buttons">
-                    <button type="button" class="cancel-btn" onclick="window.location.href='../index.html'">Cancel</button>
-                    <button type="submit" class="regowner-btn">Add Pet</button>
-                </div>
-            </form>
-        </div>
-    </main>
-
-    <main>
     <div class="main-content">
         <div class="container">
             <div class="right-section">
@@ -212,6 +129,89 @@ try {
                     <p>You have no pets registered.</p>
                 <?php endif; ?>
           </div>
+    </main>
+
+    <main>
+        <div class="main-content">
+            <div class="container">
+
+                <!-- Right Section: Add Pet Form -->
+                <div class="right-section">
+                <h2>Add a New Pet</h2>
+                    <!-- <h2>Add a New Pet</h2> -->
+                    <form class="staff-form" action="add_pet.php" method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+
+                        <div class="form-row">
+                    <div class="input-container">
+                        <label for="Name">Pet Name:<span class="required">*</span></label>
+                        <input type="text" id="Name" name="Name" required minlength="3" aria-invalid="false" placeholder="Enter pet name">
+                    </div>
+                    <div class="input-container">
+                        <label for="Gender">Gender:<span class="required">*</span></label>
+                        <select id="Gender" name="Gender" required>
+                            <option value="">Select gender</option>
+                            <option value="1">Male</option>
+                            <option value="2">Female</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-container">
+                        <label for="PetType">Pet Type:<span class="required">*</span></label>
+                        <select id="PetType" name="PetType" required>
+                            <option value="">Select pet type</option>
+                            <?php foreach ($petTypes as $petType): ?>
+                                <option value="<?php echo $petType['Id']; ?>">
+                                    <?php echo $petType['SpeciesName']; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="input-container">
+                        <label for="Breed">Breed:<span class="required">*</span></label>
+                        <select id="Breed" name="Breed" required>
+                            <option value="">Select breed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-container">
+                        <label for="Birthday">Birthday:<span class="required">*</span></label>
+                        <input type="date" id="Birthday" name="Birthday"
+                            value="<?= htmlspecialchars($form_data['Birthday'] ?? '') ?>" placeholder="YYYY-MM-DD"
+                            required>
+                        <?php if (isset($errors['BirthdayOrYear'])): ?>
+                            <span class="error-message"><?= htmlspecialchars($errors['BirthdayOrYear']) ?></span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="input-container">
+                        <label for="CalculatedAge">Calculated Age:<span class="required">*</span></label>
+                        <input type="text" id="CalculatedAge" name="CalculatedAge"
+                            value="<?= htmlspecialchars($form_data['CalculatedAge'] ?? '') ?>" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="input-container">
+                        <label for="ProfilePicture">Upload Profile Picture:<span class="required">*</span></label>
+                        <input type="file" id="ProfilePicture" name="ProfilePicture" accept="image/*" optional>
+                    </div>
+                    <div class="input-container">
+                        <label for="Weight">Weight:<span class="required">*</span></label>
+                        <input type="number" step="0.01" id="Weight" name="Weight" required placeholder="Enter pet's weight">
+                    </div>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="button" class="cancel-btn" onclick="window.location.href='../index.html'">Cancel</button>
+                    <button type="submit" class="regowner-btn">Add Pet</button>
+                </div>
+            </form>
+        </div>
     </main>
 
     <script>

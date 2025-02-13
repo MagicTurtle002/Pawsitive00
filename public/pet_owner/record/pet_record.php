@@ -69,15 +69,13 @@ if (!empty($pets)) {
 <head>
 <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pawsitive</title>
+    <title>Pawsitive | Record</title>
     <link rel="icon" type="image/x-icon" href="../../../assets/images/logo/LOGO.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="pet_record.css">
 </head>
 
@@ -92,8 +90,15 @@ if (!empty($pets)) {
                 <li><a href="../appointment/book_appointment.php">Appointment</a></li>
                 <li><a href="../pet/pet_add.php">Pets</a></li>
                 <li><a href="pet_record.php" class="active">Record</a></li>
-                <li><a href="../record/record.php">Billing</a></li>
+                <li><a href="../invoice/invoice.php">Invoice</a></li>
             </ul>
+            <div class="profile-dropdown">
+                <img src="../../../assets/images/Icons/User 1.png" alt="Profile Icon" class="profile-icon">
+                <div class="dropdown-content">
+                    <a href=""><img src="../../../assets/images/Icons/Settings 2.png" alt="Settings">Settings</a>
+                    <a href=""><img src="../../../assets/images/Icons/Sign out.png" alt="Sign Out">Sign Out</a>
+                </div>
+            </div>
         </nav>
     </header>
 
@@ -147,11 +152,19 @@ if (!empty($pets)) {
                             <p><b>Chief Complaint:</b> <?= htmlspecialchars($record['ChiefComplaint']) ?></p>
                             <p><b>Duration (Days):</b> <?= htmlspecialchars($record['DurationDays']) ?></p>
                             <p><b>Observed Symptoms:</b> <?= htmlspecialchars($record['ObservedSymptoms']) ?></p>
+                            
+                            <br>
+                            <hr>
+                            <br>
 
                             <h3 class="consultation-title">Medical History</h3>
                             <p><b>Appetite:</b> <?= htmlspecialchars($record['Appetite']) ?></p>
                             <p><b>Diet:</b> <?= htmlspecialchars($record['Diet']) ?></p>
                             <p><b>Medication Prior Checkup:</b> <?= htmlspecialchars($record['MedicationPriorCheckup']) ?></p>
+                            
+                            <br>
+                            <hr>
+                            <br>
 
                             <h3 class="consultation-title">Physical Examination</h3>
                             <p><b>Urine Frequency:</b> <?= htmlspecialchars($record['UrineFrequency']) ?></p>
@@ -168,6 +181,25 @@ if (!empty($pets)) {
             </div>
         </section>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const profileIcon = document.querySelector('.profile-icon');
+            const dropdownContent = document.querySelector('.dropdown-content');
+
+            profileIcon.addEventListener('click', function () {
+                dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+            });
+
+            window.addEventListener('click', function (event) {
+                if (!event.target.matches('.profile-icon')) {
+                    if (dropdownContent.style.display === 'block') {
+                        dropdownContent.style.display = 'none';
+                    }
+                }
+            });
+        });
+    </script>
 
     <script>
         document.getElementById("pet-dropdown").addEventListener("change", function() {

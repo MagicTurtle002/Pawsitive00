@@ -256,7 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </li>
                 <li>
                     <a href="invoice_billing_form.php">
-                        <img src="../assets/images/Icons/Billing 1.png" alt="Billing Icon">Invoice and Billing
+                        <img src="../assets/images/Icons/Billing 1.png" alt="Billing Icon">Invoice
                     </a>
                 </li>
             </ul>
@@ -360,7 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     class="schedule-item">
                                     <div class="appointment-header">
                                         <h3 style="font-size: 22px;"><?= htmlspecialchars($appointment['PetName']); ?></h3>
-                                        <div class="dropdown">
+                                        <!-- <div class="dropdown">
                                             <button id="menu-btn-<?= $appointment['AppointmentId']; ?>" class="menu-btn"
                                                 onclick="toggleMenu(<?= $appointment['AppointmentId']; ?>)">⋮</button>
                                             <div id="menu-<?= $appointment['AppointmentId']; ?>" class="dropdown-content"
@@ -368,7 +368,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 <a href="#"
                                                     onclick="openRescheduleModal(event, <?= $appointment['AppointmentId']; ?>); return false;">Reschedule</a>
                                             </div>
-                                        </div>
+                                        </div> -->
                                     </div>
                                     <p><strong>Service:</strong> <?= htmlspecialchars($appointment['ServiceName']); ?></p>
                                     <p><strong>Date:</strong> <?= htmlspecialchars($appointment['AppointmentDate']); ?></p>
@@ -426,8 +426,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php else: ?>
                             <p>No upcoming appointments.</p>
                         <?php endif; ?>
-                        <button class="see-all-button" onclick="window.location.href='appointment_list.php';">See
-                            All</button>
+                        <button class="see-all-button" onclick="window.location.href='appointment_list.php';">See All</button>
                     </div>
                 </div>
                 <div class="alerts">
