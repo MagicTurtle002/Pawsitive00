@@ -68,7 +68,7 @@ $unpaidInvoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <li><a href="appointment.php">
                     <img src="../assets/images/Icons/Schedule 1.png" alt="Schedule Icon">Schedule</a></li>
             <li class="active"><a href="invoice_billing_form.php">
-                    <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice and Billing</a></s>
+                    <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice</a></s>
         </ul>
     </nav>
     <div class="sidebar-bottom">
