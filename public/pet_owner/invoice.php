@@ -48,20 +48,20 @@ $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <header>
         <nav>
             <div class="logo">
-                <img src="../../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
             </div>
             <ul class="nav-links">
-                <li><a href="../index.php">Home</a></li>
-                <li><a href="../appointment/book_appointment.php">Appointment</a></li>
-                <li><a href="../pet/pet_add.php">Pets</a></li>
-                <li><a href="../record/pet_record.php">Record</a></li>
+                <li><a href="index.php">Home</a></li>
+                <li><a href="book_appointment.php">Appointment</a></li>
+                <li><a href="pet_add.php">Pets</a></li>
+                <li><a href="pet_record.php">Record</a></li>
                 <li><a href="invoice.php" class="active">Invoice</a></li>
             </ul>
             <div class="profile-dropdown">
-                <img src="../../../assets/images/Icons/User 1.png" alt="Profile Icon" class="profile-icon">
+                <img src="../../assets/images/Icons/User 1.png" alt="Profile Icon" class="profile-icon">
                 <div class="dropdown-content">
-                    <a href=""><img src="../../../assets/images/Icons/Settings 2.png" alt="Settings">Settings</a>
-                    <a href=""><img src="../../../assets/images/Icons/Sign out.png" alt="Sign Out">Sign Out</a>
+                    <a href=""><img src="../../assets/images/Icons/Settings 2.png" alt="Settings">Settings</a>
+                    <a href=""><img src="../../assets/images/Icons/Sign out.png" alt="Sign Out">Sign Out</a>
                 </div>
             </div>
         </nav>
@@ -138,7 +138,10 @@ $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
             document.querySelectorAll(".download-btn").forEach(button => {
                 button.addEventListener("click", function () {
                     const invoiceId = this.dataset.id;
-                    window.location.href = `../../../src/download_invoice.php?invoice_id=${invoiceId}`;
+                    const downloadUrl = `../../src/download_invoice.php?invoice_id=${invoiceId}`;
+
+                    // ✅ Open download in a new tab
+                    window.open(downloadUrl, '_blank');
                 });
             });
         });
