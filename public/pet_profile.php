@@ -68,7 +68,8 @@ try {
             p.Gender,
             p.Weight,
             CONCAT(o.FirstName, ' ', o.LastName) AS OwnerName,
-            o.Phone
+            o.Phone,
+            p.ProfilePicture
         FROM Pets p
         INNER JOIN Species sp ON p.SpeciesId = sp.Id
         INNER JOIN Owners o ON p.OwnerId = o.OwnerId
@@ -260,7 +261,9 @@ try {
         <h1>Pet Profile</h1>
         <div class="profile">
             <div class="profile-image">
-                <img src="<?= htmlspecialchars(!empty($pet['ProfilePicture']) ? $pet['ProfilePicture'] : '../assets/images/Icons/Profile User.png'); ?>"
+                <img src="<?= !empty($pet['ProfilePicture']) && file_exists("../uploads/pet_avatars/" . $pet['ProfilePicture']) 
+                            ? "../uploads/pet_avatars/" . htmlspecialchars($pet['ProfilePicture']) 
+                            : '../assets/images/Icons/Profile User.png'; ?>" 
                     alt="<?= htmlspecialchars($pet['PetName']); ?>'s Profile Picture">
             </div>
             <div class="profile-details-horizontal">

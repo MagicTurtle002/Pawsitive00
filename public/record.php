@@ -23,7 +23,6 @@ $offset = $currentPage * $recordsPerPage;
 $where_clause = [];
 $params = [];
 
-// Handle search
 if (!empty($_GET['search'])) {
     $search = '%' . $_GET['search'] . '%';
     $where_clause[] = "(
@@ -36,10 +35,8 @@ if (!empty($_GET['search'])) {
     $params = array_fill(0, 5, $search); // Ensure exactly 5 placeholders
 }
 
-// Handle archived filter
-$where_clause[] = isset($_GET['archived']) && $_GET['archived'] === '1' ? "Pets.IsArchived = 1" : "Pets.IsArchived = 0";
+$where_clause[] = "CAST(Pets.IsArchived AS UNSIGNED) = 0 AND CAST(Pets.IsConfined AS UNSIGNED) = 0";
 
-// Construct final SQL query
 $where_sql = !empty($where_clause) ? 'WHERE ' . implode(' AND ', $where_clause) : '';
 
 $query = "
@@ -139,17 +136,13 @@ SELECT
 FROM Pets
 INNER JOIN Owners ON Pets.OwnerId = Owners.OwnerId
 LEFT JOIN Species ON Pets.SpeciesId = Species.Id
+WHERE Pets.IsArchived = 0 AND Pets.IsConfined = 0
 ORDER BY NextVisit DESC
 LIMIT ?, ?;
 ";
-
 // Append pagination parameters
 $params[] = $offset;
 $params[] = $recordsPerPage;
-
-// Debugging: Print parameters before executing
-//var_dump($params);
-//die();
 
 // Execute the query
 $stmt = $pdo->prepare($query);

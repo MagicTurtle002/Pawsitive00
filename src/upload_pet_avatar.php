@@ -1,92 +1,91 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require '../config/dbh.inc.php';
+session_start();
 
-header('Content-Type: application/json'); // Ensure JSON response
+$response = ['success' => false];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profilePicture']) && isset($_POST['petId'])) {
-    $petId = $_POST['petId'];
-    $file = $_FILES['profilePicture'];
+if (!isset($_SESSION['LoggedIn'])) {
+    $response['error'] = 'User not logged in.';
+    echo json_encode($response);
+    exit;
+}
 
-    // Define the upload directory (Ensure absolute path)
-    $uploadDir = realpath("../uploads/pet_avatars/") . "/";
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profilePicture'], $_POST['petId'])) {
+    $petId = (int) $_POST['petId'];
+    $ownerId = $_SESSION['OwnerId'] ?? null;
 
-    // Create directory if it doesn't exist
-    if (!$uploadDir) {
-        mkdir("../uploads/pet_avatars/", 0777, true);
-        chmod("../uploads/pet_avatars/", 0777);
-        $uploadDir = realpath("../uploads/pet_avatars/") . "/";
+    if (!$ownerId) {
+        $response['error'] = 'Owner ID not found.';
+        echo json_encode($response);
+        exit;
     }
 
-    // Check if directory exists
+    // Ensure the upload directory exists
+    $uploadDir = '../uploads/pet_avatars/';
     if (!is_dir($uploadDir)) {
-        error_log("🚨 Upload directory does not exist: " . $uploadDir);
-        echo json_encode(['success' => false, 'error' => 'Upload directory does not exist.']);
-        exit;
+        mkdir($uploadDir, 0777, true);
     }
 
     // Check if directory is writable
     if (!is_writable($uploadDir)) {
-        error_log("🚨 Upload directory is not writable: " . $uploadDir);
-        chmod($uploadDir, 0777);
-        echo json_encode(['success' => false, 'error' => 'Upload directory is not writable.']);
+        $response['error'] = 'Upload directory is not writable. Check folder permissions.';
+        echo json_encode($response);
         exit;
     }
 
-    error_log("✅ Upload directory is valid and writable: " . $uploadDir);
-
-    // Debugging: Check temp file path
-    error_log("Temp file: " . $file['tmp_name']);
-    error_log("Target directory: " . $uploadDir);
-
-    // Validate file upload
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        error_log("🚨 File upload error: Code " . $file['error']);
-        echo json_encode(['success' => false, 'error' => 'File upload error. Code: ' . $file['error']]);
-        exit;
-    }
-
-    // Validate file type (Only allow images)
+    $file = $_FILES['profilePicture'];
     $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    $maxSize = 5 * 1024 * 1024; // 5MB max size
+
+    // Handle upload errors
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $uploadErrors = [
+            UPLOAD_ERR_INI_SIZE => 'The file is too large (server limit).',
+            UPLOAD_ERR_FORM_SIZE => 'The file exceeds the form size limit.',
+            UPLOAD_ERR_PARTIAL => 'The file was only partially uploaded.',
+            UPLOAD_ERR_NO_FILE => 'No file was uploaded.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder.',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.',
+            UPLOAD_ERR_EXTENSION => 'File upload stopped by an extension.'
+        ];
+        $response['error'] = $uploadErrors[$file['error']] ?? 'Unknown file upload error.';
+        echo json_encode($response);
+        exit;
+    }
+
     if (!in_array($file['type'], $allowedTypes)) {
-        error_log("🚨 Invalid file type: " . $file['type']);
-        echo json_encode(['success' => false, 'error' => 'Invalid file type. Only JPG, PNG, and GIF allowed.']);
-        exit;
-    }
-
-    // Validate file size (Limit to 5MB)
-    $maxFileSize = 5 * 1024 * 1024; // 5MB
-    if ($file['size'] > $maxFileSize) {
-        error_log("🚨 File too large: " . $file['size'] . " bytes");
-        echo json_encode(['success' => false, 'error' => 'File too large. Max size is 5MB.']);
-        exit;
-    }
-
-    // Create a unique filename
-    $fileExtension = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $fileName = 'pet_' . $petId . '_' . time() . '.' . $fileExtension;
-    $uploadFilePath = $uploadDir . $fileName;
-
-    // Attempt file move
-    if (move_uploaded_file($file['tmp_name'], $uploadFilePath)) {
-        chmod($uploadFilePath, 0644); // Secure uploaded file
-
-        // Store image path in database
-        $stmt = $pdo->prepare("UPDATE Pets SET ProfilePicture = :filePath WHERE PetId = :petId");
-        $stmt->bindParam(':filePath', $fileName);
-        $stmt->bindParam(':petId', $petId, PDO::PARAM_INT);
-
-        if ($stmt->execute()) {
-            echo json_encode(['success' => true, 'imagePath' => $fileName]);
-        } else {
-            error_log("🚨 Database update failed.");
-            echo json_encode(['success' => false, 'error' => 'Database update failed']);
-        }
+        $response['error'] = 'Invalid file type. Only JPG, PNG, and GIF allowed.';
+    } elseif ($file['size'] > $maxSize) {
+        $response['error'] = 'File size exceeds the 5MB limit.';
     } else {
-        error_log("❌ File move failed: " . $file['tmp_name'] . " to " . $uploadFilePath);
-        echo json_encode(['success' => false, 'error' => 'File move failed.']);
+        $fileExt = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $newFileName = "pet_{$petId}_" . time() . "." . $fileExt;
+        $filePath = $uploadDir . $newFileName;
+
+        if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            // Update database with new image name
+            $query = "UPDATE Pets SET ProfilePicture = :profileImage WHERE PetId = :petId AND OwnerId = :ownerId";
+            $stmt = $pdo->prepare($query);
+            $stmt->bindParam(':profileImage', $newFileName, PDO::PARAM_STR);
+            $stmt->bindParam(':petId', $petId, PDO::PARAM_INT);
+            $stmt->bindParam(':ownerId', $ownerId, PDO::PARAM_INT);
+
+            if ($stmt->execute()) {
+                $response['success'] = true;
+                $response['filePath'] = $filePath;
+            } else {
+                $response['error'] = 'Database update failed.';
+            }
+        } else {
+            $response['error'] = 'Failed to move uploaded file.';
+        }
     }
 } else {
-    error_log("🚨 Invalid request.");
-    echo json_encode(['success' => false, 'error' => 'Invalid request.']);
+    $response['error'] = 'Invalid request.';
 }
-?>
+
+echo json_encode($response);
