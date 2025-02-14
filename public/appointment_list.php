@@ -241,7 +241,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             $currentDate = $appointmentDate;
                             ?>
                             <tr class="date-header">
-                                <td colspan="5"><?= date("F j, Y", strtotime($currentDate)) ?></td>
+                                <td colspan="5"><strong><?= date("F j, Y", strtotime($currentDate)) ?></strong></td>
                             </tr>
                             <?php
                         endif;
@@ -376,6 +376,6 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                     .catch(error => console.error("Error fetching appointments:", error));
             }
         </script>
+        
 </body>
-
 </html>

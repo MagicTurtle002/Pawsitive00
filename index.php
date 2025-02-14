@@ -170,19 +170,21 @@
 <script>
 function openLoginModal() {
   Swal.fire({
-    title: "<span class='custom-title' style='color: black;'>Select Login Type</span>",  // Title in black
+    title: `<div class="text-center text-lg md:text-2xl font-semibold leading-snug">Select Login Type</div>`,
     showCancelButton: false,
     showCloseButton: true,
     allowOutsideClick: true,
-    showConfirmButton: false,  // Removes the OK button
+    showConfirmButton: false,
     html: `
       <div class="flex flex-col space-y-4 font-poppins">
         <button onclick="window.location.href='public/owner_login.php'"
-          class="w-full bg-[#156f77] text-white text-lg font-semibold py-3 rounded-lg transition duration-200 shadow-md hover:shadow-lg hover:-translate-y-1">
+          class="w-full bg-[#156f77] text-white text-lg font-semibold py-3 rounded-lg transition 
+                 duration-200 shadow-md hover:shadow-lg hover:scale-105">
           Pet Owner Login
         </button>
         <button onclick="window.location.href='public/staff_login.php'"
-          class="w-full bg-[#156f77] text-white text-lg font-semibold py-3 rounded-lg transition duration-200 shadow-md hover:shadow-lg hover:-translate-y-1">
+          class="w-full bg-[#156f77] text-white text-lg font-semibold py-3 rounded-lg transition 
+                 duration-200 shadow-md hover:shadow-lg hover:scale-105">
           Clinic Staff Login
         </button>
       </div>
@@ -192,9 +194,12 @@ function openLoginModal() {
       closeButton: "custom-close-button"
     },
     didOpen: () => {
-      // Apply Poppins font to all elements
       document.querySelector(".swal2-popup").style.fontFamily = "Poppins, sans-serif";
-      
+      document.querySelector(".swal2-popup").style.maxWidth = "90%"; // Makes sure the modal adapts
+      document.querySelector(".swal2-popup").style.whiteSpace = "normal"; // Allows text wrapping
+      document.querySelector(".swal2-title").style.lineHeight = "1.2"; // Improves spacing for small screens
+      document.querySelector(".swal2-title").style.wordBreak = "break-word"; // Ensures proper word wrapping
+
       // Close button hover effect
       document.querySelector(".custom-close-button").style.color = "black";
       document.querySelector(".custom-close-button").addEventListener("mouseover", function() {

@@ -31,6 +31,12 @@ body {
     border-radius: 0 20px 20px 0; /* Rounded right corners */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
     height: 100vh; /* Full height */
+    
+    /* Make sidebar fixed */
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
 }
 
 .logo {
@@ -149,10 +155,12 @@ nav ul li:hover, .sidebar-bottom button:hover, .schedule-item button:hover, .exp
 }
 
 .main-content {
+    margin-left: 250px; /* Adjust this based on sidebar width */
     flex: 1;
     padding: 20px;
     background-color: #ffffff;
 }
+
 
 header {
     display: flex;

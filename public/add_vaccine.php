@@ -187,7 +187,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="../assets/css/register_owner.css">
+    <link rel="stylesheet" href="../assets/css/add_vaccine.css">
     <style>
         .error-message {
             color: red;
@@ -272,7 +272,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <li><a href="appointment.php">
                         <img src="../assets/images/Icons/Schedule 1.png" alt="Schedule Icon">Schedule</a></li>
                 <li><a href="invoice_billing_form.php">
-                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice and Billing</a></s>
+                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice</a></li>
             </ul>
         </nav>
         <div class="sidebar-bottom">
@@ -320,6 +320,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </div>
                 </div>
             </div>
+            
             <div class="form-group">
                 <div class="form-row">
                     <div class="input-container">
@@ -338,6 +339,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </div>
                 </div>
             </div>
+
             <div class="form-group">
                 <div class="form-row">
                     <div class="input-container">
@@ -355,6 +357,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </div>
                 </div>
             </div>
+
             <div class="form-group">
                 <div class="form-row">
                     <div class="input-container">
@@ -364,10 +367,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </div>
                     <div class="input-container">
                         <label for="notes">Notes:</label>
-                        <textarea id="notes" name="notes" rows="2"></textarea>
+                        <textarea id="notes" rows="2" name="notes"></textarea>
                     </div>
                 </div>
             </div>
+
             <div class="form-buttons">
                 <button type="submit" class="confirm-btn" onclick="confirmSubmission()">Save Vaccine</button>
             </div>
