@@ -167,22 +167,54 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             <i class="fa fa-filter"></i> Filter
                         </button>
                         <div class="dropdown-content">
+                            <strong>Status Filter</strong>
                             <label>
-                                <input type="radio" name="status" value="today" onclick="applyFilters()"> Today
+                                <input type="radio" name="status" value="all" onclick="applyFilters()"> All Appointments
                             </label>
                             <label>
-                                <input type="radio" name="status" value="upcoming" onclick="applyFilters()"> Upcoming
+                                <input type="radio" name="status" value="pending" onclick="applyFilters()"> Pending
+                            </label>
+                            <label>
+                                <input type="radio" name="status" value="confirmed" onclick="applyFilters()"> Confirmed
                             </label>
                             <label>
                                 <input type="radio" name="status" value="done" onclick="applyFilters()"> Done
                             </label>
                             <label>
+                                <input type="radio" name="status" value="paid" onclick="applyFilters()"> Paid
+                            </label>
+                            <label>
                                 <input type="radio" name="status" value="declined" onclick="applyFilters()"> Declined
                             </label>
+
                             <hr>
+
+                            <strong>Date Filter</strong>
+                            <label>
+                                <input type="radio" name="dateFilter" value="today" onclick="applyFilters()"> Today
+                            </label>
+                            <label>
+                                <input type="radio" name="dateFilter" value="this_week" onclick="applyFilters()"> This
+                                Week
+                            </label>
+                            <label>
+                                <input type="radio" name="dateFilter" value="this_month" onclick="applyFilters()"> This
+                                Month
+                            </label>
+                            <label>
+                                <input type="radio" name="dateFilter" value="custom" onclick="toggleCustomDate(true)">
+                                Custom Range
+                            </label>
+
+                            <div id="customDateFilters" style="display: none; padding-top: 5px;">
+                                <label>Start Date: <input type="date" id="startDate" onchange="applyFilters()"></label>
+                                <label>End Date: <input type="date" id="endDate" onchange="applyFilters()"></label>
+                            </div>
+
+                            <hr>
+
                             <button type="submit" class="apply-btn">Apply Filter</button>
-                            <button type="button" class="clear-btn"
-                                onclick="window.location.href='appointment.php'">Clear Filter</button>
+                            <button type="button" class="clear-btn" onclick="resetFilters()">Clear Filter</button>
                         </div>
                     </div>
                 </div>
@@ -192,18 +224,19 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             <thead>
                 <tr>
                     <th><a href="#" class="sortable" data-column="AppointmentCode">Appointment Id</a></th>
-                    <th><a href="#" class="sortable" data-column="PetCode">Pet Code</a></th>
                     <th><a href="#" class="sortable" data-column="PetName">Pet Name</a></th>
                     <th><a href="#" class="sortable" data-column="Status">Status</a></th>
                     <th><a href="#" class="sortable" data-column="Service">Service</a></th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="appointmentList">
                 <?php
                 if (count($appointments) > 0):
                     $currentDate = null;
                     foreach ($appointments as $appointment):
                         $appointmentDate = htmlspecialchars($appointment['AppointmentDate']);
+                        $status = htmlspecialchars($appointment['Status']);
+                        $petId = htmlspecialchars($appointment['PetId']);
 
                         // Display a new header when the date changes
                         if ($currentDate !== $appointmentDate):
@@ -212,17 +245,19 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             <tr class="date-header">
                                 <td colspan="5"><?= date("F j, Y", strtotime($currentDate)) ?></td>
                             </tr>
-                        <?php
+                            <?php
                         endif;
+
+                        // Make the row clickable if the status is "Done" or "Paid"
+                        $clickable = ($status === 'Done' || $status === 'Paid');
                         ?>
-                        <tr>
+                        <tr <?= $clickable ? 'onclick="goToPetProfile(' . $petId . ')" style="cursor:pointer; background-color: #f8f9fa;"' : '' ?>>
                             <td><?= htmlspecialchars($appointment['AppointmentId']) ?></td>
-                            <td><?= htmlspecialchars($appointment['PetCode']) ?></td>
                             <td><?= htmlspecialchars($appointment['PetName']) ?></td>
-                            <td><?= htmlspecialchars($appointment['Status']) ?></td>
+                            <td><?= $status ?></td>
                             <td><?= htmlspecialchars($appointment['Service']) ?></td>
                         </tr>
-                    <?php
+                        <?php
                     endforeach;
                 else:
                     ?>
@@ -248,6 +283,11 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 const searchInput = document.getElementById("searchInput");
                 const appointmentList = document.getElementById("appointmentList");
 
+                if (!appointmentList) {
+                    console.error("Error: 'appointmentList' element not found in the DOM.");
+                    return;
+                }
+
                 function debounce(func, delay) {
                     let timeout;
                     return function (...args) {
@@ -255,20 +295,86 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                         timeout = setTimeout(() => func.apply(this, args), delay);
                     };
                 }
-                function fetchAppointments(query) {
-                    fetch(`fetch_appointments.php?search=${encodeURIComponent(query)}`)
+
+                function fetchAppointments() {
+                    const status = document.querySelector('input[name="status"]:checked')?.value || "";
+                    const dateFilter = document.querySelector('input[name="dateFilter"]:checked')?.value || "";
+                    const startDate = document.getElementById("startDate").value;
+                    const endDate = document.getElementById("endDate").value;
+
+                    if (dateFilter !== "custom") {
+                        toggleCustomDate(false);
+                    }
+
+                    const queryParams = new URLSearchParams({
+                        search: searchInput.value.trim(),
+                        status,
+                        dateFilter,
+                        startDate,
+                        endDate
+                    });
+
+                    fetch("../src/fetch_appointments.php?" + queryParams.toString())
                         .then(response => response.text())
                         .then(html => {
-                            appointmentList.innerHTML = html; // Update table body with new results
+                            appointmentList.innerHTML = html;
                         })
                         .catch(error => console.error("Error fetching appointments:", error));
                 }
 
-                searchInput.addEventListener("input", debounce(() => {
-                    const query = searchInput.value.trim();
-                    fetchAppointments(query);
-                }, 300));  // 300ms delay before triggering search
+                function applyFilters() {
+                    fetchAppointments();
+                }
+
+                function resetFilters() {
+                    document.querySelectorAll('input[name="status"]').forEach(el => el.checked = false);
+                    document.querySelectorAll('input[name="dateFilter"]').forEach(el => el.checked = false);
+                    document.getElementById("startDate").value = "";
+                    document.getElementById("endDate").value = "";
+                    document.getElementById("searchInput").value = "";
+
+                    fetchAppointments(true); // Pass 'true' to indicate resetting
+                }
+
+                function toggleCustomDate(show) {
+                    document.getElementById("customDateFilters").style.display = show ? "block" : "none";
+                }
+
+                searchInput.addEventListener("input", debounce(fetchAppointments, 300));
+                document.querySelectorAll('input[name="status"]').forEach(el => el.addEventListener("change", fetchAppointments));
+                document.querySelectorAll('input[name="dateFilter"]').forEach(el => el.addEventListener("change", fetchAppointments));
+                document.getElementById("startDate").addEventListener("change", fetchAppointments);
+                document.getElementById("endDate").addEventListener("change", fetchAppointments);
+
+                document.querySelector(".apply-btn").addEventListener("click", fetchAppointments);
+                document.querySelector(".clear-btn").addEventListener("click", resetFilters);
             });
+
+            function fetchAppointments(isReset = false) {
+                const status = isReset ? "" : document.querySelector('input[name="status"]:checked')?.value || "";
+                const dateFilter = isReset ? "" : document.querySelector('input[name="dateFilter"]:checked')?.value || "";
+                const startDate = isReset ? "" : document.getElementById("startDate").value;
+                const endDate = isReset ? "" : document.getElementById("endDate").value;
+
+                if (!isReset && dateFilter !== "custom") {
+                    toggleCustomDate(false);
+                }
+
+                const queryParams = new URLSearchParams({
+                    search: isReset ? "" : document.getElementById("searchInput").value.trim(),
+                    status,
+                    dateFilter,
+                    startDate,
+                    endDate
+                });
+
+                fetch("../src/fetch_appointments.php?" + queryParams.toString())
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById("appointmentList").innerHTML = html;
+                    })
+                    .catch(error => console.error("Error fetching appointments:", error));
+            }
         </script>
 </body>
 
