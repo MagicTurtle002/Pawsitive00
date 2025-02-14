@@ -1,8 +1,22 @@
 <?php
+
+session_start();
+
 require __DIR__ . '/../config/dbh.inc.php';
 require __DIR__ . '/../vendor/autoload.php'; // Include TCPDF
+require __DIR__ . '/helpers/log_helpers.php';
 
 use TCPDF;
+
+if (!isset($_SESSION['UserId'], $_SESSION['FirstName'], $_SESSION['LastName'], $_SESSION['Role'])) {
+    error_log("❌ Missing session data for export.");
+    http_response_code(401); // Unauthorized
+    exit("Unauthorized access.");
+}
+
+$userId = $_SESSION['UserId'];
+$userName = $_SESSION['FirstName'] . ' ' . $_SESSION['LastName'];
+$role = $_SESSION['Role'];
 
 // =============================
 // ✅ Initialize PDF with Branding
@@ -150,6 +164,8 @@ $pdf->Cell(0, 8, 'Generated on: ' . date('Y-m-d H:i:s'), 0, 1, 'C');
 // =============================
 // ✅ Save and Export PDF
 // =============================
+logActivity($pdo, $userId, $userName, $role, 'export_dashboard_pdf.php', 'Exported dashboard report');
+error_log("✅ Export logged successfully for UserId: " . $userId);
 $pdf->Output('dashboard_report_' . date('Y-m-d') . '.pdf', 'D');
 exit;
 ?>

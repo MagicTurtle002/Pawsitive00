@@ -1,244 +1,127 @@
 function updateAppointmentStatus(appointmentId, status, petId) {
-  if (["Confirmed", "Declined", "Done"].includes(status)) {
-    const actionText =
-      status === "Confirmed"
-        ? "confirm this appointment"
-        : status === "Declined"
-        ? "cancel this appointment"
-        : "mark this appointment as done";
-
-    Swal.fire({
-      title: "Are you sure?",
-      text: `Are you sure you want to ${actionText}?`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor:
-        status === "Done"
-          ? "#28a745"
-          : status === "Declined"
-          ? "#d33"
-          : "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes",
-      cancelButtonText: "No",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        proceedWithStatusUpdate(appointmentId, status, petId);
-      }
-    });
+  if (status === "Declined") {
+      // Ask for a reason when declining
+      Swal.fire({
+          title: "Decline Appointment",
+          html: `
+              <p>Please provide a reason for declining this appointment:</p>
+              <textarea id="declineReason" class="swal2-textarea" placeholder="Enter reason..." required></textarea>
+          `,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Decline",
+          cancelButtonText: "Cancel",
+          preConfirm: () => {
+              const reason = document.getElementById("declineReason").value.trim();
+              if (!reason) {
+                  Swal.showValidationMessage("⚠️ Reason is required!");
+                  return false;
+              }
+              return reason;
+          }
+      }).then((result) => {
+          if (result.isConfirmed) {
+              proceedWithStatusUpdate(appointmentId, status, petId, result.value);
+          }
+      });
+  } else if (status === "Confirmed") {
+      // Ask for confirmation before confirming
+      Swal.fire({
+          title: "Confirm Appointment?",
+          text: "Are you sure you want to confirm this appointment?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Yes, Confirm",
+          cancelButtonText: "Cancel",
+      }).then((result) => {
+          if (result.isConfirmed) {
+              proceedWithStatusUpdate(appointmentId, status, petId);
+          }
+      });
   } else {
-    proceedWithStatusUpdate(appointmentId, status, petId);
+      proceedWithStatusUpdate(appointmentId, status, petId);
   }
 }
 
-function proceedWithStatusUpdate(appointmentId, status, petId) {
-    const payload = {
+function proceedWithStatusUpdate(appointmentId, status, petId, reason = null) {
+  const payload = {
       appointment_id: appointmentId,
       status: status,
       pet_id: petId,
-    };
-  
-    console.log("Sending data:", payload);
-  
-    fetch("../public/update_appointment.php", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("Response from PHP:", data);
-  
-        if (data.success) {
-          const appointmentElement = document.getElementById(
-            `appointment-${appointmentId}-${petId}`
-          );
-  
-          if (appointmentElement) {
-            const statusElement = appointmentElement.querySelector(".status");
-            if (statusElement) {
-              statusElement.textContent = status;
-            }
-  
-            const buttonsContainer =
-              appointmentElement.querySelector(".buttons-container");
-            if (buttonsContainer) {
-              buttonsContainer.innerHTML = "";
-  
-              switch (status) {
-                case "Pending":
-                  createButton(buttonsContainer, "Confirm", "confirm-btn", () =>
-                    updateAppointmentStatus(appointmentId, "Confirmed", petId)
-                  );
-                  break;
-  
-                case "Confirmed":
-                  createButton(buttonsContainer, "Start Consultation", "status-button", () =>
-                    promptVitalsUpdate(appointmentId, petId)
-                  );
-                  createButton(buttonsContainer, "Mark as Done", "status-button", () =>
-                    updateAppointmentStatus(appointmentId, "Done", petId)
-                  );
-                  createButton(buttonsContainer, "Decline", "decline-btn", () =>
-                    updateAppointmentStatus(appointmentId, "Declined", petId)
-                  );
-                  break;
-  
-                case "Declined":
-                  buttonsContainer.innerHTML = "<p>This appointment has been declined.</p>";
-                  break;
-  
-                case "Done":
-                  createButton(buttonsContainer, "Invoice and Billing", "status-button", () => {
-                    window.location.href = `invoice_billing_form.php?appointment_id=${appointmentId}`;
-                  });
-                  break;
-  
-                default:
-                  console.warn(`Unknown status: ${status}`);
-              }
-            }
-          } else {
-            console.error(
-              `Appointment element not found for appointmentId: ${appointmentId}, petId: ${petId}`
-            );
-          }
-  
-          Swal.fire({
-            title: "Success!",
-            text: `Appointment status updated to ${status}.`,
-            icon: "success",
-            confirmButtonText: "OK",
-          });
-        } else {
-          Swal.fire({
-            title: "Error",
-            text: data.message,
-            icon: "error",
-            confirmButtonText: "OK",
-          });
-        }
-      })
-      .catch((error) => {
-        console.error("Fetch error:", error);
-  
-        Swal.fire({
-          title: "Error",
-          text: `An error occurred: ${error.message}`,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
-      });
-  }
-
-  function createButton(container, text, className, onClick) {
-    const button = document.createElement("button");
-    button.textContent = text;
-    button.classList.add(className);
-    button.onclick = onClick;
-    container.appendChild(button);
-  }
-
-function openRescheduleModal(event, appointmentId) {
-  event.preventDefault();
-
-  Swal.fire({
-    title: "Reschedule Appointment",
-    html: `
-            <form id="rescheduleForm">
-                <label for="newDate">New Date:</label>
-                <input type="date" id="newDate" class="swal2-input" required>
-                <label for="newTime">New Time:</label>
-                <input type="time" id="newTime" class="swal2-input" required>
-            </form>
-        `,
-    showCancelButton: true,
-    confirmButtonText: "Reschedule",
-    cancelButtonText: "Cancel",
-    preConfirm: () => {
-      const newDate = document.getElementById("newDate").value;
-      const newTime = document.getElementById("newTime").value;
-
-      if (!newDate || !newTime) {
-        Swal.showValidationMessage("Please provide both date and time");
-        return false;
-      }
-
-      return { newDate, newTime };
-    },
-  }).then((result) => {
-    if (result.isConfirmed) {
-      const { newDate, newTime } = result.value;
-
-      rescheduleAppointment(appointmentId, newDate, newTime);
-    }
-  });
-}
-
-function rescheduleAppointment(appointmentId, newDate, newTime) {
-  const payload = {
-    appointment_id: appointmentId,
-    new_date: newDate,
-    new_time: newTime,
   };
 
-  console.log("Rescheduling with data:", payload);
+  if (status === "Declined" && reason) {
+      payload.reason = reason; // Ensure reason is included
+  }
 
-  fetch("../public/reschedule_appointment.php", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
+  console.log("Sending data:", JSON.stringify(payload)); // Debugging purpose
+
+  fetch("../public/update_appointment.php", {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
   })
-    .then((response) => response.json())
-    .then((data) => {
+  .then(response => {
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+  })
+  .then(data => {
       console.log("Response from PHP:", data);
 
       if (data.success) {
-        Swal.fire({
-          title: "Success!",
-          text: "Appointment successfully rescheduled.",
-          icon: "success",
-          confirmButtonText: "OK",
-        });
-
-        // Update UI dynamically
-        const appointmentElement = document.getElementById(
-          `appointment-${appointmentId}`
-        );
-        if (appointmentElement) {
-          const dateElement =
-            appointmentElement.querySelector(".appointment-date");
-          const timeElement =
-            appointmentElement.querySelector(".appointment-time");
-          if (dateElement) dateElement.textContent = newDate;
-          if (timeElement) timeElement.textContent = newTime;
-        }
+          updateAppointmentUI(appointmentId, petId, status, reason);
+          Swal.fire("Success!", `Appointment status updated to ${status}.`, "success");
       } else {
-        Swal.fire({
-          title: "Error",
-          text: data.message,
-          icon: "error",
-          confirmButtonText: "OK",
-        });
+          Swal.fire("Error!", data.message, "error");
       }
-    })
-    .catch((error) => {
+  })
+  .catch(error => {
       console.error("Fetch error:", error);
+      Swal.fire("Error!", `An error occurred: ${error.message}`, "error");
+  });
+}
 
-      Swal.fire({
-        title: "Error",
-        text: `An error occurred: ${error.message}`,
-        icon: "error",
-        confirmButtonText: "OK",
-      });
-    });
+function updateAppointmentUI(appointmentId, petId, status, reason = null) {
+  const appointmentElement = document.getElementById(`appointment-${appointmentId}-${petId}`);
+  if (appointmentElement) {
+      const statusElement = appointmentElement.querySelector(".status");
+      if (statusElement) {
+          statusElement.textContent = status;
+      }
+      const buttonsContainer = appointmentElement.querySelector(".buttons-container");
+      if (buttonsContainer) {
+          buttonsContainer.innerHTML = ""; // Clear previous buttons
+
+          if (status === "Declined" && reason) {
+              buttonsContainer.innerHTML = `<p>This appointment has been declined.<br><strong>Reason:</strong> ${reason}</p>`;
+          } else if (status === "Done") {
+              createButton(buttonsContainer, "Invoice and Billing", "status-button", () => {
+                  window.location.href = `invoice_billing_form.php?appointment_id=${appointmentId}`;
+              });
+          } else if (status === "Confirmed") {
+              createButton(buttonsContainer, "Start Consultation", "status-button", () =>
+                  promptVitalsUpdate(appointmentId, petId)
+              );
+              createButton(buttonsContainer, "Mark as Done", "status-button", () =>
+                  updateAppointmentStatus(appointmentId, "Done", petId)
+              );
+          }
+      }
+  }
+}
+
+function createButton(container, text, className, onClick) {
+  const button = document.createElement("button");
+  button.textContent = text;
+  button.classList.add(className);
+  button.onclick = onClick;
+  container.appendChild(button);
 }

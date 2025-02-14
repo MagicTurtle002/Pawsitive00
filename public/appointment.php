@@ -497,9 +497,9 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
                 <li><a href="staff.php">
                         <img src="../assets/images/Icons/Staff 1.png" alt="Contacts Icon">Staff</a></li>
                 <li class="active"><a href="appointment.php">
-                    <img src="../assets/images/Icons/Schedule 3.png" alt="Schedule Icon">Schedule</a></li>
+                        <img src="../assets/images/Icons/Schedule 3.png" alt="Schedule Icon">Schedule</a></li>
                 <li><a href="invoice_billing_form.php">
-                    <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice</a></li>
+                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice</a></li>
             </ul>
         </nav>
         <div class="sidebar-bottom">
@@ -751,13 +751,13 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
             }
 
             function showAppointmentDetails(event) {
-    if (event.status === "Declined") {
-        return;
-    }
+                if (event.status === "Declined") {
+                    return;
+                }
 
-    Swal.fire({
-        title: 'Appointment Details',
-        html: `
+                Swal.fire({
+                    title: 'Appointment Details',
+                    html: `
             <button class="swal2-close-button" onclick="Swal.close()">×</button>
             <div style="text-align: left; margin-top: 10px;">
                 <p><strong>Appointment For:</strong> ${event.extendedProps.description || "No Description"}</p>
@@ -767,29 +767,29 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
                 <p><strong>Status:</strong> <span class="status-badge">${event.extendedProps.status || "Pending"}</span></p>
             </div>
         `,
-        showCancelButton: true,
-        showDenyButton: true,
-        showConfirmButton: true,
-        cancelButtonText: "Decline Appointment",
-        denyButtonText: "Reschedule",
-        confirmButtonText: "Confirm Appointment",
-        icon: "info",
-        customClass: {
-            confirmButton: 'swal2-confirm-btn',
-            denyButton: 'swal2-edit-btn',
-            cancelButton: 'swal2-cancel-btn'
-        },
-        buttonsStyling: false
-    }).then((result) => {
-        if (result.isConfirmed) {
-            confirmAppointment(event.id);
-        } else if (result.isDenied) {
-            openRescheduleModal(event, event.id);
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-            updateAppointmentStatus(event.id, "Declined");
-        }
-    });
-}
+                    showCancelButton: true,
+                    showDenyButton: true,
+                    showConfirmButton: true,
+                    cancelButtonText: "Decline Appointment",
+                    denyButtonText: "Reschedule",
+                    confirmButtonText: "Confirm Appointment",
+                    icon: "info",
+                    customClass: {
+                        confirmButton: 'swal2-confirm-btn',
+                        denyButton: 'swal2-edit-btn',
+                        cancelButton: 'swal2-cancel-btn'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        confirmAppointment(event.id);
+                    } else if (result.isDenied) {
+                        openRescheduleModal(event, event.id);
+                    } else if (result.dismiss === Swal.DismissReason.cancel) {
+                        updateAppointmentStatus(event.id, "Declined");
+                    }
+                });
+            }
 
             // Function to save edited appointment
             function saveEditedAppointment(data) {

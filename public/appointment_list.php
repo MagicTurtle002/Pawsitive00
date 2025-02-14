@@ -18,7 +18,7 @@ $role = $_SESSION['Role'] ?? 'Role';
 //logActivity($pdo, $userId, $userName, $role, 'record.php', 'Accessed Record page');
 
 // Pagination setup
-$currentPage = isset($_GET['page']) ? max(0, (int)$_GET['page']) : 0;
+$currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
 $recordsPerPage = 10;
 $offset = $currentPage * $recordsPerPage;
 
@@ -109,6 +109,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -117,47 +118,50 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/appointment_list.css">
     <script src="../assets/js/record.js"></script>
 </head>
+
 <body>
     <div class="sidebar">
-            <div class="logo">
-                <img src="../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
-            </div>
-            <nav>
-                <h3>Hello, <?= htmlspecialchars($userName) ?></h3>
-                <h4><?= htmlspecialchars($role) ?></h4>
-                <br>
-                <ul class="nav-links">
-                    <li><a href="main_dashboard.php">
-                        <img src="../assets/images/Icons/Chart 1.png" alt="Overview Icon">Overview</a></li>
-                    <li><a href="record.php">
-                        <img src="../assets/images/Icons/Record 1.png" alt="Record Icon">Record</a></li>
-                    <li><a href="staff.php">
-                        <img src="../assets/images/Icons/Staff 1.png" alt="Contacts Icon">Staff</a></li>
-                    <li class="active"><a href="appointment.php">
-                        <img src="../assets/images/Icons/Schedule 3.png" alt="Schedule Icon">Schedule</a></li>
-                    <li><a href="invoice_billing_form.php">
-                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice and Billing</a></>
-                </ul>
-            </nav>
-            <div class="sidebar-bottom">
-                <button onclick="window.location.href='settings.php';">
-                    <img src="../assets/images/Icons/Settings 1.png" alt="Settings Icon">Settings
-                </button>
-                <button onclick="window.location.href='logout.php';">
-                    <img src="../assets/images/Icons/Logout 1.png" alt="Logout Icon">Log out
-                </button>
-            </div>
+        <div class="logo">
+            <img src="../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
         </div>
-        <div class="main-content">
+        <nav>
+            <h3>Hello, <?= htmlspecialchars($userName) ?></h3>
+            <h4><?= htmlspecialchars($role) ?></h4>
+            <br>
+            <ul class="nav-links">
+                <li><a href="main_dashboard.php">
+                        <img src="../assets/images/Icons/Chart 1.png" alt="Overview Icon">Overview</a></li>
+                <li><a href="record.php">
+                        <img src="../assets/images/Icons/Record 1.png" alt="Record Icon">Record</a></li>
+                <li><a href="staff.php">
+                        <img src="../assets/images/Icons/Staff 1.png" alt="Contacts Icon">Staff</a></li>
+                <li class="active"><a href="appointment.php">
+                        <img src="../assets/images/Icons/Schedule 3.png" alt="Schedule Icon">Schedule</a></li>
+                <li><a href="invoice_billing_form.php">
+                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice and Billing</a></>
+            </ul>
+        </nav>
+        <div class="sidebar-bottom">
+            <button onclick="window.location.href='settings.php';">
+                <img src="../assets/images/Icons/Settings 1.png" alt="Settings Icon">Settings
+            </button>
+            <button onclick="window.location.href='logout.php';">
+                <img src="../assets/images/Icons/Logout 1.png" alt="Logout Icon">Log out
+            </button>
+        </div>
+    </div>
+    <div class="main-content">
         <div class="header">
             <h1>Appointments</h1>
             <div class="actions">
                 <div class="left">
-                    <input type="text" id="searchInput" placeholder="Search appointments..."/>
+                    <input type="text" id="searchInput" placeholder="Search appointments..." />
                     <div class="dropdown">
                         <button class="filter-btn">
                             <i class="fa fa-filter"></i> Filter
@@ -177,7 +181,8 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             </label>
                             <hr>
                             <button type="submit" class="apply-btn">Apply Filter</button>
-                            <button type="button" class="clear-btn" onclick="window.location.href='appointment.php'">Clear Filter</button>
+                            <button type="button" class="clear-btn"
+                                onclick="window.location.href='appointment.php'">Clear Filter</button>
                         </div>
                     </div>
                 </div>
@@ -193,44 +198,36 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                     <th><a href="#" class="sortable" data-column="Service">Service</a></th>
                 </tr>
             </thead>
-            <tbody id="appointmentList">
-                <?php if (count($appointments) > 0): ?>
-                    <?php foreach ($appointments as $appointment): ?>
+            <tbody>
+                <?php
+                if (count($appointments) > 0):
+                    $currentDate = null;
+                    foreach ($appointments as $appointment):
+                        $appointmentDate = htmlspecialchars($appointment['AppointmentDate']);
+
+                        // Display a new header when the date changes
+                        if ($currentDate !== $appointmentDate):
+                            $currentDate = $appointmentDate;
+                            ?>
+                            <tr class="date-header">
+                                <td colspan="5"><?= date("F j, Y", strtotime($currentDate)) ?></td>
+                            </tr>
+                        <?php
+                        endif;
+                        ?>
                         <tr>
-                            <td>
-                                <div class="hover-container">
-                                    <?= htmlspecialchars($appointment['AppointmentId'] ?? 'N/A') ?>
-                                    <i class="fas fa-info-circle"></i>
-                                    <div class="hover-card">
-                                        <div class="profile-info">
-                                            <img src="../assets/images/Icons/Profile User.png" alt="Profile Pic" class="profile-img" width="10px">
-                                            <div>
-                                                <strong><?= htmlspecialchars($appointment['OwnerName'] ?? 'Unknown') ?></strong><br>
-                                                <?= htmlspecialchars($appointment['role'] ?? 'Authorized Representative') ?>
-                                            </div>
-                                        </div>
-                                        <hr>
-                                        <div>
-                                            <strong>Email:</strong><br>
-                                            <?= htmlspecialchars($appointment['Email'] ?? 'No email provided') ?>
-                                        </div>
-                                        <br>
-                                        <div>
-                                            <strong>Phone Number:</strong><br>
-                                            <?= htmlspecialchars($appointment['Phone'] ?? 'No phone number provided') ?>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><?= htmlspecialchars($appointment['PetCode'] ?? 'No information found') ?></td>
+                            <td><?= htmlspecialchars($appointment['AppointmentId']) ?></td>
+                            <td><?= htmlspecialchars($appointment['PetCode']) ?></td>
                             <td><?= htmlspecialchars($appointment['PetName']) ?></td>
                             <td><?= htmlspecialchars($appointment['Status']) ?></td>
                             <td><?= htmlspecialchars($appointment['Service']) ?></td>
                         </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
+                    <?php
+                    endforeach;
+                else:
+                    ?>
                     <tr>
-                        <td colspan="6">No appointments found for the given search criteria.</td>
+                        <td colspan="5">No appointments found.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
@@ -248,30 +245,31 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
         </div>
         <script>
             document.addEventListener("DOMContentLoaded", function () {
-            const searchInput = document.getElementById("searchInput");
-            const appointmentList = document.getElementById("appointmentList");
+                const searchInput = document.getElementById("searchInput");
+                const appointmentList = document.getElementById("appointmentList");
 
-            function debounce(func, delay) {
-                let timeout;
-                return function (...args) {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => func.apply(this, args), delay);
-                };
-            }
-    function fetchAppointments(query) {
-        fetch(`fetch_appointments.php?search=${encodeURIComponent(query)}`)
-            .then(response => response.text())
-            .then(html => {
-                appointmentList.innerHTML = html; // Update table body with new results
-            })
-            .catch(error => console.error("Error fetching appointments:", error));
-    }
+                function debounce(func, delay) {
+                    let timeout;
+                    return function (...args) {
+                        clearTimeout(timeout);
+                        timeout = setTimeout(() => func.apply(this, args), delay);
+                    };
+                }
+                function fetchAppointments(query) {
+                    fetch(`fetch_appointments.php?search=${encodeURIComponent(query)}`)
+                        .then(response => response.text())
+                        .then(html => {
+                            appointmentList.innerHTML = html; // Update table body with new results
+                        })
+                        .catch(error => console.error("Error fetching appointments:", error));
+                }
 
-    searchInput.addEventListener("input", debounce(() => {
-        const query = searchInput.value.trim();
-        fetchAppointments(query);
-    }, 300));  // 300ms delay before triggering search
-});
+                searchInput.addEventListener("input", debounce(() => {
+                    const query = searchInput.value.trim();
+                    fetchAppointments(query);
+                }, 300));  // 300ms delay before triggering search
+            });
         </script>
 </body>
+
 </html>

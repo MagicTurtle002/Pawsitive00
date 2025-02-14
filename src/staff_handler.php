@@ -67,6 +67,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmtPermissions->execute([':RoleId' => $user['RoleId']]);
                     $_SESSION['Permissions'] = array_map('strtolower', $stmtPermissions->fetchAll(PDO::FETCH_COLUMN));
 
+                    logActivity($pdo, $user['UserId'], $user['FirstName'] . ' ' . $user['LastName'], $user['RoleName'], 'staff_login.php', 'Successful login');
+
                     if (empty($_SESSION['OnboardingComplete']) || $_SESSION['OnboardingComplete'] != 1) {
                         if ($_SESSION['Role'] === 'Super Admin') {
                             header("Location: ../public/onboarding_role_creation.php");
@@ -75,8 +77,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         }
                         exit();
                     }
-
-                    logActivity($pdo, $user['UserId'], $user['FirstName'] . ' ' . $user['LastName'], $user['RoleName'], 'staff_login.php', 'Successful login');
 
                     header("Location: ../public/main_dashboard.php");
                     exit();

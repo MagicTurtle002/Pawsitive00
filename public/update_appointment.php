@@ -36,9 +36,14 @@ if ($data === null) {
 $appointmentId = $data['appointment_id'] ?? null;
 $status = $data['status'] ?? null;
 $petId = $data['pet_id'] ?? null;
+$reason = $data['reason'] ?? null;
 
 if (!$appointmentId || !$status || !$petId) {
     respondWithJson(['success' => false, 'message' => 'Missing or invalid input.'], 400);
+}
+
+if ($status === "Declined" && empty($reason)) {
+    respondWithJson(['success' => false, 'message' => 'A reason for declining is required.'], 400);
 }
 
 try {
@@ -54,8 +59,9 @@ try {
         respondWithJson(['success' => false, 'message' => 'Appointment not found.'], 404);
     }
 
-    if ($currentStatus === $status) {
-        respondWithJson(['success' => true, 'message' => 'No changes made as the status is already up-to-date.']);
+    if (in_array($currentStatus, ['Done', 'Paid', 'Declined']) && $status === 'Declined') {
+        echo json_encode(['success' => false, 'message' => '❌ Cannot decline a locked appointment.']);
+        exit;
     }
 
     $query = "UPDATE Appointments SET Status = :Status";
@@ -65,13 +71,18 @@ try {
         ':PetId' => $petId,
     ];
 
+    if ($status === "Declined") {
+        $query .= ", Reason = :Reason";
+        $params[':Reason'] = $reason;
+    }
+
     $query .= " WHERE AppointmentId = :AppointmentId AND PetId = :PetId";
 
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
 
     if ($stmt->rowCount() > 0) {
-        $actionDetails = "User $userName ($role) updated Appointment #$appointmentId to '$status'.";
+        $actionDetails = "$userName updated Appointment #$appointmentId to '$status'.";
 
         logActivity($pdo, $userId, $userName, $role, 'Update Appointment', $actionDetails);
 
