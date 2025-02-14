@@ -170,38 +170,51 @@
 <script>
 function openLoginModal() {
   Swal.fire({
-    title: "<span class='custom-title' style='color: black;'>Select Login Type</span>",  // Title in black
+    title: `<div class="text-center text-xl sm:text-2xl md:text-3xl font-semibold leading-tight text-gray-800 mt-[-10px]">
+              Select Login Type
+            </div>`,
     showCancelButton: false,
     showCloseButton: true,
     allowOutsideClick: true,
-    showConfirmButton: false,  // Removes the OK button
+    showConfirmButton: false,
     html: `
-      <div class="flex flex-col space-y-4 font-poppins">
+      <div class="flex flex-col space-y-4 font-poppins w-full max-w-md mx-auto">
         <button onclick="window.location.href='public/owner_login.php'"
-          class="w-full bg-[#156f77] text-white text-lg font-semibold py-3 rounded-lg transition duration-200 shadow-md hover:shadow-lg hover:-translate-y-1">
+          class="w-full bg-[#156f77] text-white text-base sm:text-lg font-semibold py-3 rounded-lg transition 
+                 duration-200 shadow-md hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 
+                 focus:ring-[#156f77]">
           Pet Owner Login
         </button>
         <button onclick="window.location.href='public/staff_login.php'"
-          class="w-full bg-[#156f77] text-white text-lg font-semibold py-3 rounded-lg transition duration-200 shadow-md hover:shadow-lg hover:-translate-y-1">
+          class="w-full bg-[#156f77] text-white text-base sm:text-lg font-semibold py-3 rounded-lg transition 
+                 duration-200 shadow-md hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 
+                 focus:ring-[#156f77]">
           Clinic Staff Login
         </button>
       </div>
     `,
     customClass: {
-      popup: "rounded-lg p-6",
+      popup: "rounded-lg p-4 pb-6 w-full max-w-lg mx-auto",
       closeButton: "custom-close-button"
     },
     didOpen: () => {
-      // Apply Poppins font to all elements
-      document.querySelector(".swal2-popup").style.fontFamily = "Poppins, sans-serif";
-      
+      const popup = document.querySelector(".swal2-popup");
+      popup.classList.add("max-w-lg", "w-full", "mx-auto", "rounded-xl");
+      popup.style.paddingTop = "12px"; // Reduce top padding
+      popup.style.paddingBottom = "24px"; // Maintain proper bottom spacing
+
+      const title = document.querySelector(".swal2-title");
+      title.style.marginTop = "-10px"; // Move title slightly up
+      title.classList.add("text-gray-900", "text-xl", "sm:text-2xl", "font-bold");
+
       // Close button hover effect
-      document.querySelector(".custom-close-button").style.color = "black";
-      document.querySelector(".custom-close-button").addEventListener("mouseover", function() {
-        this.style.color = "#156f77";
+      const closeButton = document.querySelector(".custom-close-button");
+      closeButton.classList.add("text-gray-700");
+      closeButton.addEventListener("mouseover", function() {
+        this.classList.add("text-[#156f77]");
       });
-      document.querySelector(".custom-close-button").addEventListener("mouseout", function() {
-        this.style.color = "black";
+      closeButton.addEventListener("mouseout", function() {
+        this.classList.remove("text-[#156f77]");
       });
     }
   });
