@@ -12,7 +12,7 @@ session_start();
 require '../../config/dbh.inc.php';
 
 if (!isset($_SESSION['LoggedIn'])) {
-    header('Location: owner_login.php');
+    header('Location: ../owner_login.php');
     exit();
 }
 
