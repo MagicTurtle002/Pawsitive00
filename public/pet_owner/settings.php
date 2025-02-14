@@ -1,49 +1,5 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
-/* For pets basic info */
-/* For pets basic info */
-/* For pets basic info */
-
-session_start();
-
-require '../../../config/dbh.inc.php';
-
-if (!isset($_SESSION['LoggedIn'])) {
-    header('Location: owner_login.php');
-    exit();
-}
-
-$owner_id = $_SESSION['OwnerId']; // Get the logged-in owner's ID
-$user_name = isset($_SESSION['FirstName']) ? $_SESSION['FirstName'] . ' ' . $_SESSION['LastName'] : 'Owner';
-
-try {
-    // Fetch pets linked to the owner with actual species and breed names
-    $query = "SELECT 
-                p.PetId, 
-                p.Name AS PetName, 
-                s.SpeciesName AS PetType, 
-                p.Gender, 
-                p.CalculatedAge, 
-                b.BreedName AS Breed
-              FROM pets p
-              LEFT JOIN Species s ON p.SpeciesId = s.Id
-              LEFT JOIN Breeds b ON p.Breed = b.BreedId
-              WHERE p.OwnerId = :OwnerId";
-
-    $stmt = $pdo->prepare($query);
-    $stmt->bindParam(':OwnerId', $owner_id, PDO::PARAM_INT);
-    $stmt->execute();
-    $pets = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Fetch pet types (species) for dropdown
-    $speciesStmt = $pdo->query("SELECT Id, SpeciesName FROM Species");
-    $petTypes = $speciesStmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Database Error: " . $e->getMessage());
-}
 ?>
 
 <!DOCTYPE html>
@@ -52,13 +8,13 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pawsitive | Settings</title>
-    <link rel="icon" type="image/x-icon" href="../../../assets/images/logo/LOGO.png">
+    <link rel="icon" type="image/x-icon" href="../../assets/images/logo/LOGO.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="settings.css">
+    <link rel="stylesheet" href="css/settings.css">
 
     <script>
         const bookedTimesByDate = <?= json_encode($bookedTimesByDate); ?>;
@@ -69,20 +25,20 @@ try {
     <header>
         <nav>
             <div class="logo">
-                <img src="../../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
             </div>
             <ul class="nav-links">
-                <li><a href="../index.php">Home</a></li>
-                <li><a href="../appointment/book_appointment.php">Appointment</a></li>
+                <li><a href="index.php">Home</a></li>
+                <li><a href="book_appointment.php">Appointment</a></li>
                 <li><a href="pet_add.php">Pets</a></li>
-                <li><a href="../record/pet_record.php">Record</a></li>
-                <li><a href="../invoice/invoice.php">Invoice</a></li>
+                <li><a href="pet_record.php">Record</a></li>
+                <li><a href="invoice.php">Invoice</a></li>
             </ul>
             <div class="profile-dropdown">
-                <img src="../../../assets/images/Icons/User 1.png" alt="Profile Icon" class="profile-icon">
+                <img src="../../assets/images/Icons/User 1.png" alt="Profile Icon" class="profile-icon">
                 <div class="dropdown-content">
-                    <a href=""><img src="../../../assets/images/Icons/Settings 2.png" alt="Settings">Settings</a>
-                    <a href=""><img src="../../../assets/images/Icons/Sign out.png" alt="Sign Out">Sign Out</a>
+                    <a href="settings.php"><img src="../../assets/images/Icons/Settings 2.png" alt="Settings">Settings</a>
+                    <a href=""><img src="../../assets/images/Icons/Sign out.png" alt="Sign Out">Sign Out</a>
                 </div>
             </div>
         </nav>
@@ -144,7 +100,7 @@ try {
          
                 <h3 style="margin-bottom: 10px;">Profile Picture</h3>
                 <div class="profile-container">
-                    <img src="../../../assets/images/Icons/Profile User.png" alt="Profile Picture" class="profile-pic">
+                    <img src="../../assets/images/Icons/Profile User.png" alt="Profile Picture" class="profile-pic">
                     
                     <div class="profile-actions">
                         <label for="ProfilePicture" class="btn change-btn">Change Picture</label>

@@ -369,8 +369,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button type="button" id="add-service-btn">Add New Service</button>
 
                 <br>
-
-                <label for="service">Existing Service:</label>
+                <br>
+                <label for="service"><strong>Existing Service:</strong></label>
                 <table border="1" cellpadding="10">
                     <thead>
                         <tr>
@@ -472,54 +472,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
 
         document.getElementById("restore-backup").addEventListener("click", function () {
-            Swal.fire({
-                title: "Restore Backup?",
-                text: "This will overwrite the current database with the backup file.",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Yes, restore it!",
-                html: `
-                <input type="file" id="backup-file" class="swal2-file" accept=".sql" style="margin-top: 15px;">
-            `
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const fileInput = document.getElementById("backup-file");
-                    const file = fileInput.files[0];
-
-                    if (!file) {
-                        Swal.fire("No File Selected", "Please choose a backup file to restore.", "error");
-                        return;
+        Swal.fire({
+            title: "Restore Backup?",
+            text: "This will overwrite the current database with the backup file.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, restore it!",
+            html: `
+                <input type="file" id="backup-file" class="swal2-file file-input" accept=".sql">
+            `,
+            didOpen: () => {
+                const fileInput = document.getElementById("backup-file");
+                fileInput.addEventListener("change", function () {
+                    if (fileInput.files.length > 0) {
+                        fileInput.classList.add("file-selected"); // Adds styling when a file is chosen
                     }
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fileInput = document.getElementById("backup-file");
+                const file = fileInput.files[0];
 
-                    const formData = new FormData();
-                    formData.append("backup_file", file);
-
-                    fetch("../config/restore_backup.php", {
-                        method: "POST",
-                        body: formData
-                    })
-                        .then(response => response.text())
-                        .then(result => {
-                            Swal.fire(
-                                "Restoration Complete!",
-                                "The database has been successfully restored.",
-                                "success"
-                            );
-                        })
-                        .catch(error => {
-                            console.error("Restore failed:", error);
-                            Swal.fire(
-                                "Restoration Failed!",
-                                "An error occurred while restoring the database. Please try again.",
-                                "error"
-                            );
-                        });
+                if (!file) {
+                    Swal.fire("No File Selected", "Please choose a backup file to restore.", "error");
+                    return;
                 }
-            });
+
+                const formData = new FormData();
+                formData.append("backup_file", file);
+
+                fetch("../config/restore_backup.php", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(result => {
+                    Swal.fire(
+                        "Restoration Complete!",
+                        "The database has been successfully restored.",
+                        "success"
+                    );
+                })
+                .catch(error => {
+                    console.error("Restore failed:", error);
+                    Swal.fire(
+                        "Restoration Failed!",
+                        "An error occurred while restoring the database. Please try again.",
+                        "error"
+                    );
+                });
+            }
         });
+    });
     </script>
+
     <script>
         document.querySelectorAll(".edit-btn").forEach(button => {
             button.addEventListener("click", function () {
@@ -538,24 +547,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 Swal.fire({
                     title: "Edit Service",
                     html: `
-                    <label for="swal-service-name">Service Name:</label>
-                    <input type="text" id="swal-service-name" class="swal2-input" value="${serviceName}">
-                    
-                    ${isVariablePrice ? `
-                        <p><strong>Note:</strong> This service has variable pricing.</p>
-                    ` : `
-                        <label for="swal-price">Price (₱):</label>
-                        <input type="number" id="swal-price" class="swal2-input" value="${currentPrice}" min="0" step="0.01">
-                    `}
-                `,
-                    showCancelButton: true,
+                        <div class="swal2-row">
+                            <label for="swal-service-name">Service Name:</label>
+                            <input type="text" id="swal-service-name" class="swal2-input" value="${serviceName}">
+                        </div>
+
+                        ${isVariablePrice ? `
+                            <p><strong>Note:</strong> This service has variable pricing.</p>
+                        ` : `
+                            <div class="swal2-row">
+                                <label for="swal-price">Price (₱):</label>
+                                <input type="number" id="swal-price" class="swal2-input" value="${currentPrice}" min="0" step="0.01">
+                            </div>
+                        `}
+                    `,
                     confirmButtonText: "Save Changes",
+                    showCancelButton: true,
                     cancelButtonText: "Cancel",
                     preConfirm: () => {
-                        return {
-                            serviceName: document.getElementById("swal-service-name").value,
-                            price: isVariablePrice ? null : document.getElementById("swal-price").value
-                        };
+                        const serviceName = document.getElementById("swal-service-name").value;
+                        const price = isVariablePrice ? null : document.getElementById("swal-price").value;
+
+                        if (!serviceName || (!isVariablePrice && (price === "" || parseFloat(price) < 0))) {
+                            Swal.showValidationMessage("All fields are required and must be valid.");
+                            return false;
+                        }
+                        return { serviceName, price };
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -564,6 +581,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 });
             });
         });
+
 
         function updateService(serviceId, newServiceName, newPrice) {
             fetch("../src/update_service.php", {
@@ -632,12 +650,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Swal.fire({
                 title: "Add New Service",
                 html: `
-            <label for="swal-service-name">Service Name:</label>
-            <input type="text" id="swal-service-name" class="swal2-input">
-            
-            <label for="swal-price">Price (₱):</label>
-            <input type="number" id="swal-price" class="swal2-input" min="0" step="0.01">
-        `,
+
+                <div class="swal2-row">
+                    <label for="swal-service-name">Service Name:<span class="required">*</span></label>
+                    <input type="text" id="swal-service-name" class="swal2-input">
+                </div>
+
+                <div class="swal2-row">
+                    <label for="swal-price">Price (₱):<span class="required">*</span></label>
+                    <input type="number" id="swal-price" class="swal2-input" min="0" step="0.01">
+                </div>
+                `,
                 showCancelButton: true,
                 confirmButtonText: "Add Service",
                 cancelButtonText: "Cancel",

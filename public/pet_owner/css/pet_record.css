@@ -106,7 +106,7 @@ main {
   display: none;
   position: absolute;
   background-color: #ffffff;
-  min-width: 150px; /* Increase the width to accommodate longer text */
+  min-width: 210px; /* Increase the width to accommodate longer text */
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
   border-radius: 10px;
   padding: 10px 0;
@@ -665,7 +665,7 @@ main {
   display: block; /* Ensure value stays below the label */
 }
 
-.pet-name-dropdown {
+#pet-dropdown {
   font-size: 18px; /* Match font size for readability */
   font-weight: bold; /* Bold text to emphasize the name */
   color: #333333; /* Text color */
@@ -676,12 +676,12 @@ main {
   cursor: pointer; /* Pointer cursor for dropdown */
 }
 
-.pet-name-dropdown:hover {
+#pet-dropdown:hover {
   background-color: #f9f9f9; /* Slightly darker background on hover */
   border-color: var(--color-1); /* Highlight border on hover */
 }
 
-.pet-name-dropdown:focus {
+#pet-dropdown:focus {
   outline: none; /* Remove default focus outline */
   border-color: var(--color-1); /* Highlight border when focused */
 }

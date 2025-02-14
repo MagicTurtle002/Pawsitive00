@@ -60,7 +60,7 @@ $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="profile-dropdown">
                 <img src="../../assets/images/Icons/User 1.png" alt="Profile Icon" class="profile-icon">
                 <div class="dropdown-content">
-                    <a href=""><img src="../../assets/images/Icons/Settings 2.png" alt="Settings">Settings</a>
+                    <a href="settings.php"><img src="../../assets/images/Icons/Settings 2.png" alt="Settings">Settings</a>
                     <a href=""><img src="../../assets/images/Icons/Sign out.png" alt="Sign Out">Sign Out</a>
                 </div>
             </div>

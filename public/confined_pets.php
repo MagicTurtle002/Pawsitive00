@@ -402,40 +402,55 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             function addConfinementReport(petId) {
                 Swal.fire({
                     title: "Confinement Daily Report",
+                    width: "60%", 
                     html: `
                         <form id="confinementForm">
                             <input type="hidden" id="pet_id" name="pet_id" value="${petId}">
 
-                            <label>Diagnosis:</label>
-                            <input type="text" id="diagnosis" name="diagnosis" class="swal2-input" required>
+                            <div class="form-container">
+                                <div class="swal2-row">
+                                    <label for="diagnosis">Diagnosis:<span class="required">*</span></label>
+                                    <input type="text" id="diagnosis" name="diagnosis" class="swal2-input" required>
+                                </div>
 
-                            <label>Confinement Date:</label>
-                            <input type="date" id="confinement_date" name="confinement_date" class="swal2-input" required>
+                                <div class="swal2-row">
+                                    <label for="confinement_date">Confinement Date:<span class="required">*</span></label>
+                                    <input type="date" id="confinement_date" name="confinement_date" class="swal2-input" required>
+                                </div>
 
-                            <label>IV Fluid Drip Rate:</label>
-                            <input type="text" id="iv_fluid_rate" name="iv_fluid_rate" class="swal2-input">
+                                <div class="swal2-row">
+                                    <label for="iv_fluid_rate">IV Fluid Drip Rate:<span class="required">*</span></label>
+                                    <input type="text" id="iv_fluid_rate" name="iv_fluid_rate" class="swal2-input">
+                                </div>
 
-                            <label>Diet:</label>
-                            <input type="text" id="diet" name="diet" class="swal2-input">
+                                <div class="swal2-row">
+                                    <label for="diet">Diet:<span class="required">*</span></label>
+                                    <input type="text" id="diet" name="diet" class="swal2-input">
+                                </div>
+                            </div>
 
+                            <br><hr><br>
                             <h3>Medications & Extras</h3>
-                            <table id="medicationTable" class="swal2-container">
-                                <thead>
-                                    <tr>
-                                        <th>QTY</th>
-                                        <th>Medicine</th>
-                                        <th>Dose</th>
-                                        <th>Route</th>
-                                        <th>Observation</th>
-                                        <th>AM</th>
-                                        <th>PM</th>
-                                        <th>Remarks</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="medicationRows"></tbody>
-                            </table>
-                            <button type="button" onclick="addMedicationRow();">+ Add Row</button>
+                            <div class="table-container">
+                                <table id="medicationTable" class="swal2-table">
+                                    <thead>
+                                        <tr>
+                                            <th>QTY</th>
+                                            <th>Medicine</th>
+                                            <th>Dose</th>
+                                            <th>Route</th>
+                                            <th>Observation</th>
+                                            <th>AM</th>
+                                            <th>PM</th>
+                                            <th>Remarks</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="medicationRows"></tbody>
+                                </table>
+                            </div>
+
+                            <button type="button" class="add-row-btn" onclick="addMedicationRow();">+ Add Row</button>
                         </form>
                     `,
                     showCancelButton: true,
@@ -452,28 +467,28 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 let row = document.createElement("tr");
 
                 row.innerHTML = `
-                    <td><input type="number" name="qty[]" required></td>
-                    <td><input type="text" name="medicine[]" required></td>
-                    <td><input type="text" name="dose[]" required></td>
+                    <td><input type="number" name="qty[]" class="medication-input" required></td>
+                    <td><input type="text" name="medicine[]" class="medication-input" required></td>
+                    <td><input type="text" name="dose[]" class="medication-input" required></td>
                     <td>
-                        <select name="route[]" required>
+                        <select name="route[]" class="medication-select" required>
                             <option value="IV">IV</option>
                             <option value="Oral">Oral</option>
                             <option value="SC">SC</option>
                         </select>
                     </td>
-                    <td><input type="text" name="observation[]"></td>
-                    <td><input type="text" name="am_time[]"></td>
-                    <td><input type="text" name="pm_time[]"></td>
-                    <td><input type="text" name="remarks[]"></td>
-                    <td><button type="button" onclick="removeRow(this);">X</button></td>
+                    <td><input type="text" name="observation[]" class="medication-input"></td>
+                    <td><input type="text" name="am_time[]" class="medication-time" placeholder="HH:MM"></td>
+                    <td><input type="text" name="pm_time[]" class="medication-time" placeholder="HH:MM"></td>
+                    <td><input type="text" name="remarks[]" class="medication-input"></td>
+                    <td><button type="button" class="delete-row-btn" onclick="removeRow(this);">X</button></td>
                 `;
                 table.appendChild(row);
             }
 
-            // Function to remove a medication row
             function removeRow(button) {
-                button.closest("tr").remove();
+                let row = button.parentNode.parentNode;
+                row.parentNode.removeChild(row);
             }
 
             // Function to submit form via AJAX

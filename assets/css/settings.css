@@ -457,3 +457,42 @@ a:hover {
     cursor: pointer; /* Pointer cursor for better usability */
 }
 
+/* Align label and input fields properly */
+.swal2-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+/* Labels stay on the left */
+.swal2-row label {
+    width: 110px; /* Increase width so "Service" fits properly */
+    font-weight: bold;
+    text-align: left;
+    white-space: nowrap; /* Prevents label from wrapping */
+}
+
+/* Make input fields longer */
+.swal2-row input {
+    flex: 1;  /* Allows the input to take up remaining space */
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: calc(100% - 100px);  /* Adjust input field width */
+    max-width: 400px;  /* Adjust maximum width */
+}
+
+.required-asterisk, .required {
+    color: red;
+    font-weight: bold;
+}
+
+.file-input {
+    margin-top: 15px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+    font-size: 14px;
+}

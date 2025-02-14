@@ -840,3 +840,124 @@ select:focus {
 .restore-btn:hover {
     background-color: #1c6a29; /* Darker green */
 }
+
+/* Center the form fields */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Align label and input fields properly */
+.swal2-row {
+    display: flex;
+    justify-content: center; /* Centers the label & input */
+    align-items: center;
+    width: 100%;
+    max-width: 500px; /* Keeps form compact */
+    gap: 10px;
+}
+
+/* Labels stay on the left */
+.swal2-row label {
+    width: 150px; /* Increase width so "Service" fits properly */
+    font-weight: bold;
+    text-align: left;
+    white-space: nowrap; /* Prevents label from wrapping */
+}
+
+/* Make input fields longer */
+.swal2-row input {
+    flex: 1;  
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 100%;
+    max-width: 300px;
+}
+
+.required-asterisk, .required {
+    color: red;
+    font-weight: bold;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Enables scrolling if the table overflows */
+}
+
+.swal2-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    text-align: center;
+    white-space: nowrap; /* Keeps everything in one line */
+}
+
+.swal2-table th, .swal2-table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    text-align: center;
+}
+
+.swal2-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.medication-input,
+.medication-time {
+    width: 90%; /* Ensures input fits well inside table cells */
+    padding: 6px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.medication-time {
+    width: 75px; /* Specific width for time fields */
+}
+
+.medication-select {
+    width: 90%; /* Ensures input fits well inside table cells */
+    padding: 6px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.medication-select {
+    width: 75px; /* Specific width for time fields */
+}
+
+.delete-row-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-row-btn:hover {
+    background-color: #a71d2a;
+}
+
+.add-row-btn {
+    margin-top: 10px;
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.add-row-btn:hover {
+    background-color: #0056b3;
+}
