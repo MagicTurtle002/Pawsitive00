@@ -177,6 +177,7 @@ function openLoginModal() {
     showCloseButton: true,
     allowOutsideClick: true,
     showConfirmButton: false,
+    showConfirmButton: false,
     html: `
       <div class="flex flex-col space-y-4 font-poppins w-full max-w-md mx-auto">
         <button onclick="window.location.href='public/owner_login.php'"

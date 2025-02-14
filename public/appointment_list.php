@@ -26,16 +26,14 @@ $where_clause = [];
 $params = [];
 
 // Search filter
-if (isset($_GET['search'])) {
+if (!empty($_GET['search'])) {
     $search = '%' . $_GET['search'] . '%';
-    $where_clause[] = "(Pets.Name LIKE ? 
+    $where_clause[] = "(Appointments.AppointmentId LIKE ? 
+                        OR Pets.Name LIKE ? 
                         OR Appointments.AppointmentCode LIKE ? 
                         OR Services.ServiceName LIKE ? 
                         OR CONCAT(Owners.FirstName, ' ', Owners.LastName) LIKE ?)";
-    $params[] = $search;
-    $params[] = $search;
-    $params[] = $search;
-    $params[] = $search;
+    $params = array_fill(0, 5, $search);
 }
 
 // Date filter
@@ -144,7 +142,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 <li class="active"><a href="appointment.php">
                         <img src="../assets/images/Icons/Schedule 3.png" alt="Schedule Icon">Schedule</a></li>
                 <li><a href="invoice_billing_form.php">
-                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice and Billing</a></>
+                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice</a></>
             </ul>
         </nav>
         <div class="sidebar-bottom">
@@ -243,7 +241,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             $currentDate = $appointmentDate;
                             ?>
                             <tr class="date-header">
-                                <td colspan="5"><?= date("F j, Y", strtotime($currentDate)) ?></td>
+                                <td colspan="5"><strong><?= date("F j, Y", strtotime($currentDate)) ?></strong></td>
                             </tr>
                             <?php
                         endif;
@@ -331,9 +329,9 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                     document.querySelectorAll('input[name="dateFilter"]').forEach(el => el.checked = false);
                     document.getElementById("startDate").value = "";
                     document.getElementById("endDate").value = "";
-                    document.getElementById("searchInput").value = "";
+                    searchInput.value = ""; // Reset search field
 
-                    fetchAppointments(true); // Pass 'true' to indicate resetting
+                    fetchAppointments(true); // Fetch all data again
                 }
 
                 function toggleCustomDate(show) {
@@ -355,17 +353,19 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 const dateFilter = isReset ? "" : document.querySelector('input[name="dateFilter"]:checked')?.value || "";
                 const startDate = isReset ? "" : document.getElementById("startDate").value;
                 const endDate = isReset ? "" : document.getElementById("endDate").value;
+                const searchQuery = isReset ? "" : searchInput.value.trim();
 
                 if (!isReset && dateFilter !== "custom") {
                     toggleCustomDate(false);
                 }
 
                 const queryParams = new URLSearchParams({
-                    search: isReset ? "" : document.getElementById("searchInput").value.trim(),
+                    search: searchQuery,
                     status,
                     dateFilter,
                     startDate,
-                    endDate
+                    endDate,
+                    page: 0 // Reset to first page when searching or filtering
                 });
 
                 fetch("../src/fetch_appointments.php?" + queryParams.toString())
@@ -376,6 +376,6 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                     .catch(error => console.error("Error fetching appointments:", error));
             }
         </script>
+        
 </body>
-
 </html>
