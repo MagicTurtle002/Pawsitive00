@@ -76,7 +76,7 @@ try {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="pet_owner.css">
+    <link rel="stylesheet" href="css/pet_owner.css">
     
     <style>
         .appointments-section {
@@ -132,10 +132,10 @@ try {
         </div>
         <ul class="nav-links">
             <li><a href="#home" class="active">Home</a></li>
-            <li><a href="appointment/book_appointment.php">Appointment</a></li>
-            <li><a href="pet/pet_add.php">Pets</a></li>
-            <li><a href="record/pet_record.php">Record</a></li>
-            <li><a href="invoice/invoice.php">Invoice</a></li>
+            <li><a href="book_appointment.php">Appointment</a></li>
+            <li><a href="pet_add.php">Pets</a></li>
+            <li><a href="pet_record.php">Record</a></li>
+            <li><a href="invoice.php">Invoice</a></li>
         </ul>
 
         <div class="profile-dropdown">
@@ -175,7 +175,7 @@ try {
                             <div class="detail"><span class="label">Name</span><span class="value"><?= htmlspecialchars($pet['PetName']); ?></span></div>
                             <div class="detail"><span class="label">Pet Type</span><span class="value"><?= htmlspecialchars($pet['PetType']); ?></span></div>
                             <div class="detail"><span class="label">Gender</span><span class="value"><?= htmlspecialchars($pet['Gender']); ?></span></div>
-                            <div class="detail"><span class="label">Age</span><span class="value"><?= htmlspecialchars($pet['Age']); ?></span></div>
+                            <div class="detail"><span class="label">Age</span><span class="value"><?= htmlspecialchars($pet['Age'] ?? 'N/A'); ?></span></div>
                             <div class="detail"><span class="label">Breed</span><span class="value"><?= htmlspecialchars($pet['Breed']); ?></span></div>
                         </div>
                         <div class="three-dot-menu">
@@ -195,7 +195,7 @@ try {
         </div>
 
         <div class="add-pet-container">
-            <a href="pet/pet_add.php">
+            <a href="pet_add.php">
                 <button class="add-pet-button">
                 <img src="../../assets/images/Icons/Add.png" alt="Add Icon">
                 </button>
