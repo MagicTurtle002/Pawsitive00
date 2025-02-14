@@ -16,7 +16,7 @@ $userName = isset($_SESSION['FirstName']) ? $_SESSION['FirstName'] . ' ' . $_SES
 $role = $_SESSION['Role'] ?? 'Role';
 
 // Pagination setup
-$currentPage = isset($_GET['page']) ? max(0, (int)$_GET['page']) : 0;
+$currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
 $recordsPerPage = 10;
 $offset = $currentPage * $recordsPerPage;
 
@@ -63,6 +63,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -71,12 +72,15 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/all_activities.css">
     <script src="../assets/js/record.js"></script>
 </head>
+
 <body>
-<div class="sidebar">
+    <div class="sidebar">
         <div class="logo">
             <img src="../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
         </div>
@@ -86,15 +90,15 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             <br>
             <ul class="nav-links">
                 <li class="active"><a href="main_dashboard.php">
-                    <img src="../assets/images/Icons/Chart 3.png" alt="Chart Icon">Overview</a></li>
+                        <img src="../assets/images/Icons/Chart 3.png" alt="Chart Icon">Overview</a></li>
                 <li><a href="record.php">
-                    <img src="../assets/images/Icons/Record 1.png" alt="Record Icon">Record</a></li>
+                        <img src="../assets/images/Icons/Record 1.png" alt="Record Icon">Record</a></li>
                 <li><a href="staff_view.php">
-                    <img src="../assets/images/Icons/Staff 1.png" alt="Contacts Icon">Staff</a></li>
+                        <img src="../assets/images/Icons/Staff 1.png" alt="Contacts Icon">Staff</a></li>
                 <li><a href="appointment.php">
-                    <img src="../assets/images/Icons/Schedule 1.png" alt="Schedule Icon">Schedule</a></>
+                        <img src="../assets/images/Icons/Schedule 1.png" alt="Schedule Icon">Schedule</a></>
                 <li><a href="invoice_billing_form.php">
-                    <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice and Billing</a></>
+                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice and Billing</a></>
             </ul>
         </nav>
         <div class="sidebar-bottom">
@@ -123,18 +127,36 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 </tr>
             </thead>
             <tbody>
-                <?php if ($allActivities): ?>
-                    <?php foreach ($allActivities as $activity): ?>
+                <?php
+                if ($allActivities):
+                    $currentDate = null; // Track the last printed date
+                
+                    foreach ($allActivities as $activity):
+                        // Extract only the date (ignoring time)
+                        $activityDate = date("Y-m-d", strtotime($activity['CreatedAt']));
+
+                        // If this is a new date, print the date header row
+                        if ($currentDate !== $activityDate):
+                            $currentDate = $activityDate; ?>
+                            <tr class="date-header">
+                                <td colspan="5"><strong><?= htmlspecialchars(date("F j, Y", strtotime($currentDate))) ?></strong>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+
+                        <!-- Display the activity -->
                         <tr>
                             <td><?= htmlspecialchars($activity['UserName']); ?></td>
                             <td><?= htmlspecialchars($activity['Role']); ?></td>
                             <td><?= htmlspecialchars($activity['PageAccessed']); ?></td>
                             <td><?= htmlspecialchars($activity['ActionDetails']); ?></td>
-                            <td><?= htmlspecialchars($activity['CreatedAt']); ?></td>
+                            <td><?= htmlspecialchars(date("h:i A", strtotime($activity['CreatedAt']))); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="5">No activities found.</td></tr>
+                    <tr>
+                        <td colspan="5">No activities found.</td>
+                    </tr>
                 <?php endif; ?>
             </tbody>
         </table>
@@ -152,4 +174,5 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
         </div>
     </div>
 </body>
+
 </html>

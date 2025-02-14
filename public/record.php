@@ -16,7 +16,7 @@ $userName = $_SESSION['FirstName'] . ' ' . $_SESSION['LastName'];
 $role = $_SESSION['Role'] ?? 'Role';
 $email = $_SESSION['Email'];
 
-$currentPage = isset($_GET['page']) ? max(0, (int)$_GET['page']) : 0;
+$currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
 $recordsPerPage = 10;
 $offset = $currentPage * $recordsPerPage;
 
@@ -43,40 +43,104 @@ $where_clause[] = isset($_GET['archived']) && $_GET['archived'] === '1' ? "Pets.
 $where_sql = !empty($where_clause) ? 'WHERE ' . implode(' AND ', $where_clause) : '';
 
 $query = "
-    SELECT 
-        Owners.OwnerId,
-        CONCAT(Owners.FirstName, ' ', Owners.LastName) AS owner_name,
-        Owners.Email,
-        Owners.Phone,
-        Pets.PetId,
-        Pets.Name AS PetName,
-        Pets.PetCode,
-        Species.SpeciesName AS PetType,
-        (SELECT Services.ServiceName 
-            FROM Appointments 
-            LEFT JOIN Services ON Appointments.ServiceId = Services.ServiceId
-            WHERE Appointments.PetId = Pets.PetId
-            ORDER BY Appointments.AppointmentDate DESC, Appointments.AppointmentTime DESC 
-            LIMIT 1
-        ) AS LatestService,
-        (SELECT Appointments.AppointmentTime 
-            FROM Appointments 
-            WHERE Appointments.PetId = Pets.PetId
-            ORDER BY Appointments.AppointmentDate DESC, Appointments.AppointmentTime DESC 
-            LIMIT 1
-        ) AS LatestTime,
+SELECT 
+    Owners.OwnerId,
+    CONCAT(Owners.FirstName, ' ', Owners.LastName) AS owner_name,
+    Owners.Email,
+    Owners.Phone,
+    Pets.PetId,
+    Pets.Status AS PetStatus,
+    Pets.Name AS PetName,
+    Pets.PetCode,
+    Species.SpeciesName AS PetType,
+
+    -- Fetch the last visit (past appointment)
+    (SELECT Appointments.AppointmentDate 
+        FROM Appointments 
+        WHERE Appointments.PetId = Pets.PetId
+        AND Appointments.AppointmentDate <= CURDATE()
+        AND Appointments.Status IN ('Done', 'Paid')
+        ORDER BY Appointments.AppointmentDate DESC, Appointments.AppointmentTime DESC 
+        LIMIT 1
+    ) AS LastVisit,
+
+    -- Fetch the Service for the Last Visit
+    (SELECT Services.ServiceName 
+        FROM Appointments 
+        INNER JOIN Services ON Appointments.ServiceId = Services.ServiceId
+        WHERE Appointments.PetId = Pets.PetId
+        AND Appointments.AppointmentDate <= CURDATE()
+        AND Appointments.Status IN ('Done', 'Paid')
+        ORDER BY Appointments.AppointmentDate DESC, Appointments.AppointmentTime DESC 
+        LIMIT 1
+    ) AS LastVisitService,
+
+    -- Fetch the Appointment Time for the Last Visit
+    (SELECT Appointments.AppointmentTime 
+        FROM Appointments 
+        WHERE Appointments.PetId = Pets.PetId
+        AND Appointments.AppointmentDate <= CURDATE()
+        AND Appointments.Status IN ('Done', 'Paid')
+        ORDER BY Appointments.AppointmentDate DESC, Appointments.AppointmentTime DESC 
+        LIMIT 1
+    ) AS LastVisitTime,
+
+    -- Fetch the next follow-up if available
+    (SELECT FollowUpDate 
+        FROM FollowUps 
+        WHERE FollowUps.RecordId = Pets.PetId 
+        ORDER BY FollowUpDate ASC 
+        LIMIT 1
+    ) AS NextFollowUp,
+
+    -- Fetch next appointment details
+    (SELECT Appointments.AppointmentDate 
+        FROM Appointments 
+        WHERE Appointments.PetId = Pets.PetId
+        AND Appointments.AppointmentDate >= CURDATE()
+        ORDER BY Appointments.AppointmentDate ASC, Appointments.AppointmentTime ASC 
+        LIMIT 1
+    ) AS NextAppointment,
+
+    -- Fetch Service for the Next Appointment
+    (SELECT Services.ServiceName 
+        FROM Appointments 
+        INNER JOIN Services ON Appointments.ServiceId = Services.ServiceId
+        WHERE Appointments.PetId = Pets.PetId
+        AND Appointments.AppointmentDate >= CURDATE()
+        ORDER BY Appointments.AppointmentDate ASC, Appointments.AppointmentTime ASC 
+        LIMIT 1
+    ) AS NextServiceName,
+
+    -- Fetch Appointment Time for the Next Appointment
+    (SELECT Appointments.AppointmentTime 
+        FROM Appointments 
+        WHERE Appointments.PetId = Pets.PetId
+        AND Appointments.AppointmentDate >= CURDATE()
+        ORDER BY Appointments.AppointmentDate ASC, Appointments.AppointmentTime ASC 
+        LIMIT 1
+    ) AS NextAppointmentTime,
+
+    -- Combined Next Visit: Prioritizing Follow-Up, then Appointment
+    COALESCE(
+        (SELECT FollowUpDate 
+            FROM FollowUps 
+            WHERE FollowUps.RecordId = Pets.PetId 
+            ORDER BY FollowUpDate ASC 
+            LIMIT 1),
         (SELECT Appointments.AppointmentDate 
             FROM Appointments 
             WHERE Appointments.PetId = Pets.PetId
-            ORDER BY Appointments.AppointmentDate DESC, Appointments.AppointmentTime DESC 
-            LIMIT 1
-        ) AS LatestDate
-    FROM Pets
-    INNER JOIN Owners ON Pets.OwnerId = Owners.OwnerId
-    LEFT JOIN Species ON Pets.SpeciesId = Species.Id
-    $where_sql
-    ORDER BY LatestDate DESC
-    LIMIT ?, ?
+            AND Appointments.AppointmentDate >= CURDATE()
+            ORDER BY Appointments.AppointmentDate ASC, Appointments.AppointmentTime ASC 
+            LIMIT 1)
+    ) AS NextVisit
+
+FROM Pets
+INNER JOIN Owners ON Pets.OwnerId = Owners.OwnerId
+LEFT JOIN Species ON Pets.SpeciesId = Species.Id
+ORDER BY NextVisit DESC
+LIMIT ?, ?;
 ";
 
 // Append pagination parameters
@@ -96,17 +160,15 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
     ob_start(); // Start output buffering
     if (count($pets) > 0) {
         foreach ($pets as $pet): ?>
-            <tr class="pet-row" 
-                <?php if (empty($_GET['search'])): ?> 
-                    onclick="togglePetDetails(this)" 
-                <?php endif; ?>>
+            <tr class="pet-row" <?php if (empty($_GET['search'])): ?> onclick="togglePetDetails(this)" <?php endif; ?>>
                 <td>
                     <div class="hover-container">
                         <?= htmlspecialchars($pet['PetCode'] ?? 'No information found') ?>
                         <i class="fas fa-info-circle"></i>
                         <div class="hover-card">
                             <div class="profile-info">
-                                <img src="../assets/images/Icons/Profile User.png" alt="Profile Pic" class="profile-img" width="10px">
+                                <img src="../assets/images/Icons/Profile User.png" alt="Profile Pic" class="profile-img"
+                                    width="10px">
                                 <div>
                                     <strong><?= htmlspecialchars($pet['owner_name']) ?></strong><br>
                                     <?= htmlspecialchars($pet['role'] ?? 'Authorized Representative') ?>
@@ -135,11 +197,12 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                 <td>
                     <?php if (hasPermission($pdo, 'Manage Pets')): ?>
                         <div class="three-dot-menu" style="display: inline-block;">
-                            <button class="three-dot-btns" onclick="toggleDropdown(event, this)">⋮</button>
+                            <button class="three-dot-btns">⋮</button>
                             <div class="dropdown-menus" style="display: none;">
                                 <a href="#" onclick="confirmConfine('<?= htmlspecialchars($pet['PetId']) ?>')">Confine Pet</a>
                                 <a href="add_vaccination.php?pet_id=<?= htmlspecialchars($pet['PetId']) ?>">Add Vaccination</a>
-                                <a href="#" onclick="confirmArchive('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Archive Pet</a>
+                                <a href="#" onclick="confirmArchive('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Archive
+                                    Pet</a>
                                 <a href="#" onclick="confirmDelete('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Delete</a>
                             </div>
                         </div>
@@ -178,6 +241,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -305,12 +369,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             <h1>Record</h1>
             <div class="actions">
                 <form method="GET" action="record.php" class="filter-container">
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        name="search" 
-                        placeholder="Search record..."
-                        autocomplete="off" 
+                    <input type="text" id="searchInput" name="search" placeholder="Search record..." autocomplete="off"
                         value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
 
                     <div class="dropdown-filter">
@@ -333,7 +392,8 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             </label>
                             <hr>
                             <button type="submit" class="apply-btn">Apply Filter</button>
-                            <button type="button" class="clear-btn" onclick="location.href='record.php'">Clear Filter</button>
+                            <button type="button" class="clear-btn" onclick="location.href='record.php'">Clear
+                                Filter</button>
                         </div>
                     </div>
                 </form>
@@ -352,9 +412,9 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                     <th>Pet ID</th>
                     <th>Pet Name</th>
                     <th>Pet Type</th>
-                    <th>Service</th>
-                    <th>Appointment Time</th>
-                    <th>Appointment Date</th>
+                    <th>Status</th>
+                    <th>Last Visit</th>
+                    <th>Next Visit</th>
                 </tr>
             </thead>
             <tbody id="staffList">
@@ -386,7 +446,8 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                                         </div>
                                         <hr>
                                         <div style="text-align: center; margin-top: 10px;">
-                                            <a href="add_pet.php?owner_id=<?= htmlspecialchars($pet['OwnerId']) ?>" class="add-pet-button">
+                                            <a href="add_pet.php?owner_id=<?= htmlspecialchars($pet['OwnerId']) ?>"
+                                                class="add-pet-button">
                                                 + Add Pet
                                             </a>
                                         </div>
@@ -397,13 +458,15 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                                 <div class="three-dot-menu" style="display: inline-block;">
                                     <button class="three-dot-btns" onclick="toggleDropdown(event, this)">⋮</button>
                                     <div class="dropdown-menus" style="display: none;">
-                                        <a href="#" onclick="confirmConfine('<?= htmlspecialchars($pet['PetId']) ?>')">Confine Pet</a>
+                                        <a href="#" onclick="confirmConfine('<?= htmlspecialchars($pet['PetId']) ?>')">Confine
+                                            Pet</a>
                                         <a href="add_vaccination.php?pet_id=<?= htmlspecialchars($pet['PetId']) ?>">Add
                                             Vaccination</a>
                                         <a href="#"
                                             onclick="confirmArchive('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Archive
                                             Pet</a>
-                                        <a href="#" onclick="confirmDelete('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Delete</a>
+                                        <a href="#"
+                                            onclick="confirmDelete('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Delete</a>
                                     </div>
                                 </div>
 
@@ -413,9 +476,44 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                                 </a>
                             </td>
                             <td><?= htmlspecialchars($pet['PetType'] ?? 'No information found') ?></td>
-                            <td><?= htmlspecialchars($pet['LatestService'] ?? 'No information found') ?></td>
-                            <td><?= htmlspecialchars($pet['LatestTime'] ?? '00:00') ?></td>
-                            <td><?= htmlspecialchars($pet['LatestDate'] ?? 'MM/DD') ?></td>
+                            <td><?= htmlspecialchars($pet['PetStatus'] ?? 'Unknown') ?></td>
+                            <td>
+                                <div class="hover-container">
+                                    <span
+                                        class="last-visit"><?= htmlspecialchars($pet['LastVisit'] ?? 'No past visit') ?></span>
+                                    <div class="hover-card">
+                                        <strong>Last Visit Details:</strong><br>
+                                        <strong>Date:</strong> <?= htmlspecialchars($pet['LastVisit'] ?? 'No past visit') ?><br>
+                                        <strong>Service:</strong>
+                                        <?= htmlspecialchars($pet['LastVisitService'] ?? 'No details') ?><br>
+                                        <strong>Time:</strong>
+                                        <?= htmlspecialchars($pet['LastVisitTime'] ?? 'No time set') ?><br>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="hover-container">
+                                    <span
+                                        class="next-visit"><?= htmlspecialchars($pet['NextVisit'] ?? 'No upcoming visit') ?></span>
+                                    <div class="hover-card">
+                                        <strong>Next Visit Details:</strong><br>
+                                        <span>
+                                            <?= $pet['NextFollowUp'] ? 'Follow-Up' : 'Appointment' ?>
+                                        </span><br>
+                                        <strong>Date:</strong>
+                                        <?= htmlspecialchars($pet['NextVisit'] ?? 'No upcoming visit') ?><br>
+                                        <?php if ($pet['NextFollowUp']): ?>
+                                            <strong>Follow-Up Notes:</strong>
+                                            <?= htmlspecialchars($pet['FollowUpNotes'] ?? 'No details') ?><br>
+                                        <?php else: ?>
+                                            <strong>Service:</strong>
+                                            <?= htmlspecialchars($pet['ServiceName'] ?? 'No details') ?><br>
+                                            <strong>Time:</strong>
+                                            <?= htmlspecialchars($pet['AppointmentTime'] ?? 'No time set') ?><br>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </td>
                         </tr>
                         <tr class="dropdown-row" style="display: none;">
                             <td colspan="6">
@@ -461,10 +559,9 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             <?php endfor; ?>
             <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
         </div>
-        <script src="../assets/js/record.js?v=<?= time(); ?>"></script>
         <?php if (isset($_SESSION['errors']['duplicate'])): ?>
             <script>
-                document.addEventListener("DOMContentLoaded", function() {
+                document.addEventListener("DOMContentLoaded", function () {
                     Swal.fire({
                         title: "Duplicate Entry",
                         text: "<?= htmlspecialchars($_SESSION['errors']['duplicate']) ?>",
@@ -477,7 +574,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
         <?php endif; ?>
         <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
             <script>
-                document.addEventListener("DOMContentLoaded", function() {
+                document.addEventListener("DOMContentLoaded", function () {
                     Swal.fire({
                         title: "Success!",
                         text: "Pet added successfully!",
@@ -487,295 +584,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 });
             </script>
         <?php endif; ?>
-        <script>
-            function confirmConfine(petId) {
-                Swal.fire({
-                    title: 'Confirm Confinement',
-                    text: 'Are you sure you want to confine this pet?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6', // Blue button for confirmation
-                    cancelButtonColor: '#d33', // Red button for cancel
-                    confirmButtonText: 'Yes, Confine',
-                    cancelButtonText: 'Cancel',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Redirect to the confine_pet.php page with the PetId
-                        window.location.href = `confine_pet.php?PetId=${petId}`;
-                    }
-                });
-            }
-
-            function confirmDelete(petId) {
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'This action will permanently delete this pet record.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33', // Red color for "Delete" button
-                    cancelButtonColor: '#3085d6', // Blue color for "Cancel" button
-                    confirmButtonText: 'Yes, Delete it!',
-                    cancelButtonText: 'Cancel',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Redirect to delete_record.php with the PetId
-                        window.location.href = `../src/delete_pet.php?PetId=${petId}`;
-                    }
-                });
-            }
-        </script>
-
-        <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const infoIcons = document.querySelectorAll('.fas.fa-info-circle'); // All "i" icons
-            const hoverCards = document.querySelectorAll('.hover-card'); // All hover cards
-
-            // Track the open state
-            let activeCard = null;
-
-            // Function to show the hover card
-            const showHoverCard = (card) => {
-                card.style.display = 'block';
-            };
-
-            // Function to hide the hover card
-            const hideHoverCard = (card) => {
-                card.style.display = 'none';
-            };
-
-            // Add hover and click listeners
-            infoIcons.forEach((icon, index) => {
-                const hoverCard = hoverCards[index];
-
-                // Show the hover card on hover
-                icon.addEventListener('mouseenter', () => {
-                    showHoverCard(hoverCard);
-                });
-
-                // Keep the hover card visible on hover
-                hoverCard.addEventListener('mouseenter', () => {
-                    showHoverCard(hoverCard);
-                });
-
-                // Hide the hover card when not hovering
-                icon.addEventListener('mouseleave', () => {
-                    if (activeCard !== hoverCard) {
-                        hideHoverCard(hoverCard);
-                    }
-                });
-
-                hoverCard.addEventListener('mouseleave', () => {
-                    if (activeCard !== hoverCard) {
-                        hideHoverCard(hoverCard);
-                    }
-                });
-
-                // Toggle the hover card visibility on click
-                icon.addEventListener('click', (event) => {
-                    event.stopPropagation(); // Prevent bubbling up
-                    if (activeCard === hoverCard) {
-                        activeCard = null; // Deselect active card
-                        hideHoverCard(hoverCard);
-                    } else {
-                        if (activeCard) hideHoverCard(activeCard); // Close any open card
-                        activeCard = hoverCard; // Set the new active card
-                        showHoverCard(hoverCard);
-                    }
-                });
-            });
-
-            // Close hover cards when clicking outside
-            document.addEventListener('click', (event) => {
-                if (activeCard && !activeCard.contains(event.target) && !event.target.classList.contains('fa-info-circle')) {
-                    hideHoverCard(activeCard);
-                    activeCard = null; // Reset active card
-                }
-            });
-        });
-        </script>
-        <script>
-        function confirmArchive(petId) {
-            Swal.fire({
-                title: 'Confirm Archive',
-                text: 'Are you sure you want to archive this pet? This action can be undone later.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6', // Blue for confirmation
-                cancelButtonColor: '#d33', // Red for cancel
-                confirmButtonText: 'Yes, Archive',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Redirect to the archive_pet.php script with Pet ID
-                    window.location.href = `../src/archive_pet.php?pet_id=${petId}`;
-                }
-            });
-        }
-        </script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const searchInput = document.getElementById("searchInput");
-
-                searchInput.addEventListener("keyup", function () {
-                    let searchQuery = searchInput.value.trim();
-                    let xhr = new XMLHttpRequest();
-
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                            document.getElementById("staffList").innerHTML = xhr.responseText;
-                        }
-                    };
-
-                    xhr.open("GET", `record.php?search=${encodeURIComponent(searchQuery)}&ajax=1`, true);
-                    xhr.send();
-                });
-            });
-
-            document.addEventListener("DOMContentLoaded", function () {
-                const searchInput = document.getElementById("searchInput");
-                const staffList = document.getElementById("staffList");
-
-                function bindDropdownEvents() {
-                    document.querySelectorAll(".three-dot-btns").forEach(button => {
-                        button.addEventListener("click", function (event) {
-                            event.stopPropagation();
-                            const dropdown = this.nextElementSibling;
-
-                            // Close other open dropdowns
-                            document.querySelectorAll(".dropdown-menus").forEach(menu => {
-                                if (menu !== dropdown) menu.style.display = "none";
-                            });
-
-                            // Toggle current dropdown
-                            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
-                        });
-                    });
-
-                    // Close dropdown when clicking outside
-                    document.addEventListener("click", function () {
-                        document.querySelectorAll(".dropdown-menus").forEach(menu => {
-                            menu.style.display = "none";
-                        });
-                    });
-
-                    // Prevent closing when clicking inside dropdown
-                    document.querySelectorAll(".dropdown-menus").forEach(menu => {
-                        menu.addEventListener("click", function (event) {
-                            event.stopPropagation();
-                        });
-                    });
-                }
-
-                // Initial binding when page loads
-                bindDropdownEvents();
-
-                // Handle AJAX search and rebind events
-                searchInput.addEventListener("keyup", function () {
-                    const searchQuery = searchInput.value.trim();
-                    const xhr = new XMLHttpRequest();
-
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                            staffList.innerHTML = xhr.responseText.trim() || '<tr><td colspan="6">No pets found.</td></tr>';
-                            bindDropdownEvents();  // Rebind events after AJAX updates
-                        }
-                    };
-
-                    xhr.open("GET", `record.php?search=${encodeURIComponent(searchQuery)}&ajax=1`, true);
-                    xhr.send();
-                });
-            });
-        </script>
-        <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const infoIcons = document.querySelectorAll('.fas.fa-info-circle'); 
-            const hoverCards = document.querySelectorAll('.hover-card'); 
-
-            let activeCard = null;
-
-            const showHoverCard = (card) => {
-                card.style.display = 'block';
-            };
-
-            const hideHoverCard = (card) => {
-                card.style.display = 'none';
-            };
-
-            infoIcons.forEach((icon, index) => {
-                const hoverCard = hoverCards[index];
-
-                icon.addEventListener('mouseenter', () => {
-                    showHoverCard(hoverCard);
-                });
-
-                hoverCard.addEventListener('mouseenter', () => {
-                    showHoverCard(hoverCard);
-                });
-
-                icon.addEventListener('mouseleave', () => {
-                    if (activeCard !== hoverCard) hideHoverCard(hoverCard);
-                });
-
-                hoverCard.addEventListener('mouseleave', () => {
-                    if (activeCard !== hoverCard) hideHoverCard(hoverCard);
-                });
-
-                icon.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    if (activeCard === hoverCard) {
-                        activeCard = null;
-                        hideHoverCard(hoverCard);
-                    } else {
-                        if (activeCard) hideHoverCard(activeCard);
-                        activeCard = hoverCard;
-                        showHoverCard(hoverCard);
-                    }
-                });
-            });
-
-            document.addEventListener('click', (event) => {
-                if (activeCard && !activeCard.contains(event.target) && !event.target.classList.contains('fa-info-circle')) {
-                    hideHoverCard(activeCard);
-                    activeCard = null;
-                }
-            });
-        });
-        
-        document.addEventListener("DOMContentLoaded", function () {
-            function toggleDropdown(event, button) {
-                event.stopPropagation(); // Prevent the click from closing immediately
-                let dropdown = button.nextElementSibling; // Get the corresponding dropdown
-
-                // Close all other open dropdowns
-                document.querySelectorAll(".dropdown-menus").forEach(menu => {
-                    if (menu !== dropdown) menu.style.display = "none";
-                });
-
-                // Toggle the current dropdown
-                dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
-            }
-
-            // Attach event listeners to all three-dot buttons
-            document.querySelectorAll(".three-dot-btns").forEach(button => {
-                button.addEventListener("click", function (event) {
-                    toggleDropdown(event, this);
-                });
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener("click", function () {
-                document.querySelectorAll(".dropdown-menus").forEach(menu => {
-                    menu.style.display = "none";
-                });
-            });
-
-            // Prevent dropdown from closing when clicking inside
-            document.querySelectorAll(".dropdown-menus").forEach(menu => {
-                menu.addEventListener("click", function (event) {
-                    event.stopPropagation();
-                });
-            });
-        });
-        </script>
+                <script src="../assets/js/record.js?v=<?= time(); ?>"></script>
 </body>
+
 </html>
