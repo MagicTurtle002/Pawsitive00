@@ -133,24 +133,6 @@ function attachGeneralEventListeners() {
             }
         });
     };
-
-    window.confirmDelete = function (petId) {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This action will permanently delete this pet record.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, Delete it!',
-            cancelButtonText: 'Cancel',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = `../src/delete_pet.php?PetId=${petId}`;
-            }
-        });
-    };
-
     window.confirmArchive = function (petId) {
         Swal.fire({
             title: 'Confirm Archive',
@@ -164,17 +146,17 @@ function attachGeneralEventListeners() {
         }).then((result) => {
             if (result.isConfirmed) {
                 fetch(`../src/archive_pets.php?pet_id=${encodeURIComponent(petId)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire("Archived!", "The pet has been successfully archived.", "success").then(() => {
-                            location.reload();
-                        });
-                    } else {
-                        Swal.fire("Error!", "An error occurred while archiving the pet.", "error");
-                    }
-                })
-                .catch(() => Swal.fire("Error!", "An error occurred. Please try again.", "error"));
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire("Archived!", "The pet has been successfully archived.", "success").then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire("Error!", data.error || "An error occurred while archiving the pet.", "error");
+                        }
+                    })
+                    .catch(() => Swal.fire("Error!", "An error occurred. Please try again.", "error"));
             }
         });
     };
