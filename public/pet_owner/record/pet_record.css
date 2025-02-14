@@ -621,14 +621,15 @@ main {
 
 .pet-card {
   text-align: center;
-  padding: 20px;
+  padding: 5px 0 20px 0;
   max-width: 1000px; /* Adjust width if necessary */
 }
 
 .pet-photo img {
   border-radius: 50%;
-  width: 100px;
-  height: 100px;
+  width: 130px;
+  height: 130px;
+  margin-bottom: 5px;
   object-fit: cover;
 }
 

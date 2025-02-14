@@ -83,12 +83,17 @@ function showVitalsPrompt(appointmentId, petId) {
     Swal.fire({
         title: 'Update Pet Vitals',
         html: `
-            <label for="weight">Weight (kg):</label>
-            <input type="number" id="weight" class="swal2-input" placeholder="Enter weight in kg" min="0.1" step="0.1">
-            <br>
-            <br>
-            <label for="temperature">Temperature (°C):</label>
-            <input type="number" id="temperature" class="swal2-input" placeholder="Enter temperature in °C" min="30" max="45" step="0.1">
+            <button class="swal2-close-button" onclick="Swal.close()">×</button>
+
+            <div class="swal2-row">
+                <label for="weight">Weight (kg):<span class="required">*</span></label>
+                <input type="number" id="weight" class="swal2-input" placeholder="Enter weight in kg" min="0.1" step="0.1">
+            </div>
+            
+            <div class="swal2-row">
+                <label for="temperature">Temp (°C):<span class="required">*</span></label>
+                <input type="number" id="temperature" class="swal2-input" placeholder="Enter temperature in °C" min="30" max="45" step="0.1">
+            </div>
         `,
         confirmButtonText: 'Update & Start',
         preConfirm: () => {
@@ -207,8 +212,12 @@ function showVaccinePrompt(appointmentId, petId) {
     Swal.fire({
         title: 'Update Pet Weight',
         html: `
-            <label for="weight">Weight (kg):</label>
-            <input type="number" id="weight" class="swal2-input" placeholder="Enter weight in kg" min="0.1" step="0.1">
+            <button class="swal2-close-button" onclick="Swal.close()">×</button>
+
+            <div class="swal2-row">
+                <label for="weight">Weight (kg):<span class="required">*</span></label>
+                <input type="number" id="weight" class="swal2-input" placeholder="Enter weight in kg" min="0.1" step="0.1">
+            </div>
         `,
         confirmButtonText: 'Update & Start',
         preConfirm: () => {

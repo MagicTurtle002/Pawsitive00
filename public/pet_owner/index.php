@@ -76,7 +76,6 @@ try {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="pet_owner.css">
     
     <style>
@@ -120,6 +119,7 @@ try {
         .status.pending { background-color: #FFB200; color: #fff; } 
         .status.done { background-color: #00A86B; color: #fff; } 
         .status.confirmed { background-color: #4C5FD5; color: #fff; } 
+        .status.paid { background-color: #00A86B; color: #fff; } 
         .status.cancelled { background-color: #D72638; color: #fff; } 
     </style>
 </head>
@@ -134,9 +134,17 @@ try {
             <li><a href="#home" class="active">Home</a></li>
             <li><a href="appointment/book_appointment.php">Appointment</a></li>
             <li><a href="pet/pet_add.php">Pets</a></li>
-            <li><a href="./record/pet_record.php">Record</a></li>
-            <li><a href="invoice/invoice.php">Billing</a></li>
+            <li><a href="record/pet_record.php">Record</a></li>
+            <li><a href="invoice/invoice.php">Invoice</a></li>
         </ul>
+
+        <div class="profile-dropdown">
+            <img src="../../assets/images/Icons/User 1.png" alt="Profile Icon" class="profile-icon">
+            <div class="dropdown-content">
+                <a href=""><img src="../../assets/images/Icons/Settings 2.png" alt="Settings">Settings</a>
+                <a href=""><img src="../../assets/images/Icons/Sign out.png" alt="Sign Out">Sign Out</a>
+            </div>
+        </div>
     </nav>
 </header>
 
@@ -175,8 +183,7 @@ try {
                             <div class="menu-dropdown">
                             <ul>
                                 <li><a href="#">Edit</a></li>
-                                <li><a href="#">View Record</a></li>
-                                <li><a href="#" style="color: red;">Delete</a></li>
+                                <li><a href="record/pet_record.php">View Record</a></li>
                             </ul>
                         </div>
                     </div>
@@ -185,6 +192,15 @@ try {
             <?php else: ?>
                 <p class="no-pets-text">No pets found.</p>
             <?php endif; ?>
+        </div>
+
+        <div class="add-pet-container">
+            <a href="pet/pet_add.php">
+                <button class="add-pet-button">
+                <img src="../../assets/images/Icons/Add.png" alt="Add Icon">
+                </button>
+            </a>
+            <p class="add-pet-text">Add Pet</p>
         </div>
     </section>
 
@@ -226,6 +242,25 @@ try {
 </main>
 
 <br>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const profileIcon = document.querySelector('.profile-icon');
+        const dropdownContent = document.querySelector('.dropdown-content');
+
+        profileIcon.addEventListener('click', function () {
+            dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+        });
+
+        window.addEventListener('click', function (event) {
+            if (!event.target.matches('.profile-icon')) {
+                if (dropdownContent.style.display === 'block') {
+                    dropdownContent.style.display = 'none';
+                }
+            }
+        });
+    });
+</script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -271,25 +306,6 @@ try {
     });
 });
 </script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const profileIcon = document.querySelector('.profile-icon');
-      const dropdownContent = document.querySelector('.dropdown-content');
-
-      profileIcon.addEventListener('click', function() {
-        dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
-      });
-
-      window.addEventListener('click', function(event) {
-        if (!event.target.matches('.profile-icon')) {
-          if (dropdownContent.style.display === 'block') {
-            dropdownContent.style.display = 'none';
-          }
-        }
-      });
-    });
-  </script>
 
 </body>
 </html>

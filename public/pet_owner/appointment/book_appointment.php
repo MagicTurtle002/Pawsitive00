@@ -137,24 +137,23 @@ try {
     die("Database Error: " . $e->getMessage());
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pawsitive</title>
+    <title>Pawsitive | Appointment</title>
     <link rel="icon" type="image/x-icon" href="../../../assets/images/logo/LOGO.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/main.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.js"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-        rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="book_appointment.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         const bookedTimesByDate = <?= json_encode($bookedTimesByDate, JSON_PRETTY_PRINT | JSON_HEX_TAG); ?>;
         console.log("Booked Times Data:", bookedTimesByDate); // ✅ Add here
@@ -172,15 +171,11 @@ try {
                 <li><a href="book_appointment.php" class="active">Appointment</a></li>
                 <li><a href="../pet/pet_add.php">Pets</a></li>
                 <li><a href="../record/pet_record.php">Record</a></li>
-                <li><a href="../record/record.php">Billing</a></li>
+                <li><a href="../invoice/invoice.php">Invoice</a></li>
             </ul>
             <div class="profile-dropdown">
                 <img src="../../../assets/images/Icons/User 1.png" alt="Profile Icon" class="profile-icon">
                 <div class="dropdown-content">
-                    <a href="profile/index.php"><img src="../../../assets/images/Icons/Profile.png"
-                            alt="Profile Icon">Profile</a>
-                    <a href=""><img src="../../../assets/images/Icons/Change Password.png"
-                            alt="Change Password Icon">Change Password</a>
                     <a href=""><img src="../../../assets/images/Icons/Settings 2.png" alt="Settings">Settings</a>
                     <a href=""><img src="../../../assets/images/Icons/Sign out.png" alt="Sign Out">Sign Out</a>
                 </div>
@@ -194,7 +189,52 @@ try {
                 <h1>Appointments</h1>
             </div>
         </section>
+        <div class="main-content">
+            <div class="container">
+                <!-- Right Section: Add Pet Form -->
+                <div class="right-section">
+                    <!-- <h2>Add a New Pet</h2> -->
+                    <form class="staff-form" action="add_pet.php" method="POST">
+                        <section id="appointments-section" class="appointments-section">
+                            <h2 class="section-headline">Your Booked Appointments</h2>
+                            <div class="appointments-container">
+                                <?php if (!empty($appointments)): ?>
+                                    <table class="appointments-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Pet Name</th>
+                                                <th>Service</th>
+                                                <th>Time</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($appointments as $appointment): ?>
+                                                <tr>
+                                                    <td><?= htmlspecialchars($appointment['PetName']); ?></td>
+                                                    <td><?= htmlspecialchars($appointment['Service']); ?></td>
+                                                    <td><?= htmlspecialchars($appointment['Time']); ?></td>
+                                                    <td>
+                                                        <span class="status <?= strtolower($appointment['Status']); ?>">
+                                                            <?= htmlspecialchars($appointment['Status']); ?>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                <?php else: ?>
+                                    <p class="no-appointments-text">No appointments found.</p>
+                                <?php endif; ?>
+                            </div>
+                        </section>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
 
+    <main>
         <div class="main-content">
             <div class="container">
             <?php if (isset($_SESSION['message'])): ?>
@@ -283,52 +323,6 @@ try {
         </div>
         <div id="calendar"></div>
     </div>
-
-    <main>
-        <div class="main-content">
-            <div class="container">
-                <!-- Right Section: Add Pet Form -->
-                <div class="right-section">
-                    <!-- <h2>Add a New Pet</h2> -->
-                    <form class="staff-form" action="add_pet.php" method="POST">
-                        <section id="appointments-section" class="appointments-section">
-                            <h2 class="section-headline">Your Booked Appointments</h2>
-                            <div class="appointments-container">
-                                <?php if (!empty($appointments)): ?>
-                                    <table class="appointments-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Pet Name</th>
-                                                <th>Service</th>
-                                                <th>Time</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($appointments as $appointment): ?>
-                                                <tr>
-                                                    <td><?= htmlspecialchars($appointment['PetName']); ?></td>
-                                                    <td><?= htmlspecialchars($appointment['Service']); ?></td>
-                                                    <td><?= htmlspecialchars($appointment['Time']); ?></td>
-                                                    <td>
-                                                        <span class="status <?= strtolower($appointment['Status']); ?>">
-                                                            <?= htmlspecialchars($appointment['Status']); ?>
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                <?php else: ?>
-                                    <p class="no-appointments-text">No appointments found.</p>
-                                <?php endif; ?>
-                            </div>
-                        </section>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -515,19 +509,61 @@ try {
 
                 dateInput.setAttribute('min', formattedDate); // Prevent selecting past dates
 
-                dateInput.addEventListener('change', function () {
-                    const selectedDate = new Date(this.value);
-                    selectedDate.setHours(0, 0, 0, 0);
+            const monthNames = [
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            currentMonthYearElement.textContent = `${monthNames[month]} ${year}`;
 
-                    if (selectedDate < today) {
+            // Days of the week labels
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            daysOfWeek.forEach(day => {
+                const dayLabel = document.createElement('div');
+                dayLabel.textContent = day;
+                dayLabel.style.fontWeight = 'bold';
+                calendarElement.appendChild(dayLabel);
+            });
+
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                calendarElement.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.classList.add('calendar-day');
+                dayElement.textContent = day;
+
+                // Highlight today's date
+                if (
+                    day === today.getDate() &&
+                    month === today.getMonth() &&
+                    year === today.getFullYear()
+                ) {
+                    dayElement.classList.add('today');
+                }
+
+                // Set click event for selecting date
+                dayElement.addEventListener('click', function () {
+                    let selectedDate = new Date(year, month, day);
+                    let todayWithoutTime = new Date();
+                    todayWithoutTime.setHours(0, 0, 0, 0); // Set time to midnight for proper comparison
+
+                    // Correct date formatting to YYYY-MM-DD
+                    let formattedDate = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+
+                    // Allow selecting today's date but prevent past dates
+                    if (selectedDate < todayWithoutTime) {
                         Swal.fire({
                             icon: 'error',
-                            title: 'Invalid Date',
-                            text: 'You cannot select a past date!',
+                            title: 'Oops...',
+                            text: 'You cannot select a past date.',
                         });
 
                         this.value = ''; // Reset to empty if invalid
                     }
+
+                    dateInput.value = formattedDate; // Update the input field with the selected date
                 });
             }
         });

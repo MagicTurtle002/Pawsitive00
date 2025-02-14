@@ -496,7 +496,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="form-group">
                 <div class="form-row">
                     <div class="input-container">
-                        <label for="Birthday">Birthday: <span class="required">*</span></label>
+                        <label for="Birthday">Birthday:<span class="required">*</span></label>
                         <input type="date" id="Birthday" name="Birthday"
                             value="<?= htmlspecialchars($form_data['Birthday'] ?? '') ?>" placeholder="YYYY-MM-DD"
                             required>
