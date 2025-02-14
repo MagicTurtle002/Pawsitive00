@@ -19,19 +19,83 @@ if (!isset($_SESSION['LoggedIn'])) {
 $owner_id = $_SESSION['OwnerId']; // Get the logged-in owner's ID
 $user_name = isset($_SESSION['FirstName']) ? $_SESSION['FirstName'] . ' ' . $_SESSION['LastName'] : 'Owner';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $petId = $_POST['PetId'] ?? null;
+    $serviceId = $_POST['ServiceId'] ?? null;
+    $appointmentDate = $_POST['AppointmentDate'] ?? null;
+    $appointmentTime = $_POST['AppointmentTime'] ?? null;
+
+    if (!$petId || !$serviceId || !$appointmentDate || !$appointmentTime) {
+        $_SESSION['message'] = "All fields are required!";
+        $_SESSION['message_type'] = "error";
+        header('Location: book_appointment.php');
+        exit();
+    }
+
+    try {
+        // Check if the time slot is already booked
+        $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM Appointments WHERE AppointmentDate = :appointmentDate AND AppointmentTime = :appointmentTime");
+        $checkStmt->execute([
+            ':appointmentDate' => $appointmentDate,
+            ':appointmentTime' => $appointmentTime
+        ]);
+        $isBooked = $checkStmt->fetchColumn();
+
+        if ($isBooked) {
+            $_SESSION['message'] = "The selected time slot is already booked. Please choose a different time.";
+            $_SESSION['message_type'] = "error";
+            header('Location: book_appointment.php');
+            exit();
+        }
+
+        // ✅ Insert appointment
+        $pdo->beginTransaction();
+        $stmt = $pdo->prepare("
+            INSERT INTO Appointments (PetId, ServiceId, AppointmentDate, AppointmentTime, Status)
+            VALUES (:petId, :serviceId, :appointmentDate, :appointmentTime, 'Pending')
+        ");
+        $stmt->execute([
+            ':petId' => $petId,
+            ':serviceId' => $serviceId,
+            ':appointmentDate' => $appointmentDate,
+            ':appointmentTime' => $appointmentTime
+        ]);
+        $pdo->commit();
+
+        $_SESSION['message'] = "Appointment successfully booked!";
+        $_SESSION['message_type'] = "success";
+        header('Location: book_appointment.php');
+        exit();
+    } catch (PDOException $e) {
+        $pdo->rollBack();
+        $_SESSION['message'] = "Error: Could not book the appointment. Please try again.";
+        $_SESSION['message_type'] = "error";
+        header('Location: book_appointment.php');
+        exit();
+    }
+}
+
+try {
+    $services_stmt = $pdo->prepare("SELECT ServiceId, ServiceName FROM Services");
+    $services_stmt->execute();
+    $services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Error fetching services: " . $e->getMessage());
+}
+
 try {
     // Query to fetch pets linked to the logged-in owner
     $query = "SELECT 
-        pets.PetId, 
-        pets.Name AS pet_name, 
-        pets.SpeciesId, 
-        pets.Gender, 
-        pets.CalculatedAge, 
-        pets.Breed
+        Pets.PetId, 
+        Pets.Name AS pet_name, 
+        Pets.SpeciesId, 
+        Pets.Gender, 
+        Pets.CalculatedAge, 
+        Pets.Breed
     FROM 
-        pets 
+        Pets 
     WHERE 
-        pets.OwnerId = :OwnerId";
+        Pets.OwnerId = :OwnerId";
 
     $stmt = $pdo->prepare($query);
     $stmt->bindParam(':OwnerId', $owner_id, PDO::PARAM_INT);
@@ -84,15 +148,16 @@ try {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/main.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
         rel="stylesheet">
-        
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="book_appointment.css">
     <script>
-        const bookedTimesByDate = <?= json_encode($bookedTimesByDate); ?>;
+        const bookedTimesByDate = <?= json_encode($bookedTimesByDate, JSON_PRETTY_PRINT | JSON_HEX_TAG); ?>;
+        console.log("Booked Times Data:", bookedTimesByDate); // ✅ Add here
     </script>
 </head>
 
@@ -124,7 +189,7 @@ try {
     </header>
 
     <main>
-    <section class="hero">
+        <section class="hero">
             <div class="hero-text">
                 <h1>Appointments</h1>
             </div>
@@ -132,11 +197,24 @@ try {
 
         <div class="main-content">
             <div class="container">
+            <?php if (isset($_SESSION['message'])): ?>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        Swal.fire({
+                            icon: '<?= $_SESSION['message_type'] === "success" ? "success" : "error" ?>',
+                            title: '<?= $_SESSION['message'] ?>',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    });
+                </script>
+                <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
+            <?php endif; ?>
 
                 <!-- Right Section: Add Pet Form -->
                 <div class="right-section">
                     <!-- <h2>Add a New Pet</h2> -->
-                    <form class="staff-form" action="add_pet.php" method="POST">
+                    <form class="staff-form" action="book_appointment.php" method="POST">
                         <input type="hidden" name="csrf_token"
                             value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 
@@ -155,18 +233,12 @@ try {
 
                             <div class="input-container">
                                 <label for="Service">Service:</label>
-                                <select id="Service" name="Service" required>
-                                    <option value="">Select Service</option>
-                                    <option value="Pet Wellness & Consultation">Pet Wellness & Consultation</option>
-                                    <option value="Pet Vaccination & Deworming">Pet Vaccination & Deworming</option>
-                                    <option value="Diagnostics & Laboratories">Diagnostics & Laboratories</option>
-                                    <option value="Ultrasound">Ultrasound</option>
-                                    <option value="Dental Cleaning (Prophylaxis)">Dental Cleaning (Prophylaxis)</option>
-                                    <option value="Spay & Neuter">Spay & Neuter</option>
-                                    <option value="Surgery Services">Surgery Services</option>
-                                    <option value="Pharmacy">Pharmacy</option>
-                                    <option value="Pet Grooming">Pet Grooming</option>
-                                    <option value="Pet Accessories & Supplies">Pet Accessories & Supplies</option>
+                                <select name="ServiceId" id="ServiceId" required>
+                                    <?php foreach ($services as $service): ?>
+                                        <option value="<?= $service['ServiceId'] ?>">
+                                            <?= htmlspecialchars($service['ServiceName']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                         </div>
@@ -179,8 +251,18 @@ try {
 
                             <div class="input-container">
                                 <label for="AppointmentTime">Time:</label>
-                                <select id="AppointmentTime" name="AppointmentTime" required>
+                                <select name="AppointmentTime" id="AppointmentTime" required>
                                     <option value="">Select Time</option>
+                                    <?php
+                                    $start = strtotime("08:00:00");
+                                    $end = strtotime("17:00:00");
+                                    while ($start <= $end) {
+                                        $displayTime = date("g:i A", $start);
+                                        $valueTime = date("H:i:s", $start);
+                                        echo "<option value='$valueTime'>$displayTime</option>";
+                                        $start = strtotime("+30 minutes", $start);
+                                    }
+                                    ?>
                                 </select>
                             </div>
                         </div>
@@ -266,167 +348,191 @@ try {
             });
         });
     </script>
-
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const timeSelect = document.getElementById('AppointmentTime');
+            const dateInput = document.getElementById('AppointmentDate');
+            const calendarElement = document.getElementById('calendar');
+            const currentMonthYearElement = document.getElementById('currentMonthYear');
+            const prevMonthBtn = document.getElementById('prevMonth');
+            const nextMonthBtn = document.getElementById('nextMonth');
 
-            function generateTimeSlots(startTime, endTime, interval) {
-                const start = new Date(`1970-01-01T${startTime}:00`);
-                const end = new Date(`1970-01-01T${endTime}:00`);
+            let today = new Date();
+            let currentMonth = today.getMonth();
+            let currentYear = today.getFullYear();
+
+            today.setHours(0, 0, 0, 0); // Ensure we compare only the date, ignoring time
+            const formattedToday = today.toISOString().split('T')[0]; // YYYY-MM-DD
+
+            // ✅ Prevent selecting past dates
+            dateInput.setAttribute('min', formattedToday);
+
+            function generateTimeSlots(selectedDate) {
+                timeSelect.innerHTML = '<option value="">Select Time</option>'; // Reset dropdown
+
+                const now = new Date();
+                const currentMinutes = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
+
+                // Normalize date format (ensures correct lookup)
+                let normalizedDate = new Date(selectedDate).toISOString().split('T')[0];
+                const bookedTimes = bookedTimesByDate[normalizedDate] || [];
+
+                console.log("Checking booked times for:", normalizedDate, "Booked:", bookedTimes); // Debugging
+
+                const start = new Date();
+                start.setHours(8, 0, 0, 0); // Business starts at 8:00 AM
+                const end = new Date();
+                end.setHours(17, 0, 0, 0); // Business ends at 5:00 PM
 
                 while (start <= end) {
                     const hours = start.getHours();
                     const minutes = start.getMinutes();
-                    const ampm = hours >= 12 ? 'PM' : 'AM';
-                    const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
-                    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-
-                    const timeString = `${formattedHours}:${formattedMinutes} ${ampm}`;
+                    const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+                    const displayTime = `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${hours >= 12 ? 'PM' : 'AM'}`;
 
                     const option = document.createElement('option');
-                    option.value = timeString;
-                    option.textContent = timeString;
-                    timeSelect.appendChild(option);
+                    option.value = formattedTime;
+                    option.textContent = displayTime;
 
-                    start.setMinutes(start.getMinutes() + interval);
+                    const slotMinutes = hours * 60 + minutes; // Convert slot time to minutes
+
+                    // Disable past times if selected date is today
+                    if (normalizedDate === formattedToday && slotMinutes <= currentMinutes) {
+                        option.disabled = true;
+                        option.textContent += " (Past)";
+                    }
+
+                    // Disable booked times
+                    if (bookedTimes.includes(formattedTime)) {
+                        option.disabled = true;
+                        option.textContent += " (Booked)";
+                        console.log(`Disabled: ${formattedTime} (Already booked)`);
+                    }
+
+                    timeSelect.appendChild(option);
+                    start.setMinutes(start.getMinutes() + 30); // Increment by 30 minutes
                 }
             }
 
-            generateTimeSlots('08:00', '17:00', 30);
+            function generateCalendar(month, year) {
+                calendarElement.innerHTML = ''; // Reset calendar content
+
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                const monthNames = [
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ];
+                currentMonthYearElement.textContent = `${monthNames[month]} ${year}`;
+
+                // Add week day labels
+                const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                daysOfWeek.forEach(day => {
+                    const dayLabel = document.createElement('div');
+                    dayLabel.textContent = day;
+                    dayLabel.style.fontWeight = 'bold';
+                    calendarElement.appendChild(dayLabel);
+                });
+
+                for (let i = 0; i < firstDay; i++) {
+                    const emptyCell = document.createElement('div');
+                    calendarElement.appendChild(emptyCell);
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.classList.add('calendar-day');
+                    dayElement.textContent = day;
+
+                    let formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    let selectedDate = new Date(formattedDate);
+                    selectedDate.setHours(0, 0, 0, 0); // Remove time part
+
+                    // ✅ Highlight today
+                    if (selectedDate.getTime() === today.getTime()) {
+                        dayElement.classList.add('today');
+                    }
+
+                    // ✅ Disable past dates
+                    if (selectedDate < today) {
+                        dayElement.classList.add('disabled');
+                        dayElement.style.pointerEvents = "none";
+                    }
+
+                    // ✅ Click event to update date input & time slots
+                    dayElement.addEventListener('click', function () {
+                        if (selectedDate >= today) {
+                            dateInput.value = formattedDate;  // ✅ Update the input field correctly
+                            dateInput.dispatchEvent(new Event("change"));  // ✅ Trigger time update
+                        }
+                    });
+
+                    calendarElement.appendChild(dayElement);
+                }
+            }
+
+            function goToNextMonth() {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                generateCalendar(currentMonth, currentYear);
+            }
+
+            function goToPrevMonth() {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                generateCalendar(currentMonth, currentYear);
+            }
+
+            prevMonthBtn.addEventListener('click', goToPrevMonth);
+            nextMonthBtn.addEventListener('click', goToNextMonth);
+
+            // ✅ Ensure time slots update when the date input field changes
+            dateInput.addEventListener("change", function () {
+                generateTimeSlots(this.value);
+            });
+
+            // ✅ Initialize available times on page load for today
+            generateTimeSlots(formattedToday);
+            generateCalendar(currentMonth, currentYear);
         });
     </script>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const calendarElement = document.getElementById('calendar');
-        const currentMonthYearElement = document.getElementById('currentMonthYear');
-        const prevMonthBtn = document.getElementById('prevMonth');
-        const nextMonthBtn = document.getElementById('nextMonth');
-        const dateInput = document.getElementById('AppointmentDate');
-        
-        let today = new Date();
-        let currentMonth = today.getMonth();
-        let currentYear = today.getFullYear();
+        document.addEventListener('DOMContentLoaded', function () {
+            const dateInput = document.getElementById('AppointmentDate');
 
-        function generateCalendar(month, year) {
-            calendarElement.innerHTML = '';
+            if (dateInput) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Ensure time is set to start of the day
+                const formattedDate = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
 
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+                dateInput.setAttribute('min', formattedDate); // Prevent selecting past dates
 
-            const monthNames = [
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-            ];
-            currentMonthYearElement.textContent = `${monthNames[month]} ${year}`;
-
-            // Days of the week labels
-            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            daysOfWeek.forEach(day => {
-                const dayLabel = document.createElement('div');
-                dayLabel.textContent = day;
-                dayLabel.style.fontWeight = 'bold';
-                calendarElement.appendChild(dayLabel);
-            });
-
-            for (let i = 0; i < firstDay; i++) {
-                const emptyCell = document.createElement('div');
-                calendarElement.appendChild(emptyCell);
-            }
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayElement = document.createElement('div');
-                dayElement.classList.add('calendar-day');
-                dayElement.textContent = day;
-
-                // Highlight today's date
-                if (
-                    day === today.getDate() &&
-                    month === today.getMonth() &&
-                    year === today.getFullYear()
-                ) {
-                    dayElement.classList.add('today');
-                }
-
-                // Set click event for selecting date
-                dayElement.addEventListener('click', function () {
-                    let selectedDate = new Date(year, month, day);
-                    let formattedDate = selectedDate.toISOString().split('T')[0];
+                dateInput.addEventListener('change', function () {
+                    const selectedDate = new Date(this.value);
+                    selectedDate.setHours(0, 0, 0, 0);
 
                     if (selectedDate < today) {
                         Swal.fire({
                             icon: 'error',
-                            title: 'Oops...',
-                            text: 'It is no longer possible to make an appointment with a past date.',
+                            title: 'Invalid Date',
+                            text: 'You cannot select a past date!',
                         });
-                        return;
+
+                        this.value = ''; // Reset to empty if invalid
                     }
-
-                    dateInput.value = formattedDate; // Update the date input field
                 });
-
-                calendarElement.appendChild(dayElement);
             }
-        }
-
-        function goToNextMonth() {
-            currentMonth++;
-            if (currentMonth > 11) {
-                currentMonth = 0;
-                currentYear++;
-            }
-            generateCalendar(currentMonth, currentYear);
-        }
-
-        function goToPrevMonth() {
-            currentMonth--;
-            if (currentMonth < 0) {
-                currentMonth = 11;
-                currentYear--;
-            }
-            generateCalendar(currentMonth, currentYear);
-        }
-
-        prevMonthBtn.addEventListener('click', goToPrevMonth);
-        nextMonthBtn.addEventListener('click', goToNextMonth);
-
-        generateCalendar(currentMonth, currentYear);
-    });
-    </script>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const dateInput = document.getElementById('AppointmentDate');
-
-        if (dateInput) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Ensure time is set to start of the day
-            const formattedDate = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-
-            dateInput.setAttribute('min', formattedDate); // Prevent selecting past dates
-
-            // Prevent user from manually inputting past dates
-            dateInput.addEventListener('change', function () {
-                const selectedDate = new Date(this.value);
-                selectedDate.setHours(0, 0, 0, 0);
-
-                if (selectedDate < today) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Invalid Date',
-                        text: 'You cannot select a past date!',
-                    });
-
-                    this.value = ''; // Reset to empty if invalid
-                }
-            });
-        }
-    });
+        });
 
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
 
 </body>
 

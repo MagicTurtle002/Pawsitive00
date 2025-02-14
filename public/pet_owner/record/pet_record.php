@@ -66,15 +66,15 @@ if (!empty($pets)) {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pawsitive</title>
     <link rel="icon" type="image/x-icon" href="../../../assets/images/logo/LOGO.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
         rel="stylesheet">
@@ -111,9 +111,13 @@ if (!empty($pets)) {
                 </div>
 
                 <div class="pet-name">
-                    <select class="pet-name-dropdown">
+                    <select id="pet-dropdown">
                         <?php foreach ($pets as $pet): ?>
-                            <option value="<?= $pet['PetId'] ?>"><?= htmlspecialchars($pet['PetName']) ?></option>
+                            <option value="<?= $pet['PetId'] ?>" data-species="<?= htmlspecialchars($pet['PetType']) ?>"
+                                data-gender="<?= htmlspecialchars($pet['Gender']) ?>"
+                                data-breed="<?= htmlspecialchars($pet['Breed']) ?>">
+                                <?= htmlspecialchars($pet['PetName']) ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -143,7 +147,7 @@ if (!empty($pets)) {
                     <?php foreach ($consultations as $record): ?>
                         <div class="consultation-card">
                             <h3 class="consultation-title">General Details</h3>
-                            <p><b>Date:</b> <?= htmlspecialchars($record['OnsetDate']) ?></p>
+                            <p><b>Date:</b> <?= isset($record['OnsetDate']) ? htmlspecialchars($record['OnsetDate']) : 'N/A' ?></p>
                             <p><b>Chief Complaint:</b> <?= htmlspecialchars($record['ChiefComplaint']) ?></p>
                             <p><b>Duration (Days):</b> <?= htmlspecialchars($record['DurationDays']) ?></p>
                             <p><b>Observed Symptoms:</b> <?= htmlspecialchars($record['ObservedSymptoms']) ?></p>
@@ -170,9 +174,60 @@ if (!empty($pets)) {
     </main>
 
     <script>
-        document.getElementById("pet-dropdown").addEventListener("change", function() {
+        document.getElementById("pet-dropdown").addEventListener("change", function () {
             location.href = "pet_record.php?pet_id=" + this.value;
         });
     </script>
+    <script>
+        document.getElementById("pet-dropdown").addEventListener("change", function () {
+            let selectedOption = this.options[this.selectedIndex];
+
+            // Update pet details
+            document.getElementById("species").textContent = selectedOption.getAttribute("data-species");
+            document.getElementById("gender").textContent = selectedOption.getAttribute("data-gender");
+            document.getElementById("breed").textContent = selectedOption.getAttribute("data-breed");
+
+            // Reload consultation records
+            let petId = this.value;
+            fetch(`../../../src/fetch_pet_records.php?pet_id=${petId}`)
+                .then(response => response.json())
+                .then(data => {
+                    let recordsContainer = document.querySelector(".consultation-container");
+                    recordsContainer.innerHTML = ""; // Clear existing records
+
+                    if (data.length > 0) {
+                        data.forEach(record => {
+                            let recordElement = `
+                        <div class="consultation-card">
+                            <h3 class="consultation-title">General Details</h3>
+                            <p><b>Date:</b> ${record.OnsetDate}</p>
+                            <p><b>Chief Complaint:</b> ${record.ChiefComplaint}</p>
+                            <p><b>Duration (Days):</b> ${record.DurationDays}</p>
+                            <p><b>Observed Symptoms:</b> ${record.ObservedSymptoms}</p>
+
+                            <h3 class="consultation-title">Medical History</h3>
+                            <p><b>Appetite:</b> ${record.Appetite}</p>
+                            <p><b>Diet:</b> ${record.Diet}</p>
+                            <p><b>Medication Prior Checkup:</b> ${record.MedicationPriorCheckup}</p>
+
+                            <h3 class="consultation-title">Physical Examination</h3>
+                            <p><b>Urine Frequency:</b> ${record.UrineFrequency}</p>
+                            <p><b>Urine Color:</b> ${record.UrineColor}</p>
+                            <p><b>Water Intake:</b> ${record.WaterIntake}</p>
+                            <p><b>Pain Level:</b> ${record.PainLevel}</p>
+                            <p><b>Fecal Score:</b> ${record.FecalScore}</p>
+                            <p><b>Environment:</b> ${record.Environment}</p>
+                        </div>
+                    `;
+                            recordsContainer.innerHTML += recordElement;
+                        });
+                    } else {
+                        recordsContainer.innerHTML = "<p class='no-consultations-text'>No consultation records found.</p>";
+                    }
+                })
+                .catch(error => console.error("Error loading records:", error));
+        });
+    </script>
 </body>
+
 </html>
