@@ -200,10 +200,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
                             <button class="three-dot-btns">⋮</button>
                             <div class="dropdown-menus" style="display: none;">
                                 <a href="#" onclick="confirmConfine('<?= htmlspecialchars($pet['PetId']) ?>')">Confine Pet</a>
-                                <a href="add_vaccination.php?pet_id=<?= htmlspecialchars($pet['PetId']) ?>">Add Vaccination</a>
+                                <a href="add_vaccine.php?pet_id=<?= htmlspecialchars($pet['PetId']) ?>">Add Vaccination</a>
                                 <a href="#" onclick="confirmArchive('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Archive
                                     Pet</a>
-                                <a href="#" onclick="confirmDelete('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Delete</a>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -456,11 +455,11 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             </td>
                             <td>
                                 <div class="three-dot-menu" style="display: inline-block;">
-                                    <button class="three-dot-btns" onclick="toggleDropdown(event, this)">⋮</button>
+                                    <button class="three-dot-btns">⋮</button>
                                     <div class="dropdown-menus" style="display: none;">
                                         <a href="#" onclick="confirmConfine('<?= htmlspecialchars($pet['PetId']) ?>')">Confine
                                             Pet</a>
-                                        <a href="add_vaccination.php?pet_id=<?= htmlspecialchars($pet['PetId']) ?>">Add
+                                        <a href="add_vaccine.php?pet_id=<?= htmlspecialchars($pet['PetId']) ?>">Add
                                             Vaccination</a>
                                         <a href="#"
                                             onclick="confirmArchive('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Archive

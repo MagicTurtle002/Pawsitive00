@@ -1,6 +1,10 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once '../config/dbh.inc.php';
-require_once '../src/helpers/log.inc.php'; // Include logging function
+require_once 'helpers/log_helpers.php'; // Include logging function
 
 session_start();
 
@@ -17,13 +21,12 @@ if (isset($_GET['pet_id']) && is_numeric($_GET['pet_id'])) {
     $role = $_SESSION['Role'] ?? 'Role';
 
     try {
-        // Archive the pet
         $stmt = $pdo->prepare("UPDATE Pets SET IsArchived = 1 WHERE PetId = ?");
         if ($stmt->execute([$petId])) {
             $response['success'] = true;
 
             // Log the archiving action
-            logActivity($pdo, $userId, $userName, $role, 'archive_pet.php', "Archived pet with ID: $petId");
+            //logActivity($pdo, $userId, $userName, $role, 'archive_pet.php', "Archived pet with ID: $petId");
         }
     } catch (PDOException $e) {
         error_log("Error archiving pet: " . $e->getMessage());
