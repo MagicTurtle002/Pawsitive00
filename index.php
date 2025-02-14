@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>ca
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -29,15 +29,29 @@
 
       <!-- Responsive Login Button -->
       <ul class="flex gap-2 md:gap-4 lg:gap-6 items-center">
-        <li>
-          <a href="#" onclick="openLoginModal()" 
-             class="bg-white text-[#156f77] font-bold text-sm md:text-base lg:text-lg px-3 md:px-5 lg:px-6 py-1 md:py-2 rounded-full border-2 border-[#156f77] hover:bg-[#156f77] hover:text-white">
-            Login
-          </a>
-        </li>
-      </ul>
+  <li>
+    <a href="#" onclick="openLoginModal()" 
+       class="bg-white text-[#156f77] font-bold text-sm md:text-base lg:text-lg px-3 md:px-5 lg:px-6 py-1 md:py-2 
+              rounded-full border-2 border-[#156f77] 
+              ease-out transform 
+              hover:scale-105  hover:bg-[#156f77] hover:text-white">
+      Login
+    </a>
+  </li>
+</ul>
+
+ <!--
+     Responsive Menu
+      <div class="md:hidden">
+        <button class="text-white focus:outline-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+      </div> -->
     </nav>
-  </header>
+  </header> 
 
   <main class="pt-32 md:pt-40 px-8 md:px-20">
     <section class="flex flex-col md:flex-row justify-center items-center text-left gap-6 md:gap-10">
@@ -55,17 +69,34 @@
 
     <section class="bg-gray-100 py-10 md:py-20 mt-10 md:mt-20 px-8 md:px-20 rounded-lg">
       <div class="max-w-5xl mx-auto text-center">
-        <h2 class="text-3xl md:text-4xl font-bold mb-5">About Us</h2>
-        <p class="text-base md:text-lg">At PAWSITIVE, we believe that every pet deserves the best care and attention...</p>
-        <div class="flex flex-col md:flex-row gap-6 md:gap-10 mt-6 md:mt-10">
-          <div class="bg-teal-800 p-6 rounded-lg shadow-lg text-white flex-1 text-center">
-            <h3 class="text-xl md:text-2xl font-bold">Mission</h3>
-            <p>To empower pet owners and veterinary professionals through innovative technology...</p>
+        <h2 class="text-2xl md:text-3xl font-bold mb-5">About Us</h2>
+        <p class="text-sm md:text-base">
+        At PAWSITIVE, we believe that every pet deserves the best care and attention. Established with a passion for
+            animal
+            welfare, we aim to provide top-notch tech service to ensure your furry friends lead healthy and happy lives.
+          </p>
+          <br>
+          <p class="text-sm md:text-base">
+            Our team of aspiring developers with the help of Pet Adventure staff are committed to offering compassionate
+            care
+            tailored to the unique needs of every pet. Whether it's a routine check-up, specialized treatment,
+            or quality pet supplies, we're here to support you every step of the way.
+          </p>
+          <div class="flex flex-col md:flex-row gap-6 md:gap-10 mt-6 md:mt-10">
+          <div class="bg-[#156f77] p-6 rounded-lg shadow-lg text-white flex-1 text-center transition hover:bg-[#a8ebf0] hover:shadow-2xl hover:shadow-[#156f77]/40 hover:drop-shadow-lg hover:-translate-y-2  hover:text-[#156f77]">
+           <h3 class="text-xl md:text-2xl font-bold">Mission</h3>
+           <p><br>To empower pet owners and veterinary professionals through innovative technology,
+            fostering healthier and happier lives for pets while strengthening the bond between humans and their
+            animal companions.</p>
           </div>
-          <div class="bg-teal-800 p-6 rounded-lg shadow-lg text-white flex-1 text-center">
+          
+          <div class="bg-[#156f77] p-6 rounded-lg shadow-lg text-white flex-1 text-center transition hover:bg-[#a8ebf0] hover:shadow-2xl hover:shadow-[#156f77]/40 hover:drop-shadow-lg hover:-translate-y-2 hover:text-[#156f77]">
             <h3 class="text-xl md:text-2xl font-bold">Vision</h3>
-            <p>Our vision is to be the leading platform for seamless pet care management...</p>
-          </div>
+            <p><br>Our vision is to be the leading platform for seamless pet care management, and setting the standard for
+              compassionate wellness solutions.
+              We aim to empower pet owners and veterinary professionals to ensure every pet lives a healthy life.</p>
+          </div> 
+
         </div>
       </div>
     </section>
@@ -80,9 +111,24 @@
       <div>
         <img src="assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo" class="w-32 md:w-48">
         <ul class="mt-4 space-y-2">
-          <li class="flex items-center"><img src="assets/images/Icons/Facebook.png" class="w-6 mr-2"> petadventure14</li>
-          <li class="flex items-center"><img src="assets/images/Icons/Email.png" class="w-6 mr-2"> petadventure20@gmail.com</li>
-          <li class="flex items-center"><img src="assets/images/Icons/Contact Number.png" class="w-6 mr-2"> 0923 528 3253</li>
+          <li class="flex items-center">
+            <a href="https://www.facebook.com/petadventure14" target="_blank" 
+               class="flex items-center hover:underline">
+              <img src="assets/images/Icons/Facebook.png" class="w-6 mr-2"> petadventure14
+            </a>
+          </li>
+          <li class="flex items-center">
+            <a href="mailto:petadventure20@gmail.com" 
+               class="flex items-center hover:underline">
+              <img src="assets/images/Icons/Email.png" class="w-6 mr-2"> petadventure20@gmail.com
+            </a>
+          </li>
+          <li class="flex items-center">
+            <a href="tel:09235283253" 
+               class="flex items-center hover:underline">
+              <img src="assets/images/Icons/Contact Number.png" class="w-6 mr-2"> 0923 528 3253
+            </a>
+          </li>
         </ul>
       </div>
       <div>
@@ -109,7 +155,7 @@
       </div>
     </div>
     <p class="text-center mt-6 md:mt-10 text-sm">&copy; 2025 Pet Adventure Veterinary Services and Supplies, All Rights Reserved.</p>
-  </footer>
+</footer>
 
 <!-- JavaScript for Modal -->
 <script>
@@ -132,11 +178,11 @@ function openLoginModal() {
     html: `
       <div class="flex flex-col space-y-4 font-poppins">
         <button onclick="window.location.href='public/owner_login.php'"
-          class="w-full bg-[#156f77] text-white text-lg font-semibold py-3 rounded-lg hover:bg-[#0f5a5e] transition duration-200">
+          class="w-full bg-[#156f77] text-white text-lg font-semibold py-3 rounded-lg transition duration-200 shadow-md hover:shadow-lg hover:-translate-y-1">
           Pet Owner Login
         </button>
         <button onclick="window.location.href='public/staff_login.php'"
-          class="w-full bg-[#156f77] text-white text-lg font-semibold py-3 rounded-lg hover:bg-[#0f5a5e] transition duration-200">
+          class="w-full bg-[#156f77] text-white text-lg font-semibold py-3 rounded-lg transition duration-200 shadow-md hover:shadow-lg hover:-translate-y-1">
           Clinic Staff Login
         </button>
       </div>
@@ -164,3 +210,4 @@ function openLoginModal() {
 
 </body>
 </html>
+
