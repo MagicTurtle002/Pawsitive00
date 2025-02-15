@@ -69,7 +69,7 @@ $email = '';
                         <input type="password" id="password" name="password" placeholder="Enter your password" required>
                         <i class="fas fa-eye eye-icon" onclick="togglePassword('password', this)"></i>
                     </div>
-                    <a href="forgot_password.php" class="forgot-password-link">Forgot password?</a>
+                    <a href="forgot_password_staff.php" class="forgot-password-link">Forgot password?</a>
                     <button type="submit" class="login-btn">Log in</button>
                     <div class="form-group terms">
                         <label for="terms">

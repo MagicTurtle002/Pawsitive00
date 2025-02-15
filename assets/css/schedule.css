@@ -593,7 +593,7 @@ form button[type="submit"]:hover {
 
 /* Labels stay on the left */
 .swal2-row label {
-    width: 50px; /* Increase width so "Service" fits properly */
+    width: 90px; /* Increase width so "Service" fits properly */
     font-weight: bold;
     text-align: left;
     white-space: nowrap; /* Prevents label from wrapping */
@@ -610,3 +610,7 @@ form button[type="submit"]:hover {
     max-width: 400px;  /* Adjust maximum width */
 }
 
+.required-asterisk, .required {
+    color: red;
+    font-weight: bold;
+}

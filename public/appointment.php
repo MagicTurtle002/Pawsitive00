@@ -731,15 +731,15 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
                 Swal.fire({
                     title: 'Appointment Details',
                     html: `
-            <button class="swal2-close-button" onclick="Swal.close()">×</button>
-            <div style="text-align: left; margin-top: 10px;">
-                <p><strong>Appointment For:</strong> ${event.extendedProps.description || "No Description"}</p>
-                <p><strong>Service:</strong> ${event.title || "No Title"}</p>
-                <p><strong>Date:</strong> ${formatDateWithoutTimezone(event.start)}</p>
-                <p><strong>Time:</strong> ${event.extendedProps.time ? formatTime(event.extendedProps.time) : "No Time"}</p>
-                <p><strong>Status:</strong> <span class="status-badge">${event.extendedProps.status || "Pending"}</span></p>
-            </div>
-        `,
+                        <button class="swal2-close-button" onclick="Swal.close()">×</button>
+                        <div style="text-align: left; margin-top: 10px;">
+                            <p><strong>Appointment For:</strong> ${event.extendedProps.description || "No Description"}</p>
+                            <p><strong>Service:</strong> ${event.title || "No Title"}</p>
+                            <p><strong>Date:</strong> ${formatDateWithoutTimezone(event.start)}</p>
+                            <p><strong>Time:</strong> ${event.extendedProps.time ? formatTime(event.extendedProps.time) : "No Time"}</p>
+                            <p><strong>Status:</strong> <span class="status-badge">${event.extendedProps.status || "Pending"}</span></p>
+                        </div>
+                    `,
                     showCancelButton: true,
                     showDenyButton: true,
                     showConfirmButton: true,
