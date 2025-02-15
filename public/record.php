@@ -149,74 +149,6 @@ $stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $pets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-if (isset($_GET['ajax']) && $_GET['ajax'] === '1') {
-    ob_start(); // Start output buffering
-    if (count($pets) > 0) {
-        foreach ($pets as $pet): ?>
-            <tr class="pet-row" <?php if (empty($_GET['search'])): ?> onclick="togglePetDetails(this)" <?php endif; ?>>
-                <td>
-                    <div class="hover-container">
-                        <?= htmlspecialchars($pet['PetCode'] ?? 'No information found') ?>
-                        <i class="fas fa-info-circle"></i>
-                        <div class="hover-card">
-                            <div class="profile-info">
-                                <img src="../assets/images/Icons/Profile User.png" alt="Profile Pic" class="profile-img"
-                                    width="10px">
-                                <div>
-                                    <strong><?= htmlspecialchars($pet['owner_name']) ?></strong><br>
-                                    <?= htmlspecialchars($pet['role'] ?? 'Authorized Representative') ?>
-                                </div>
-                            </div>
-                            <hr>
-                            <div>
-                                <strong>Email:</strong><br>
-                                <?= htmlspecialchars($pet['Email']) ?>
-                            </div>
-                            <br>
-                            <div>
-                                <strong>Phone Number:</strong><br>
-                                <?= htmlspecialchars($pet['Phone']) ?>
-                            </div>
-                            <hr>
-                            <!-- Add Pet Button -->
-                            <div style="text-align: center; margin-top: 10px;">
-                                <a href="add_pet.php?owner_id=<?= htmlspecialchars($pet['OwnerId']) ?>" class="add-pet-button">
-                                    + Add Pet
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <?php if (hasPermission($pdo, 'Manage Pets')): ?>
-                        <div class="three-dot-menu" style="display: inline-block;">
-                            <button class="three-dot-btns">⋮</button>
-                            <div class="dropdown-menus" style="display: none;">
-                                <a href="#" onclick="confirmConfine('<?= htmlspecialchars($pet['PetId']) ?>')">Confine Pet</a>
-                                <a href="add_vaccine.php?pet_id=<?= htmlspecialchars($pet['PetId']) ?>">Add Vaccination</a>
-                                <a href="#" onclick="confirmArchive('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">Archive
-                                    Pet</a>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                    <a href="pet_profile.php?pet_id=<?= htmlspecialchars($pet['PetId'] ?? 'Unknown') ?>" class="pet-profile-link">
-                        <?= htmlspecialchars($pet['PetName'] ?? 'No Name') ?>
-                    </a>
-                </td>
-                <td><?= htmlspecialchars($pet['PetType'] ?? 'No information found') ?></td>
-                <td><?= htmlspecialchars($pet['service'] ?? 'No information found') ?></td>
-                <td><?= htmlspecialchars($pet['AppointmentTime'] ?? '00:00') ?></td>
-                <td><?= htmlspecialchars($pet['AppointmentDate'] ?? 'MM/DD') ?></td>
-            </tr>
-
-        <?php endforeach;
-    } else {
-        echo '<tr><td colspan="6">No pets found.</td></tr>';
-    }
-    echo ob_get_clean();
-    exit;
-}
-
 $countQuery = "
     SELECT COUNT(DISTINCT Pets.PetId) 
     FROM Pets
@@ -370,22 +302,24 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                         </button>
                         <div class="dropdown-content">
                             <label>
-                                <input type="radio" name="filter" value="pet_name" <?= isset($_GET['filter']) && $_GET['filter'] === 'pet_name' ? 'checked' : '' ?>> Pet Name
+                                <input type="checkbox" name="filter[]" value="pet_name"> Pet Name
                             </label>
                             <label>
-                                <input type="radio" name="filter" value="pet_service" <?= isset($_GET['filter']) && $_GET['filter'] === 'pet_service' ? 'checked' : '' ?>> Services
+                                <input type="checkbox" name="filter[]" value="pet_service"> Services
+                            </label>
+                            <label>
+                                <input type="checkbox" name="filter[]" value="owner_name"> Owner Name
                             </label>
                             <hr>
                             <label>
-                                <input type="radio" name="order" value="asc" <?= isset($_GET['order']) && $_GET['order'] === 'asc' ? 'checked' : ''; ?>> Ascending
+                                <input type="radio" name="order" value="asc"> Ascending
                             </label>
                             <label>
-                                <input type="radio" name="order" value="desc" <?= isset($_GET['order']) && $_GET['order'] === 'desc' ? 'checked' : ''; ?>> Descending
+                                <input type="radio" name="order" value="desc"> Descending
                             </label>
                             <hr>
                             <button type="submit" class="apply-btn">Apply Filter</button>
-                            <button type="button" class="clear-btn" onclick="location.href='record.php'">Clear
-                                Filter</button>
+                            <button type="button" class="clear-btn" onclick="resetFilters()">Clear Filter</button>
                         </div>
                     </div>
                 </form>
@@ -576,7 +510,116 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 });
             </script>
         <?php endif; ?>
-                <script src="../assets/js/record.js?v=<?= time(); ?>"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                document.querySelector(".apply-btn").addEventListener("click", function (event) {
+                    event.preventDefault();
+                    loadFilteredPets();
+                });
+
+                document.querySelector(".clear-btn").addEventListener("click", function () {
+                    resetFilters();
+                });
+
+                // Initialize the three-dot menu on page load
+                initializeThreeDotMenu();
+            });
+
+            // Function to fetch filtered pets and retain styles & interactions
+            function loadFilteredPets() {
+                const formData = new FormData(document.querySelector(".filter-container"));
+                const queryString = new URLSearchParams(formData).toString();
+
+                fetch(`../src/filter_pets.php?${queryString}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tableBody = document.getElementById("staffList");
+                        tableBody.innerHTML = "";
+
+                        if (data.length === 0) {
+                            tableBody.innerHTML = "<tr><td colspan='6'>No pets found.</td></tr>";
+                            return;
+                        }
+
+                        data.forEach(pet => {
+                            const row = `<tr class="pet-row">
+                    <td>
+                        <div class="hover-container">
+                            ${pet.PetCode ?? 'No information'}
+                            <i class="fas fa-info-circle"></i>
+                            <div class="hover-card">
+                                <div class="profile-info">
+                                    <img src="../assets/images/Icons/Profile User.png" class="profile-img" width="10px">
+                                    <div>
+                                        <strong>${pet.OwnerName}</strong><br>
+                                        <span class="role">Authorized Representative</span>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div><strong>Email:</strong><br> ${pet.Email}</div><br>
+                                <div><strong>Phone Number:</strong><br> ${pet.Phone}</div>
+                                <hr>
+                                <div style="text-align: center; margin-top: 10px;">
+                                    <a href="add_pet.php?owner_id=${pet.OwnerId}" class="add-pet-button">+ Add Pet</a>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="three-dot-menu">
+                            <button class="three-dot-btns">⋮</button>
+                            <div class="dropdown-menus">
+                                <a href="#" onclick="confirmConfine('${pet.PetId}')">Confine Pet</a>
+                                <a href="add_vaccine.php?pet_id=${pet.PetId}">Add Vaccination</a>
+                                <a href="#" onclick="confirmArchive('${pet.PetId}'); return false;">Archive Pet</a>
+                                <a href="#" onclick="confirmDelete('${pet.PetId}'); return false;">Delete</a>
+                            </div>
+                        </div>
+                        <a href="pet_profile.php?pet_id=${pet.PetId}" class="pet-profile-link">${pet.PetName ?? 'No Name'}</a>
+                    </td>
+                    <td>${pet.PetType ?? 'No information'}</td>
+                    <td>${pet.PetStatus ?? 'Unknown'}</td>
+                    <td>${pet.LastVisit ?? 'No past visit'}</td>
+                    <td>${pet.NextVisit ?? 'No upcoming visit'}</td>
+                </tr>`;
+                            tableBody.innerHTML += row;
+                        });
+
+                        initializeThreeDotMenu(); // Reinitialize event listeners after updating table
+                    })
+                    .catch(error => console.error("Error fetching pets:", error));
+            }
+
+            function resetFilters() {
+                document.querySelector(".filter-container").reset();
+                loadFilteredPets();
+            }
+
+            // Function to handle three-dot button clicks dynamically
+            function initializeThreeDotMenu() {
+                document.querySelectorAll(".three-dot-btns").forEach(button => {
+                    button.addEventListener("click", function (event) {
+                        event.stopPropagation(); // Prevents clicking outside from closing immediately
+                        closeOtherDropdowns();
+                        const menu = this.nextElementSibling;
+                        menu.style.display = menu.style.display === "block" ? "none" : "block";
+                    });
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener("click", function () {
+                    closeOtherDropdowns();
+                });
+            }
+
+            // Function to close all open dropdowns
+            function closeOtherDropdowns() {
+                document.querySelectorAll(".dropdown-menus").forEach(menu => {
+                    menu.style.display = "none";
+                });
+            }
+        </script>
+        <script src="../assets/js/record.js?v=<?= time(); ?>"></script>
 </body>
 
 </html>

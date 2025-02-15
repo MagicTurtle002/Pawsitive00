@@ -195,9 +195,10 @@ try {
                         <div class="pet-card">
                             <div class="pet-avatar">
                                 <label for="upload-<?= $pet['PetId'] ?>">
-                                    <img id="preview-<?= $pet['PetId'] ?>" 
-                                        src="<?= !empty($pet['ProfilePicture']) ? '../../uploads/pet_avatars/' . htmlspecialchars($pet['ProfilePicture']) : '../../assets/images/Icons/Profile User.png' ?>" 
-                                        alt="Pet Avatar">
+                                    <img src="<?= !empty($pet['ProfilePicture']) && file_exists("../../uploads/pet_avatars/" . $pet['ProfilePicture']) 
+                                            ? "../../uploads/pet_avatars/" . htmlspecialchars($pet['ProfilePicture']) 
+                                            : '../../assets/images/Icons/Profile User.png'; ?>" 
+                                    alt="<?= htmlspecialchars($pet['PetName']); ?>'s Profile Picture">
                                 </label>
                                 <input type="file" id="upload-<?= $pet['PetId'] ?>" class="file-input"
                                     data-pet-id="<?= $pet['PetId'] ?>" accept="image/*" hidden>

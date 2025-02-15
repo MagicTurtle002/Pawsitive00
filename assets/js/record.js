@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     applyDropdownAndLinksFunctionality(); // Dropdowns & Row Clicks
     attachGeneralEventListeners(); // Confirmation Dialogs & Actions
-    attachSearchAndFilterListeners(); // Search & Filter Listeners
 });
 
 // ===============================
@@ -60,43 +59,6 @@ function applyDropdownAndLinksFunctionality() {
 function togglePetDetails(row) {
     const detailsRow = row.nextElementSibling;
     detailsRow.style.display = detailsRow.style.display === "none" ? "table-row" : "none";
-}
-
-// ===============================
-// 🛠 Search & Filter Functionality
-// ===============================
-function attachSearchAndFilterListeners() {
-    const searchInput = document.getElementById("searchInput");
-    const serviceFilter = document.getElementById("serviceFilter");
-    const staffList = document.getElementById("staffList");
-
-    async function fetchResults() {
-        const query = new URLSearchParams({
-            search: searchInput.value.trim(),
-            service: serviceFilter.value,
-            ajax: "1"
-        });
-
-        try {
-            const response = await fetch(`record.php?${query.toString()}`);
-            const newContent = await response.text();
-            staffList.innerHTML = newContent;
-            applyDropdownAndLinksFunctionality(); // Reapply dropdown listeners
-        } catch (err) {
-            console.error("Error fetching results:", err);
-        }
-    }
-
-    function debounce(func, wait) {
-        let timeout;
-        return function (...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), wait);
-        };
-    }
-
-    searchInput.addEventListener("input", debounce(fetchResults, 300));
-    serviceFilter.addEventListener("change", fetchResults);
 }
 
 // ===============================
