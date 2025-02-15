@@ -172,33 +172,46 @@ try {
             <input type="hidden" name="pet_id" value="<?= htmlspecialchars($_GET['pet_id'] ?? ''); ?>">
 
             <h2>General Details</h2>
-
             <div class="form-row">
                 <div class="input-container">
                     <label><b>Pet Name:</b></label>
-                    <p><?= !empty($record['PetName']) ? htmlspecialchars($record['PetName'], ENT_QUOTES, 'UTF-8') : 'Not Provided' ?></p>
+                    <p style="color: <?= !empty($record['PetName']) ? 'black' : 'red'; ?>;">
+                        <?= !empty($record['PetName']) ? htmlspecialchars($record['PetName'], ENT_QUOTES, 'UTF-8') : 'Not Provided' ?>
+                    </p>
                 </div>
 
                 <div class="input-container">
                     <label><b>Weight (kg):</b></label>
-                    <p><?= !empty($record['Weight']) ? htmlspecialchars($record['Weight'], ENT_QUOTES, 'UTF-8') . ' kg' : 'Not Provided' ?></p>
+                    <p style="color: <?= !empty($record['Weight']) ? 'black' : 'red'; ?>;">
+                        <?= !empty($record['Weight']) ? htmlspecialchars($record['Weight'], ENT_QUOTES, 'UTF-8') . ' kg' : 'Not Provided' ?>
+                    </p>
                 </div>
 
                 <div class="input-container">
                     <label><b>Temperature (°C):</b></label>
-                    <p><?= !empty($record['Temperature']) ? htmlspecialchars($record['Temperature'], ENT_QUOTES, 'UTF-8') . ' °C' : 'Not Provided' ?></p>
+                    <p style="color: <?= !empty($record['Temperature']) ? 'black' : 'red'; ?>;">
+                        <?= !empty($record['Temperature']) ? htmlspecialchars($record['Temperature'], ENT_QUOTES, 'UTF-8') . ' °C' : 'Not Provided' ?>
+                    </p>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="input-container">
                     <label><b>Appointment Date:</b></label>
-                    <p><?= !empty($record['AppointmentDate']) ? htmlspecialchars($record['AppointmentDate'], ENT_QUOTES, 'UTF-8') : 'Not Provided' ?></p>
+                    <p style="color: <?= !empty($record['AppointmentDate']) ? 'black' : 'red'; ?>;">
+                        <?= !empty($record['AppointmentDate']) ? htmlspecialchars($record['AppointmentDate'], ENT_QUOTES, 'UTF-8') : 'Not Provided' ?>
+                    </p>
                 </div>
 
                 <div class="input-container">
                     <label><b>Service:</b></label>
-                    <p><?= !empty($record['ServiceName']) ? htmlspecialchars($record['ServiceName'], ENT_QUOTES, 'UTF-8') : 'Not Provided' ?></p>
+                    <p style="color: <?= !empty($record['ServiceName']) ? 'black' : 'red'; ?>;">
+                        <?= !empty($record['ServiceName']) ? htmlspecialchars($record['ServiceName'], ENT_QUOTES, 'UTF-8') : 'Not Provided' ?>
+                    </p>
+                </div>
+
+                <div class="input-container">
+                    
                 </div>
             </div>
             
@@ -221,78 +234,88 @@ try {
 
             <div class="form-row">
                 <div class="input-container">
-                    <label><b>Onset of Symptoms:</b></label>
-                    <p><?= !empty($record['OnsetDate']) ? htmlspecialchars($record['OnsetDate'], ENT_QUOTES) : 'Not Provided' ?></p>
-                </div>
-
-                <div class="input-container">
-                    <label><b>Duration (Days):</b></label>
-                    <p>
-                        <?php 
-                        $durationMapping = [
-                            '1' => '1 Day', '2' => '2 Days', '3' => '3 Days', '5' => '5 Days', 
-                            '7' => '1 Week', '14' => '2 Weeks', '30' => '1 Month'
-                        ];
-                        echo isset($record['DurationDays']) ? ($durationMapping[$record['DurationDays']] ?? 'Not Provided') : 'Not Provided';
-                        ?>
-                    </p>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="input-container">
                     <label><b>Observed Symptoms:</b></label>
                     <div style="display: flex; flex-wrap: wrap; gap: 46.9px;">
                         <?php
                         $symptomsList = ['Vomiting', 'Diarrhea', 'Lethargy', 'Coughing', 'Sneezing', 'Other'];
-                        foreach ($symptomsList as $symptom):
-                            $symptomKey = strtolower(str_replace(' ', '_', $symptom)); // Convert to lowercase for input naming
-                            $isChecked = isset($form_data['symptoms']) && in_array($symptom, $form_data['symptoms']);
-                            $details = htmlspecialchars($form_data[$symptomKey . '-detail'] ?? '', ENT_QUOTES);
+                        $hasSymptoms = !empty($form_data['symptoms']); // Check if symptoms exist
+
+                        if ($hasSymptoms) {
+                            foreach ($symptomsList as $symptom):
+                                $symptomKey = strtolower(str_replace(' ', '_', $symptom)); // Convert to lowercase for input naming
+                                $isChecked = in_array($symptom, $form_data['symptoms'] ?? []);
+                                $details = htmlspecialchars($form_data[$symptomKey . '-detail'] ?? '', ENT_QUOTES);
                         ?>
-                            <label>
-                                <input type="checkbox" name="symptoms[]" value="<?= $symptom ?>" 
-                                    <?= $isChecked ? 'checked' : ''; ?>
-                                    onclick="toggleSymptomDetail(this, '<?= $symptomKey ?>')">
-                                <?= $symptom ?>
-                            </label>
-                            <input type="text" id="<?= $symptomKey ?>-detail" name="<?= $symptomKey ?>-detail" 
-                                placeholder="Specify details for <?= $symptom ?>"
-                                value="<?= $details ?>"
-                                style="display: <?= !empty($details) ? 'block' : 'none'; ?>;">
-                        <?php endforeach; ?>
+                                <label>
+                                    <input type="checkbox" name="symptoms[]" value="<?= $symptom ?>" 
+                                        <?= $isChecked ? 'checked' : ''; ?>
+                                        onclick="toggleSymptomDetail(this, '<?= $symptomKey ?>')">
+                                    <?= $symptom ?>
+                                </label>
+                                <input type="text" id="<?= $symptomKey ?>-detail" name="<?= $symptomKey ?>-detail" 
+                                    placeholder="Specify details for <?= $symptom ?>"
+                                    value="<?= $details ?>"
+                                    style="display: <?= !empty($details) ? 'block' : 'none'; ?>;">
+                        <?php endforeach;
+                        } else {
+                            echo '<p style="color: red;">Not Provided</p>';
+                        }
+                        ?>
                     </div>
-            
+                <br>
+
+                <div class="form-row">
+                    <div class="input-container">
+                        <label><b>Onset of Symptoms:</b></label>
+                        <p><?= !empty($record['OnsetDate']) ? htmlspecialchars($record['OnsetDate'], ENT_QUOTES) : 'Not Provided' ?></p>
+                    </div>
+
+                    <div class="input-container">
+                        <label><b>Duration (Days):</b></label>
+                        <p>
+                            <?php 
+                            $durationMapping = [
+                                '1' => '1 Day', '2' => '2 Days', '3' => '3 Days', '5' => '5 Days', 
+                                '7' => '1 Week', '14' => '2 Weeks', '30' => '1 Month'
+                            ];
+                            echo isset($record['DurationDays']) ? ($durationMapping[$record['DurationDays']] ?? 'Not Provided') : 'Not Provided';
+                            ?>
+                        </p>
+                    </div>
+                </div>
+                
                 <div class="form-row">
                     <div class="input-container">
                         <label><b>Appetite:</b></label>
-                        <p><?= htmlspecialchars($record['Appetite'] ?? 'Not Available', ENT_QUOTES); ?></p>
+                        <p><?= !empty($record['Appetite']) ? htmlspecialchars($record['Appetite'], ENT_QUOTES) : 'Not Provided' ?></p>
                     </div>
 
                     <div class="input-container">
                         <label><b>Diet:</b></label>
-                        <p><?= htmlspecialchars($record['Diet'] ?? 'Not Available', ENT_QUOTES); ?></p>
+                        <p><?= !empty($record['Diet']) ? htmlspecialchars($record['Diet'], ENT_QUOTES) : 'Not Provided' ?></p>
                     </div>
+                </div>
 
+                <div class="form-row">
                     <div class="input-container">
                         <label><b>Urine Frequency:</b></label>
-                        <p><?= htmlspecialchars($record['UrineFrequency'] ?? 'Not Available', ENT_QUOTES); ?></p>
+                        <p><?= !empty($record['UrineFrequency']) ? htmlspecialchars($record['UrineFrequency'], ENT_QUOTES) : 'Not Provided' ?></p>
                     </div>
 
                     <div class="input-container">
                         <label><b>Urine Color:</b></label>
-                        <p><?= htmlspecialchars($record['UrineColor'] ?? 'Not Available', ENT_QUOTES); ?></p>
+                        <p><?= !empty($record['UrineColor']) ? htmlspecialchars($record['UrineColor'], ENT_QUOTES) : 'Not Provided' ?></p>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="input-container">
                         <label><b>Water Intake:</b></label>
-                        <p><?= htmlspecialchars($record['WaterIntake'] ?? 'Not Available', ENT_QUOTES); ?></p>
+                        <p><?= !empty($record['WaterIntake']) ? htmlspecialchars($record['WaterIntake'], ENT_QUOTES) : 'Not Provided' ?></p>
                     </div>
 
                     <div class="input-container">
                         <label><b>Environment:</b></label>
-                        <p><?= htmlspecialchars($record['Environment'] ?? 'Not Available', ENT_QUOTES); ?></p>
+                        <p><?= !empty($record['Environment']) ? htmlspecialchars($record['Environment'], ENT_QUOTES) : 'Not Provided' ?></p>
                     </div>
                 </div>
 
@@ -315,7 +338,7 @@ try {
                         <label><b>Medication given prior to check-up:</b></label>
                         <p><?= !empty($record['MedicationPriorCheckup']) 
                                 ? htmlspecialchars($record['MedicationPriorCheckup'], ENT_QUOTES, 'UTF-8') 
-                                : '<span style="color: gray;">No medication recorded</span>'; ?>
+                                : 'No medication recorded'; ?>
                         </p>
                     </div>
                 </div>
@@ -642,7 +665,6 @@ try {
                 <p>No follow-up appointments recorded.</p>
             <?php endif; ?>
         </form>
-        </form>
     <script>
     function goBack() {
         // Get the URL parameters from the current page
@@ -690,57 +712,57 @@ try {
     }
     </script>
    <script>
-async function downloadPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'mm', 'a4');  // Create a new PDF document
+    async function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');  // Create a new PDF document
 
-    // Select the entire .main-content section
-    const content = document.querySelector(".main-content");
+        // Select the entire .main-content section
+        const content = document.querySelector(".main-content");
 
-    // Get Patient Name & Appointment Date from PHP variables
-    const patientName = "<?= isset($record['PetName']) ? htmlspecialchars($record['PetName'], ENT_QUOTES) : 'Unknown_Patient'; ?>";
-    const appointmentDate = "<?= isset($record['AppointmentDate']) ? htmlspecialchars($record['AppointmentDate'], ENT_QUOTES) : 'Unknown_Date'; ?>";
+        // Get Patient Name & Appointment Date from PHP variables
+        const patientName = "<?= isset($record['PetName']) ? htmlspecialchars($record['PetName'], ENT_QUOTES) : 'Unknown_Patient'; ?>";
+        const appointmentDate = "<?= isset($record['AppointmentDate']) ? htmlspecialchars($record['AppointmentDate'], ENT_QUOTES) : 'Unknown_Date'; ?>";
 
-    // Convert the appointment date to a filename-friendly format (YYYY-MM-DD)
-    const formattedDate = appointmentDate.replace(/[^0-9\-]/g, '');  // Remove unwanted characters
+        // Convert the appointment date to a filename-friendly format (YYYY-MM-DD)
+        const formattedDate = appointmentDate.replace(/[^0-9\-]/g, '');  // Remove unwanted characters
 
-    // Convert the content to a canvas image
-    const canvas = await html2canvas(content, {
-        scale: 3,  // Higher scale improves the image quality
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: document.documentElement.scrollWidth,
-        windowHeight: document.documentElement.scrollHeight
-    });
+        // Convert the content to a canvas image
+        const canvas = await html2canvas(content, {
+            scale: 3,  // Higher scale improves the image quality
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: document.documentElement.scrollWidth,
+            windowHeight: document.documentElement.scrollHeight
+        });
 
-    const imgData = canvas.toDataURL("image/png");
+        const imgData = canvas.toDataURL("image/png");
 
-    // A4 page dimensions (210mm x 297mm)
-    const imgWidth = 190;  // A4 width in mm
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;  // Maintain aspect ratio
+        // A4 page dimensions (210mm x 297mm)
+        const imgWidth = 190;  // A4 width in mm
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;  // Maintain aspect ratio
 
-    // Start at the top of the first page
-    let position = 10;
+        // Start at the top of the first page
+        let position = 10;
 
-    // Add the first page image
-    doc.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+        // Add the first page image
+        doc.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
 
-    // Check if content is too long for one page
-    let totalPages = Math.ceil(imgHeight / 297); // 297mm is the height of an A4 page
+        // Check if content is too long for one page
+        let totalPages = Math.ceil(imgHeight / 297); // 297mm is the height of an A4 page
 
-    // If there are more pages, add them
-    for (let i = 1; i < totalPages; i++) {
-        doc.addPage();  // Add a new page to the PDF
-        position = -(i * 297) + 10;  // Adjust position for new pages
-        doc.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);  // Add the image for the new page
+        // If there are more pages, add them
+        for (let i = 1; i < totalPages; i++) {
+            doc.addPage();  // Add a new page to the PDF
+            position = -(i * 297) + 10;  // Adjust position for new pages
+            doc.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);  // Add the image for the new page
+        }
+
+        // Set the filename dynamically
+        const fileName = `${patientName.replace(/\s+/g, '_')}_${formattedDate}.pdf`;
+
+        // Save the PDF
+        doc.save(fileName);
     }
-
-    // Set the filename dynamically
-    const fileName = `${patientName.replace(/\s+/g, '_')}_${formattedDate}.pdf`;
-
-    // Save the PDF
-    doc.save(fileName);
-}
-</script>
+    </script>
 </body>
 </html>

@@ -341,50 +341,13 @@ $follow_up_notes = $_SESSION['form_data']['follow_up_notes'];
         <h2>Chief Complaint</h2>
             <input type="hidden" name="appointment_id" value="<?= htmlspecialchars($_GET['appointment_id'] ?? ''); ?>">
             <input type="hidden" name="pet_id" value="<?= htmlspecialchars($_GET['pet_id'] ?? ''); ?>">
-            <div class="form-row">
+                <div class="form-row">
                     <div class="input-container">
                         <label for="chief_complaint"><b>Primary Concern:<span class="required">*</span></b></label>
                         <textarea id="chief_complaint" name="chief_complaint" rows="3" maxlength="300"
                             placeholder="Describe the main reason for today's visit..."
                             required><?= htmlspecialchars($patientRecord['ChiefComplaint'] ?? '', ENT_QUOTES); ?></textarea>
-                        <small id="char-count">0 / 300 characters</small>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="input-container">
-                        <label for="onset"><b>Onset of Symptoms:</b>
-                            <span class="tooltip">
-                                <span class="tooltip-icon">?</span>
-                                <span class="tooltip-text">Select the date when the symptoms first appeared.</span>
-                            </span>
-                        </label>
-                        <input type="date" id="onset" name="onset" max="<?= date('Y-m-d'); ?>" 
-                            value="<?= htmlspecialchars($patientRecord['OnsetDate'] ?? '', ENT_QUOTES); ?>">
-                    </div>
-                
-                    <div class="input-container">
-                        <label for="duration"><b>Duration (Days):</b></label>
-                        <select id="duration" name="duration" onchange="toggleCustomDuration(this)">
-                            <option value="">Select Duration</option>
-                            <option value="1" <?= ($patientRecord['DurationDays'] ?? '') == '1' ? 'selected' : ''; ?>>1 Day</option>
-                            <option value="2" <?= ($patientRecord['DurationDays'] ?? '') == '2' ? 'selected' : ''; ?>>2 Days</option>
-                            <option value="3" <?= ($patientRecord['DurationDays'] ?? '') == '3' ? 'selected' : ''; ?>>3 Days</option>
-                            <option value="5" <?= ($patientRecord['DurationDays'] ?? '') == '5' ? 'selected' : ''; ?>>5 Days</option>
-                            <option value="7" <?= ($patientRecord['DurationDays'] ?? '') == '7' ? 'selected' : ''; ?>>1 Week</option>
-                            <option value="14" <?= ($patientRecord['DurationDays'] ?? '') == '14' ? 'selected' : ''; ?>>2 Weeks</option>
-                            <option value="30" <?= ($patientRecord['DurationDays'] ?? '') == '30' ? 'selected' : ''; ?>>1 Month</option>
-                            <option value="Other" <?= (!in_array($patientRecord['DurationDays'] ?? '', ['1', '2', '3', '5', '7', '14', '30']) && !empty($patientRecord['DurationDays'])) ? 'selected' : ''; ?>>
-                                Other (Specify)
-                            </option>
-                        </select>
-
-                        <input type="number" id="custom-duration" name="custom_duration" min="1"
-                            placeholder="Specify duration (days)" 
-                            value="<?= (!in_array($patientRecord['DurationDays'] ?? '', ['1', '2', '3', '5', '7', '14', '30']) && !empty($patientRecord['DurationDays'])) 
-                                ? htmlspecialchars($patientRecord['DurationDays'], ENT_QUOTES) 
-                                : ''; ?>"
-                            style="display: <?= (!in_array($patientRecord['DurationDays'] ?? '', ['1', '2', '3', '5', '7', '14', '30']) && !empty($patientRecord['DurationDays'])) ? 'block' : 'none'; ?>;">
+                        <small id="chief-complaint-char-count">0 / 300 characters</small>
                     </div>
                 </div>
 
@@ -426,6 +389,44 @@ $follow_up_notes = $_SESSION['form_data']['follow_up_notes'];
                         </div>
                     </div>
                 </div>
+
+                <div class="form-row">
+                    <div class="input-container">
+                        <label for="onset"><b>Onset of Symptoms:</b>
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-text">Select the date when the symptoms first appeared.</span>
+                            </span>
+                        </label>
+                        <input type="date" id="onset" name="onset" max="<?= date('Y-m-d'); ?>" 
+                            value="<?= htmlspecialchars($patientRecord['OnsetDate'] ?? '', ENT_QUOTES); ?>">
+                    </div>
+                
+                    <div class="input-container">
+                        <label for="duration"><b>Duration (Days):</b></label>
+                        <select id="duration" name="duration" onchange="toggleCustomDuration(this)">
+                            <option value="">Select Duration</option>
+                            <option value="1" <?= ($patientRecord['DurationDays'] ?? '') == '1' ? 'selected' : ''; ?>>1 Day</option>
+                            <option value="2" <?= ($patientRecord['DurationDays'] ?? '') == '2' ? 'selected' : ''; ?>>2 Days</option>
+                            <option value="3" <?= ($patientRecord['DurationDays'] ?? '') == '3' ? 'selected' : ''; ?>>3 Days</option>
+                            <option value="5" <?= ($patientRecord['DurationDays'] ?? '') == '5' ? 'selected' : ''; ?>>5 Days</option>
+                            <option value="7" <?= ($patientRecord['DurationDays'] ?? '') == '7' ? 'selected' : ''; ?>>1 Week</option>
+                            <option value="14" <?= ($patientRecord['DurationDays'] ?? '') == '14' ? 'selected' : ''; ?>>2 Weeks</option>
+                            <option value="30" <?= ($patientRecord['DurationDays'] ?? '') == '30' ? 'selected' : ''; ?>>1 Month</option>
+                            <option value="Other" <?= (!in_array($patientRecord['DurationDays'] ?? '', ['1', '2', '3', '5', '7', '14', '30']) && !empty($patientRecord['DurationDays'])) ? 'selected' : ''; ?>>
+                                Other (Specify)
+                            </option>
+                        </select>
+
+                        <input type="number" id="custom-duration" name="custom_duration" min="1"
+                            placeholder="Specify duration (days)" 
+                            value="<?= (!in_array($patientRecord['DurationDays'] ?? '', ['1', '2', '3', '5', '7', '14', '30']) && !empty($patientRecord['DurationDays'])) 
+                                ? htmlspecialchars($patientRecord['DurationDays'], ENT_QUOTES) 
+                                : ''; ?>"
+                            style="display: <?= (!in_array($patientRecord['DurationDays'] ?? '', ['1', '2', '3', '5', '7', '14', '30']) && !empty($patientRecord['DurationDays'])) ? 'block' : 'none'; ?>;">
+                    </div>
+                </div>
+
                     <div class="form-row">
                         <div class="input-container">
                             <label for="appetite"><b>Appetite:</b></label>
@@ -572,7 +573,7 @@ $follow_up_notes = $_SESSION['form_data']['follow_up_notes'];
                             <label for="pain_level"><b>Pain Level (1-10):</b></label>
                             
                             <?php 
-                                $storedPainLevel = $patientRecord['PainLevel'] ?? '5'; // ✅ Using patient record data with default to 5
+                                $storedPainLevel = $patientRecord['PainLevel'] ?? '0'; // ✅ Using patient record data with default to 5
                             ?>
                         
                             <input type="range" id="pain_level" name="pain_level" min="1" max="10" step="1" 
@@ -1624,9 +1625,6 @@ $follow_up_notes = $_SESSION['form_data']['follow_up_notes'];
                 });
             });
             </script>
-
-            
-
 
             <script src="../assets/js/patient_records.js?v=1.0.3"></script>
 </body>

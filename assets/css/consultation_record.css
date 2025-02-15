@@ -17,7 +17,8 @@
 body {
     display: flex;
     min-height: 100vh;
-    background-color: #ffffff;
+    background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), 
+                url('../images/Icons/bg.png') !important;
 }
 
 .sidebar {
@@ -154,9 +155,13 @@ nav ul li:hover, .sidebar-bottom button:hover, .schedule-item button:hover {
 }
 
 .main-content {
+    background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), 
+                url('../images/Icons/bg.png') !important;
+    background-size: cover; /* Adjust as needed */
+    background-repeat: no-repeat; /* Prevents the image from repeating */
+    background-position: center; /* Center the background image */
     flex: 1;
     padding: 20px;
-    background-color: #ffffff;
     margin-left: 250px; /* Adds space to the left for the sidebar */
     min-height: 100vh; /* Ensures the main content covers the full height */
 }
@@ -618,5 +623,9 @@ h2 {
 }
 
 .required-asterisk, .required {
+    color: red;
+}
+
+p {
     color: red;
 }

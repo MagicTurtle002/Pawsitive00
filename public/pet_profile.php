@@ -377,7 +377,6 @@ try {
                                     <td><?= htmlspecialchars(!empty($followUp['FollowUpDate']) ? $followUp['FollowUpDate'] : 'No information found') ?>
                                     </td>
                                     <td><?= htmlspecialchars(!empty($followUp['FollowUpNotes']) ? $followUp['FollowUpNotes'] : 'No information found') ?>
-                                    </td>
                                     <td>
                                         <button class="remind-btn"
                                             onclick="sendReminder('<?= $pet['Phone'] ?>', '<?= $pet['PetName'] ?>', '<?= $pet['OwnerName'] ?>', '<?= $followUp['FollowUpDate'] ?>', '<?= addslashes($followUp['FollowUpNotes']) ?>')">
