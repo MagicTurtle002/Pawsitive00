@@ -63,7 +63,7 @@ try {
         SELECT 
             Appointments.AppointmentId AS id,
             Services.ServiceName AS title,
-            Appointments.AppointmentDate AS start,
+            DATE_FORMAT(Appointments.AppointmentDate, '%Y-%m-%d') AS start,
             Appointments.AppointmentTime AS time,
             Appointments.Status AS status,
             CONCAT(Pets.Name, ' (Owner: ', Owners.FirstName, ' ', Owners.LastName, ')') AS description,
@@ -94,7 +94,7 @@ try {
     $events = [];
 }
 
-$events_json = json_encode($events);
+$events_json = json_encode($events, JSON_UNESCAPED_SLASHES);
 
 try {
     $services_stmt = $pdo->prepare("SELECT ServiceId, ServiceName FROM Services");
@@ -124,6 +124,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_appointment'])) {
     $petId = filter_input(INPUT_POST, 'PetId', FILTER_VALIDATE_INT);
     $serviceId = filter_input(INPUT_POST, 'ServiceId', FILTER_VALIDATE_INT);
     $appointmentDate = filter_input(INPUT_POST, 'AppointmentDate', FILTER_SANITIZE_SPECIAL_CHARS);
+
+    // Ensure PHP does not misinterpret the date due to time zone differences
+    $appointmentDate = date('Y-m-d', strtotime($appointmentDate));
     $appointmentTime = filter_input(INPUT_POST, 'AppointmentTime', FILTER_SANITIZE_SPECIAL_CHARS);
 
     $today = date('Y-m-d');
@@ -263,6 +266,7 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
     <script>
         var calendarEvents = <?= $events_json ?>;
         var bookedTimesByDate = <?= json_encode($booked_times_by_date) ?>;
+        var services = <?= json_encode($services, JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP); ?>;
     </script>
     <style>
         /* Toast Styling */
@@ -610,41 +614,47 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
         <script src="../assets/js/update_appointment.js?v=<?= time() ?>"></script>
         <script>
             $(document).ready(function () {
-                let pets = <?php echo json_encode($pets); ?>;
-
-                $('#PetSearch').on('input', function () {
-                    let query = $(this).val().toLowerCase();
-                    let suggestionsBox = $('#PetSuggestions');
+                $("#PetSearch").on("input", function () {
+                    let query = $(this).val().trim();
+                    let suggestionsBox = $("#PetSuggestions");
 
                     if (query.length === 0) {
                         suggestionsBox.hide();
                         return;
                     }
 
-                    let filteredPets = pets.filter(pet => pet.pet_name.toLowerCase().includes(query) || pet.owner_name.toLowerCase().includes(query));
-
-                    suggestionsBox.empty();
-                    if (filteredPets.length > 0) {
-                        filteredPets.forEach(pet => {
-                            let suggestionItem = $('<div>')
-                                .addClass('suggestion-item')
-                                .text(`${pet.pet_name} (Owner: ${pet.owner_name})`)
-                                .data('pet-id', pet.PetId)
-                                .click(function () {
-                                    $('#PetSearch').val(pet.pet_name);
-                                    $('#PetId').val(pet.PetId);
-                                    suggestionsBox.hide();
+                    $.ajax({
+                        url: "../src/fetch_pets.php",
+                        type: "GET",
+                        data: { query: query },
+                        dataType: "json",
+                        success: function (pets) {
+                            suggestionsBox.empty();
+                            if (pets.length > 0) {
+                                pets.forEach(pet => {
+                                    let item = $("<div>")
+                                        .addClass("suggestion-item")
+                                        .text(`${pet.pet_name} (Owner: ${pet.owner_name})`)
+                                        .data("pet-id", pet.PetId)
+                                        .click(function () {
+                                            $("#PetSearch").val(pet.pet_name);
+                                            $("#PetId").val(pet.PetId);
+                                            suggestionsBox.hide();
+                                        });
+                                    suggestionsBox.append(item);
                                 });
-                            suggestionsBox.append(suggestionItem);
-                        });
-                    } else {
-                        suggestionsBox.append('<div class="no-result">No Pet Found</div>');
-                    }
-                    suggestionsBox.show();
+                            } else {
+                                suggestionsBox.append('<div class="no-result">No Pet Found</div>');
+                            }
+                            suggestionsBox.show();
+                        }
+                    });
                 });
-                $(document).on('click', function (event) {
-                    if (!$(event.target).closest('#PetSearch, #PetSuggestions').length) {
-                        $('#PetSuggestions').hide();
+
+                // Hide suggestions when clicking outside
+                $(document).on("click", function (event) {
+                    if (!$(event.target).closest("#PetSearch, #PetSuggestions").length) {
+                        $("#PetSuggestions").hide();
                     }
                 });
             });
@@ -669,70 +679,33 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
         </script>
         <script>
             function confirmAppointment(appointmentId) {
-                updateAppointmentStatus(appointmentId, "Confirmed");
+                const petElement = document.querySelector(`[data-id='${appointmentId}']`);
+                const petId = petElement ? petElement.getAttribute("data-pet-id") : null;
+
+                if (!petId) {
+                    console.error("Error: petId is missing for appointmentId:", appointmentId);
+                    Swal.fire("Error", "Pet ID is missing. Cannot confirm appointment.", "error");
+                    return;
+                }
+
+                updateAppointmentStatus(appointmentId, "Confirmed", petId);
             }
 
-            function declineAppointment(appointmentId) {
-                updateAppointmentStatus(appointmentId, "Declined");
+            function declineAppointment(appointmentId, petId) {
+                if (!petId) {
+                    console.error("Error: petId is missing for appointmentId:", appointmentId);
+                    Swal.fire("Error", "Pet ID is missing. Cannot decline appointment.", "error");
+                    return;
+                }
+
+                // Now correctly passing `appointmentId` and `petId`
+                updateAppointmentStatus(appointmentId, "Declined", petId);
             }
 
-            function editAppointmentDetails(id, pet, service, date, time) {
-                let petNameOnly = pet.replace(/ *\([^)]*\) */g, "");
-
-                Swal.fire({
-                    title: 'Edit Appointment',
-                    html: `
-                        <div style="text-align: left;">
-                            <div class="swal2-row">
-                                <label>Pet:</label>
-                                <input type="text" id="editPetName" class="swal2-input" value="${petNameOnly}" readonly>
-                            </div>
-                            
-                            <div class="swal2-row">
-                                <label>Service:</label>
-                                <select id="editServiceId" class="swal2-select">
-                                    ${generateServiceOptions(service)}
-                                </select>
-                            </div>
-                            
-                            <div class="swal2-row">
-                                <label>Date:</label>
-                                <input type="date" id="editAppointmentDate" class="swal2-input" value="${date}">
-                            </div>
-                            
-                            <div class="swal2-row">
-                                <label>Time:</label>
-                                <select id="editAppointmentTime" class="swal2-select">
-                                    ${generateTimeOptions(time, date)}
-                                </select>
-                            </div>
-                        </div>
-                        `,
-                    showCancelButton: true,
-                    confirmButtonText: "Save Changes",
-                    preConfirm: () => {
-                        return {
-                            id: id,
-                            service: document.getElementById('editServiceId').value,
-                            date: document.getElementById('editAppointmentDate').value,
-                            time: document.getElementById('editAppointmentTime').value
-                        };
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        saveEditedAppointment(result.value);
-                    }
-                });
-
-                document.getElementById("editAppointmentDate").addEventListener("change", function () {
-                    let newDate = this.value;
-                    document.getElementById("editAppointmentTime").innerHTML = generateTimeOptions(null, newDate);
-                });
-            }
 
             function sendStatusUpdate(appointmentId, status, reason = null) {
                 $.ajax({
-                    url: 'update_appointment1.php',
+                    url: 'update_appointment.php',
                     type: 'POST',
                     data: { appointmentId: appointmentId, status: status, reason: reason },
                     success: function (response) {
@@ -762,7 +735,7 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
             <div style="text-align: left; margin-top: 10px;">
                 <p><strong>Appointment For:</strong> ${event.extendedProps.description || "No Description"}</p>
                 <p><strong>Service:</strong> ${event.title || "No Title"}</p>
-                <p><strong>Date:</strong> ${event.start.toISOString().split('T')[0]}</p>
+                <p><strong>Date:</strong> ${formatDateWithoutTimezone(event.start)}</p>
                 <p><strong>Time:</strong> ${event.extendedProps.time ? formatTime(event.extendedProps.time) : "No Time"}</p>
                 <p><strong>Status:</strong> <span class="status-badge">${event.extendedProps.status || "Pending"}</span></p>
             </div>
@@ -784,84 +757,16 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
                     if (result.isConfirmed) {
                         confirmAppointment(event.id);
                     } else if (result.isDenied) {
-                        openRescheduleModal(event, event.id);
+                        openRescheduleModal({
+                            pet: event.extendedProps.description, // 🐛 Ensure pet name is passed
+                            service: event.title,
+                            date: formatDateWithoutTimezone(event.start), // 🐛 Fix date issue
+                            time: event.extendedProps.time
+                        }, event.id);
                     } else if (result.dismiss === Swal.DismissReason.cancel) {
                         updateAppointmentStatus(event.id, "Declined");
                     }
                 });
-            }
-
-            // Function to save edited appointment
-            function saveEditedAppointment(data) {
-                $.ajax({
-                    url: 'update_appointment.php',
-                    type: 'POST',
-                    data: {
-                        appointmentId: data.id,
-                        service: data.service,
-                        date: data.date,
-                        time: data.time
-                    },
-                    success: function (response) {
-                        Swal.fire({
-                            title: "Success!",
-                            text: "Appointment updated successfully!",
-                            icon: "success"
-                        }).then(() => {
-                            location.reload(); // Refresh page to see changes
-                        });
-                    },
-                    error: function () {
-                        Swal.fire("Error", "Failed to update appointment.", "error");
-                    }
-                });
-            }
-
-            // Helper function to generate service options
-            function generateServiceOptions(selectedService) {
-                let services = <?= json_encode($services); ?>; // Fetch services from PHP
-                let options = '';
-
-                services.forEach(service => {
-                    let isSelected = service.ServiceName === selectedService ? "selected" : "";
-                    options += `<option value="${service.ServiceId}" ${isSelected}>${service.ServiceName}</option>`;
-                });
-
-                return options;
-            }
-
-            function generateTimeOptions(selectedTime, selectedDate) {
-                const now = new Date();
-                const today = now.toISOString().split('T')[0];
-                const currentTime = now.toTimeString().split(' ')[0].substring(0, 5); // Get HH:MM format
-
-                const timeSlots = [
-                    "08:00:00", "08:30:00", "09:00:00", "09:30:00",
-                    "10:00:00", "10:30:00", "11:00:00", "11:30:00",
-                    "12:00:00", "12:30:00", "13:00:00", "13:30:00",
-                    "14:00:00", "14:30:00", "15:00:00", "15:30:00",
-                    "16:00:00", "16:30:00", "17:00:00"
-                ];
-
-                let options = '';
-                let bookedTimes = bookedTimesByDate[selectedDate] || [];
-
-                timeSlots.forEach(time => {
-                    let isSelected = time === selectedTime ? "selected" : "";
-                    let isDisabled = bookedTimes.includes(time) || (selectedDate === today && time < currentTime);
-
-                    options += `<option value="${time}" ${isSelected} ${isDisabled ? "disabled" : ""}>${formatTime(time)}</option>`;
-                });
-
-                return options;
-            }
-
-            // Helper function to format time into AM/PM format
-            function formatTime(time) {
-                let [hours, minutes] = time.split(':');
-                let ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12 || 12; // Convert to 12-hour format
-                return `${hours}:${minutes} ${ampm}`;
             }
         </script>
 </body>

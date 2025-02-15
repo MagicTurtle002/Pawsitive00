@@ -149,7 +149,14 @@ function validateSelectedDate(selectedDateStr) {
       confirmButtonText: "OK",
       confirmButtonColor: "#d33",
     }).then(() => {
-      document.getElementById("AppointmentDate").value = ""; // Clear invalid date
+      const dateInput = document.getElementById("AppointmentDate");
+      let selectedDate = new Date(dateStr + "T00:00:00"); // Force midnight to avoid shifts
+
+      // Adjust for timezone differences
+      let correctedDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000);
+
+      // Format as YYYY-MM-DD and set it back
+      dateInput.value = correctedDate.toISOString().split('T')[0];
     });
   } else {
     loadAvailableTimeSlots(selectedDateStr); // Proceed if valid
@@ -176,10 +183,13 @@ function setupDateValidation() {
 
 function setDateAndLoadTimeSlots(dateStr) {
   const dateInput = document.getElementById("AppointmentDate");
-  dateInput.value = dateStr;
+  let selectedDate = new Date(dateStr + "T00:00:00"); // Ensure local time
 
-  validateSelectedDate(dateStr); // 🔥 Manually validate date before proceeding
+  // Convert to ISO string without timezone shifts
+  let correctedDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000);
+  dateInput.value = correctedDate.toISOString().split('T')[0];
 
+  validateSelectedDate(dateInput.value);
   dateInput.dispatchEvent(new Event("change"));
 }
 
@@ -266,18 +276,13 @@ function showToast(message) {
 // 📝 Appointment Modal Handling
 // ===========================
 
-// Show appointment details in modal
 function showAppointmentDetails(event) {
-  document.getElementById("modalService").textContent =
-    event.title || "No Title";
-  document.getElementById("modalDate").textContent = event.start
-    .toISOString()
-    .split("T")[0];
+  document.getElementById("modalService").textContent = event.title || "No Title";
+  document.getElementById("modalDate").textContent = formatDateWithoutTimezone(event.start);
   document.getElementById("modalTime").textContent = event.extendedProps.time
     ? formatTime(event.extendedProps.time)
     : "No Time";
-  document.getElementById("modalDescription").textContent =
-    event.extendedProps.description || "No Description";
+  document.getElementById("modalDescription").textContent = event.extendedProps.description || "No Description";
 
   const statusElement = document.getElementById("modalStatus");
   const status = event.extendedProps.status || "Pending";
@@ -308,6 +313,12 @@ function showAppointmentDetails(event) {
     document.getElementById("appointmentModal")
   );
   appointmentModal.show();
+}
+
+// Fix timezone offset when displaying dates
+function formatDateWithoutTimezone(date) {
+  let localDate = new Date(date);
+  return localDate.toLocaleDateString('en-CA'); // Formats as YYYY-MM-DD without timezone shifts
 }
 
 // ===========================
@@ -383,6 +394,7 @@ function highlightBookedDates() {
       dateClick: function (info) {
         setDateAndLoadTimeSlots(info.dateStr);
       },
+
 
       eventClick: function (info) {
         showAppointmentDetails(info.event);

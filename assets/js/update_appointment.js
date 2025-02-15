@@ -125,3 +125,123 @@ function createButton(container, text, className, onClick) {
   button.onclick = onClick;
   container.appendChild(button);
 }
+
+
+function openRescheduleModal(appointment, appointmentId) {
+    Swal.fire({
+        title: "Reschedule Appointment",
+        html: `
+            <div style="text-align: left;">
+                <label for="petName"><strong>Pet:</strong></label>
+                <input type="text" id="petName" class="swal2-input" value="${appointment.pet}" readonly>
+
+                <label for="editService"><strong>Service:</strong></label>
+                <select id="editService" class="swal2-select">${generateServiceOptions(appointment.service)}</select>
+
+                <label for="newDate"><strong>New Date:</strong></label>
+                <input type="date" id="newDate" class="swal2-input" value="${appointment.date}" min="${new Date().toISOString().split('T')[0]}" required>
+
+                <label for="newTime"><strong>New Time:</strong></label>
+                <select id="newTime" class="swal2-select">${generateTimeOptions(appointment.time, appointment.date)}</select>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Save Changes",
+        preConfirm: () => {
+            const newDate = document.getElementById("newDate").value;
+            const newTime = document.getElementById("newTime").value;
+            const newService = document.getElementById("editService").value;
+
+            if (!newDate || !newTime || !newService) {
+                Swal.showValidationMessage("⚠️ Please complete all fields!");
+                return false;
+            }
+
+            return { appointmentId, newDate, newTime, newService };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            console.log("Rescheduling appointment:", result.value);
+            rescheduleAppointment(result.value);
+        }
+    });
+
+    document.getElementById("newDate").addEventListener("change", function () {
+        document.getElementById("newTime").innerHTML = generateTimeOptions(null, this.value);
+    });
+}
+
+
+function generateServiceOptions(selectedService) {
+    if (!services || !Array.isArray(services)) {
+        console.error("⚠️ Services list is empty or not an array:", services);
+        return "<option value='' disabled>No services available</option>";
+    }
+
+    let options = services.map(service => {
+        let isSelected = service.ServiceName === selectedService ? "selected" : "";
+        return `<option value="${service.ServiceId}" ${isSelected}>${service.ServiceName}</option>`;
+    }).join("");
+
+    return options.length > 0 ? options : "<option value='' disabled>No services available</option>";
+}
+
+function generateTimeOptions(selectedTime, selectedDate) {
+    const timeSlots = [
+        "08:00:00", "08:30:00", "09:00:00", "09:30:00",
+        "10:00:00", "10:30:00", "11:00:00", "11:30:00",
+        "12:00:00", "12:30:00", "13:00:00", "13:30:00",
+        "14:00:00", "14:30:00", "15:00:00", "15:30:00",
+        "16:00:00", "16:30:00", "17:00:00"
+    ];
+
+    let options = "";
+    let bookedTimes = bookedTimesByDate[selectedDate] || [];
+
+    timeSlots.forEach(time => {
+        let isSelected = time === selectedTime ? "selected" : "";
+        let isDisabled = bookedTimes.includes(time) ? "disabled" : "";
+
+        options += `<option value="${time}" ${isSelected} ${isDisabled}>${formatTime(time)}</option>`;
+    });
+
+    return options;
+}
+
+// Helper function to format time into AM/PM
+function formatTime(time) {
+    let [hours, minutes] = time.split(':');
+    let ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    return `${hours}:${minutes} ${ampm}`;
+}
+
+function rescheduleAppointment({ appointmentId, newDate, newTime, newService }) {
+    console.log("Rescheduling Appointment:", appointmentId, newDate, newTime, newService);
+
+    fetch("../src/reschedule_appointment.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            appointment_id: appointmentId,
+            new_date: newDate,
+            new_time: newTime,
+            new_service: newService
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire("Success!", "Appointment has been rescheduled.", "success")
+                .then(() => location.reload());
+        } else {
+            Swal.fire("Error!", data.message, "error");
+        }
+    })
+    .catch(error => {
+        console.error("Fetch error:", error);
+        Swal.fire("Error!", "Failed to reschedule appointment.", "error");
+    });
+}
