@@ -5,7 +5,9 @@ function updateAppointmentStatus(appointmentId, status, petId) {
           title: "Decline Appointment",
           html: `
               <p>Please provide a reason for declining this appointment:</p>
-              <textarea id="declineReason" class="swal2-textarea" placeholder="Enter reason..." required></textarea>
+              <textarea id="declineReason" class="swal2-textarea" 
+                placeholder="Enter reason..." required 
+                style="width: 100%; max-width: 370px; height: 100px;"></textarea>
           `,
           icon: "warning",
           showCancelButton: true,

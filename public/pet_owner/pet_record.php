@@ -13,6 +13,10 @@ if (!isset($_SESSION['LoggedIn'])) {
 
 $owner_id = $_SESSION['OwnerId'] ?? null;
 
+$currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
+$recordsPerPage = 5; // You can adjust this value
+$offset = $currentPage * $recordsPerPage;
+
 if (!$owner_id) {
     echo "Owner ID not found.";
     exit;
@@ -46,22 +50,33 @@ $consultations = [];
 if (!empty($pets)) {
     try {
         $query = "SELECT 
-                    pr.RecordId, pr.PetId, pr.AppointmentId, pr.ChiefComplaint, pr.OnsetDate, pr.DurationDays, 
-                    pr.ObservedSymptoms, pr.Appetite, pr.Diet, pr.UrineFrequency, pr.UrineColor, 
-                    pr.WaterIntake, pr.PainLevel, pr.FecalScore, pr.Environment, pr.MedicationPriorCheckup, 
-                    pr.CreatedAt, pr.UpdatedAt
-                FROM PatientRecords pr
-                WHERE pr.PetId IN (SELECT PetId FROM Pets WHERE OwnerId = :owner_id) 
-                ORDER BY pr.CreatedAt DESC";
+            pr.RecordId, pr.PetId, pr.AppointmentId, pr.ChiefComplaint, pr.OnsetDate, pr.DurationDays, 
+            pr.ObservedSymptoms, pr.Appetite, pr.Diet, pr.UrineFrequency, pr.UrineColor, 
+            pr.WaterIntake, pr.PainLevel, pr.FecalScore, pr.Environment, pr.MedicationPriorCheckup, 
+            pr.CreatedAt, pr.UpdatedAt
+        FROM PatientRecords pr
+        WHERE pr.PetId IN (SELECT PetId FROM Pets WHERE OwnerId = :owner_id) 
+        ORDER BY pr.CreatedAt DESC
+        LIMIT :offset, :recordsPerPage";
 
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':owner_id', $owner_id, PDO::PARAM_INT);
-        $stmt->execute();
-        $consultations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare($query);
+    $stmt->bindParam(':owner_id', $owner_id, PDO::PARAM_INT);
+    $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+    $stmt->bindParam(':recordsPerPage', $recordsPerPage, PDO::PARAM_INT);
+    $stmt->execute();
+    $consultations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
     } catch (PDOException $e) {
         error_log("Database Error: " . $e->getMessage());
     }
 }
+
+$countQuery = "SELECT COUNT(*) FROM PatientRecords WHERE PetId IN (SELECT PetId FROM Pets WHERE OwnerId = :owner_id)";
+$countStmt = $pdo->prepare($countQuery);
+$countStmt->bindParam(':owner_id', $owner_id, PDO::PARAM_INT);
+$countStmt->execute();
+$totalRecords = $countStmt->fetchColumn();
+$totalPages = ceil($totalRecords / $recordsPerPage);
 ?>
 
 <!DOCTYPE html>
@@ -84,7 +99,9 @@ if (!empty($pets)) {
     <header>
         <nav>
             <div class="logo">
-                <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                <a href="index.php">
+                    <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                </a>
             </div>
             <ul class="nav-links">
                 <li><a href="index.php">Home</a></li>
@@ -186,6 +203,20 @@ if (!empty($pets)) {
             </div>
         </section>
     </main>
+
+    <div class="pagination">
+        <a href="?page=<?= max(0, $currentPage - 1) ?>">&laquo; Previous</a>
+        <?php for ($i = 0; $i < $totalPages; $i++): ?>
+            <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
+                <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active"' : '' ?>><?= $i + 1 ?></a>
+            <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
+                <span>...</span>
+            <?php endif; ?>
+        <?php endfor; ?>
+        <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
+    </div>
+
+    <br>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

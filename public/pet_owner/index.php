@@ -155,8 +155,11 @@ try {
     <header>
         <nav>
             <div class="logo">
-                <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                <a href="index.php">
+                    <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                </a>
             </div>
+
             <ul class="nav-links">
                 <li><a href="#home" class="active">Home</a></li>
                 <li><a href="book_appointment.php">Appointment</a></li>
