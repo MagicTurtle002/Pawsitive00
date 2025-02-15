@@ -19,6 +19,11 @@ if (!isset($_SESSION['LoggedIn'])) {
 $owner_id = $_SESSION['OwnerId']; // Get the logged-in owner's ID
 $user_name = isset($_SESSION['FirstName']) ? $_SESSION['FirstName'] . ' ' . $_SESSION['LastName'] : 'Owner';
 
+$currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
+$recordsPerPage = 10; 
+$offset = $currentPage * $recordsPerPage;
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $petId = $_POST['PetId'] ?? null;
     $serviceId = $_POST['ServiceId'] ?? null;
@@ -112,10 +117,13 @@ try {
     INNER JOIN Pets p ON a.PetId = p.PetId
     INNER JOIN Services s ON a.ServiceId = s.ServiceId
     WHERE p.OwnerId = :owner_id
-    ORDER BY a.AppointmentTime DESC";
+    ORDER BY a.AppointmentTime DESC
+    LIMIT :offset, :recordsPerPage";
 
     $appointmentStmt = $pdo->prepare($appointmentQuery);
     $appointmentStmt->bindParam(':owner_id', $owner_id, PDO::PARAM_INT);
+    $appointmentStmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+    $appointmentStmt->bindParam(':recordsPerPage', $recordsPerPage, PDO::PARAM_INT);
     $appointmentStmt->execute();
     $appointments = $appointmentStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -136,6 +144,16 @@ try {
 } catch (PDOException $e) {
     die("Database Error: " . $e->getMessage());
 }
+
+$countQuery = "SELECT COUNT(*) FROM Appointments a
+               INNER JOIN Pets p ON a.PetId = p.PetId
+               WHERE p.OwnerId = :owner_id";
+
+$countStmt = $pdo->prepare($countQuery);
+$countStmt->bindParam(':owner_id', $owner_id, PDO::PARAM_INT);
+$countStmt->execute();
+$totalRecords = $countStmt->fetchColumn();
+$totalPages = ceil($totalRecords / $recordsPerPage);
 ?>
 
 <!DOCTYPE html>
@@ -327,6 +345,22 @@ try {
         </div>
         <div id="calendar"></div>
     </div>
+
+    <div class="pagination">
+        <a href="?page=<?= max(0, $currentPage - 1) ?>" class="<?= $currentPage == 0 ? 'disabled' : '' ?>">&laquo; Previous</a>
+        
+        <?php for ($i = 0; $i < $totalPages; $i++): ?>
+            <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
+                <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active"' : '' ?>><?= $i + 1 ?></a>
+            <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
+                <span>...</span>
+            <?php endif; ?>
+        <?php endfor; ?>
+        
+        <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>" class="<?= $currentPage >= $totalPages - 1 ? 'disabled' : '' ?>">Next &raquo;</a>
+    </div>
+
+    <br>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

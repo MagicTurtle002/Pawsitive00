@@ -1007,3 +1007,27 @@ main {
 .status.confirmed { background-color: #4C5FD5; color: #fff; } 
 .status.paid { background-color: #00A86B; color: #fff; } 
 .status.cancelled { background-color: #D72638; color: #fff; } 
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+.pagination a {
+  padding: 8px 16px;
+  margin: 0 4px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-decoration: none;
+  color: #007b8a;
+  font-weight: 500;
+}
+.pagination a.active {
+  background-color: #007b8a;
+  color: white;
+  border-color: #007b8a;
+}
+.pagination a:hover {
+  background-color: #005f6b;
+  color: white;
+}
