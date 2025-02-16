@@ -622,6 +622,48 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 });
             }
         </script>
+        <script>
+            function confirmDelete(petId) {
+                if (!petId || isNaN(petId)) {
+                    Swal.fire("Error!", "Invalid Pet ID.", "error");
+                    return;
+                }
+
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "This action will permanently delete the pet record.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#3085d6",
+                    confirmButtonText: "Yes, delete it!",
+                    cancelButtonText: "Cancel"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        console.log("Sending delete request for Pet ID:", petId);
+                        fetch("../src/delete_pet.php", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ pet_id: petId })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                console.log("Response from server:", data);
+                                if (data.success) {
+                                    Swal.fire("Deleted!", "The pet record has been deleted.", "success")
+                                        .then(() => location.reload());
+                                } else {
+                                    Swal.fire("Error!", data.error || "Failed to delete the pet.", "error");
+                                }
+                            })
+                            .catch(error => {
+                                console.error("Error deleting pet:", error);
+                                Swal.fire("Error!", "An error occurred while deleting the pet.", "error");
+                            });
+                    }
+                });
+            }
+        </script>
         <script src="../assets/js/record.js?v=<?= time(); ?>"></script>
 </body>
 

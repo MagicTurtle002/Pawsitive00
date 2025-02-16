@@ -41,6 +41,24 @@ try {
     $stmt->bindParam(':owner_id', $owner_id, PDO::PARAM_INT);
     $stmt->execute();
     $pets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $query = "
+        SELECT 
+            VaccinationName AS Vaccine, 
+            VaccinationDate AS Date, 
+            Weight,
+            Manufacturer, 
+            LotNumber, 
+            Notes 
+        FROM PetVaccinations 
+        WHERE PetId = :PetId
+        ORDER BY Date DESC
+    ";
+
+    $stmt = $pdo->prepare($query);
+    $stmt->execute([':PetId' => $pet_id]);
+    $vaccinations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
 } catch (PDOException $e) {
     error_log("Database Error: " . $e->getMessage());
 }

@@ -221,7 +221,7 @@ try {
                                 <div class="menu-dropdown">
                                     <ul>
                                         <li><a href="#">Edit</a></li>
-                                        <li><a href="record/pet_record.php">View Record</a></li>
+                                        <li><a href="pet_record.php">View Record</a></li>
                                     </ul>
                                 </div>
                             </div>

@@ -22,7 +22,7 @@ try {
     $update_stmt->execute([':OwnerId' => $owner['OwnerId']]);
 
     $_SESSION['success'] = "✅ Your email has been verified!";
-    header("Location: ../settings.php");
+    header("Location: ../public/owner_login.php");
     exit();
 } catch (PDOException $e) {
     error_log("Error verifying email: " . $e->getMessage());

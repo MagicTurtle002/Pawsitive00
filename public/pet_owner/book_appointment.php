@@ -276,13 +276,14 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 <!-- Right Section: Add Pet Form -->
                 <div class="right-section">
                     <!-- <h2>Add a New Pet</h2> -->
-                    <form class="staff-form" action="book_appointment.php" method="POST">
+                    <form class="staff-form" action="book_appointment.php" method="POST" novalidate>
+                    <h2 class="section-headline">Book an Appointment</h2>
                         <input type="hidden" name="csrf_token"
                             value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 
                         <div class="form-row">
                             <div class="input-container">
-                                <label for="PetId">Pet Name:</label>
+                                <label for="PetId">Pet Name:<span class="required-asterisk">*</span></label>
                                 <select id="PetId" name="PetId" required>
                                     <option value="">Select pet</option>
                                     <?php foreach ($pets as $pet): ?>
@@ -294,7 +295,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             </div>
 
                             <div class="input-container">
-                                <label for="Service">Service:</label>
+                                <label for="Service">Service:<span class="required-asterisk">*</span></label>
                                 <select name="ServiceId" id="ServiceId" required>
                                     <?php foreach ($services as $service): ?>
                                         <option value="<?= $service['ServiceId'] ?>">
@@ -307,12 +308,12 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
 
                         <div class="form-row">
                             <div class="input-container">
-                                <label for="AppointmentDate">Date:</label>
+                                <label for="AppointmentDate">Date:<span class="required-asterisk">*</span></label>
                                 <input type="date" id="AppointmentDate" name="AppointmentDate" min="" required>
                             </div>
 
                             <div class="input-container">
-                                <label for="AppointmentTime">Time:</label>
+                                <label for="AppointmentTime">Time:<span class="required-asterisk">*</span></label>
                                 <select name="AppointmentTime" id="AppointmentTime" required>
                                     <option value="">Select Time</option>
                                     <?php

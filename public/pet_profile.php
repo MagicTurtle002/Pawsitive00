@@ -439,31 +439,6 @@ try {
         <br>
         <h2>Pet Weight Over Time</h2>
         <canvas id="weightChart" width="800" height="400"></canvas>
-        <!--<section class="consultation">
-            <h2>Allergies</h2>
-            <div class="prescription">
-                <table>
-                    <thead>
-                            <th>Allergy Name</th>
-                            <th>Notes</th>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($allergies)): ?>
-                            <?php foreach ($allergies as $allergy): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($allergy['AllergyName']) ?></td>
-                                    <td><?= htmlspecialchars($allergy['Notes']) ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="3">The pet has no allergies.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </section>-->
     </div>
     <div id="toastContainer" class="toast-container">
         <?php if (!empty($_SESSION['success'])): ?>

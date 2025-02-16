@@ -35,7 +35,7 @@ try {
         p.Gender, 
         p.CalculatedAge, 
         b.BreedName AS Breed
-    FROM pets p
+    FROM Pets p
     LEFT JOIN Species s ON p.SpeciesId = s.Id
     LEFT JOIN Breeds b ON p.Breed = b.BreedId
     WHERE p.OwnerId = :OwnerId
@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 }
-$countQuery = "SELECT COUNT(*) FROM pets WHERE OwnerId = :OwnerId";
+$countQuery = "SELECT COUNT(*) FROM Pets WHERE OwnerId = :OwnerId";
 $countStmt = $pdo->prepare($countQuery);
 $countStmt->bindParam(':OwnerId', $owner_id, PDO::PARAM_INT);
 $countStmt->execute();

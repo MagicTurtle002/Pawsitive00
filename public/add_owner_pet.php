@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $calculated_age = filter_var($_POST['CalculatedAge'] ?? 0, FILTER_VALIDATE_INT);
         $weight = filter_var($_POST['Weight'] ?? '', FILTER_VALIDATE_FLOAT);
         $last_visit = !empty($_POST['LastVisit']) ? sanitizeInput($_POST['LastVisit']) : null;
-        $verification_link = "https://www.pawsitive.com/verify?email=" . urlencode($email);
+        $verification_link = "https://www.vetpawsitive.com/public/owner_login.php?email=" . urlencode($email);
 
         if (empty($first_name)) {
             $errors['FirstName'] = "First name is required.";
@@ -180,6 +180,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ':CalculatedAge' => $calculated_age,
             ':Weight' => $weight,
             ':LastVisit' => $last_visit,
+        ]);
+
+        $pet_id = $pdo->lastInsertId();
+
+        $weightInsertQuery = "INSERT INTO PetWeights (PetId, Weight, RecordedAt) VALUES (:PetId, :Weight, NOW())";
+        $weightStmt = $pdo->prepare($weightInsertQuery);
+        $weightStmt->execute([
+            ':PetId' => $pet_id,
+            ':Weight' => $weight
         ]);
 
         $pdo->commit();
