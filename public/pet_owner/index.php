@@ -196,10 +196,10 @@ try {
                         <div class="pet-card">
                             <div class="pet-avatar">
                                 <label for="upload-<?= $pet['PetId'] ?>">
-                                    <img src="<?= !empty($pet['ProfilePicture']) && file_exists("../../uploads/pet_avatars/" . $pet['ProfilePicture']) 
-                                            ? "../../uploads/pet_avatars/" . htmlspecialchars($pet['ProfilePicture']) 
-                                            : '../../assets/images/Icons/Profile User.png'; ?>" 
-                                    alt="<?= htmlspecialchars($pet['PetName']); ?>'s Profile Picture">
+                                    <img src="<?= !empty($pet['ProfilePicture']) && file_exists("../../uploads/pet_avatars/" . $pet['ProfilePicture'])
+                                        ? "../../uploads/pet_avatars/" . htmlspecialchars($pet['ProfilePicture'])
+                                        : '../../assets/images/Icons/Profile User.png'; ?>"
+                                        alt="<?= htmlspecialchars($pet['PetName']); ?>'s Profile Picture">
                                 </label>
                                 <input type="file" id="upload-<?= $pet['PetId'] ?>" class="file-input"
                                     data-pet-id="<?= $pet['PetId'] ?>" accept="image/*" hidden>
@@ -211,8 +211,14 @@ try {
                                         class="value"><?= htmlspecialchars($pet['PetType']); ?></span></div>
                                 <div class="detail"><span class="label">Gender</span><span
                                         class="value"><?= htmlspecialchars($pet['Gender']); ?></span></div>
-                                <div class="detail"><span class="label">Age</span><span
-                                        class="value"><?= htmlspecialchars($pet['Age'] ?? 'N/A'); ?></span></div>
+                                <div class="detail">
+                                    <span class="label">Age</span>
+                                    <span class="value">
+                                        <?= isset($pet['CalculatedAge']) && is_numeric($pet['CalculatedAge'])
+                                            ? htmlspecialchars($pet['CalculatedAge']) . " year(s)"
+                                            : 'Not Available'; ?>
+                                    </span>
+                                </div>
                                 <div class="detail"><span class="label">Breed</span><span
                                         class="value"><?= htmlspecialchars($pet['Breed']); ?></span></div>
                             </div>

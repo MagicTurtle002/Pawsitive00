@@ -8,6 +8,7 @@ require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../src/helpers/auth_helpers.php';
 require __DIR__ . '/../src/helpers/session_helpers.php';
 require __DIR__ . '/../src/helpers/permissions.php';
+require __DIR__ . '/../src/helpers/log_helpers.php';
 
 checkAuthentication($pdo);
 enhanceSessionSecurity();

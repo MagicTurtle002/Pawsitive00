@@ -82,14 +82,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $mail = new PHPMailer(true);
 
         $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
+        $mail->Host = 'smtp.hostinger.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'danvincentteodoro11@gmail.com';
-        $mail->Password = 'fhvt onlo hdwm wjlx';
+        $mail->Username = 'no-reply@vetpawsitive.com';
+        $mail->Password = 'Pawsitive3.';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
 
-        $mail->setFrom('danvincentteodoro11@gmail.com', 'Pawsitive');
+        $mail->setFrom('no-reply@vetpawsitive.com', 'Pawsitive');
+        $mail->addReplyTo('support@pawsitive.com', 'Pawsitive Support');
         $mail->addAddress($email);
 
         $mail->isHTML(true);
@@ -103,7 +104,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $mail->send();
 
-        logActivity($pdo, $userId, $userName, $role, 'Added Staff', "Added new staff: $first_name $last_name ($email)");
+        logActivity(
+            $pdo, 
+            $userId, 
+            $userName, 
+            $role, 
+            'Staff Management', 
+            "Added new staff: $first_name $last_name ($email)"
+        );
 
         $_SESSION['success'] = "Added new staff: $first_name $last_name with email $email";
         header("Location: ../public/staff_view.php?success=1");
