@@ -359,7 +359,7 @@ try {
                 </table>
             </section>
         <?php endif; ?>
-        <section class="consultation">
+        <!--<section class="consultation">
             <h2>Follow-Up</h2>
             <div class="prescription">
                 <table>
@@ -393,7 +393,7 @@ try {
                     </tbody>
                 </table>
             </div>
-        </section>
+        </section>-->
         <section class="consultation">
             <h2>Vaccines</h2>
             <button class="btn add-vaccine-btn" onclick="redirectToAddVaccine()">Add Vaccine</button>

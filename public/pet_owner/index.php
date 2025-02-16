@@ -188,7 +188,6 @@ try {
             <img src="../../assets/images/Icons/Pet pic 1.png" alt="Dog and Cat">
         </section>
 
-        <!-- Pets Section -->
         <h2 class="section-headline">Your Pets</h2>
         <section id="pets-section" class="pets-section">
             <div class="pets-container">

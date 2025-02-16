@@ -38,14 +38,29 @@ try {
         VALUES (:record_id, :followup_date, :followup_notes)
     ");
 
+    $stmtAppointment = $pdo->prepare("
+        INSERT INTO Appointments (AppointmentCode, PetId, ServiceId, AppointmentDate, AppointmentTime, Status, Reason) 
+        VALUES (:appointment_code, :pet_id, :service_id, :appointment_date, :appointment_time, 'Pending', 'Follow-Up Appointment')
+    ");
+
     foreach ($followup_dates as $index => $followup_date) {
         $followup_note = $followup_notes[$index] ?? null;
 
         if ($followup_date) {
-            $stmt->execute([
+            // Insert into FollowUps Table
+            $stmtFollowUp->execute([
                 ':record_id' => $record_id,
                 ':followup_date' => $followup_date,
                 ':followup_notes' => $followup_note
+            ]);
+
+            // Insert into Appointments Table
+            $stmtAppointment->execute([
+                ':appointment_code' => uniqid('APPT_'),
+                ':pet_id' => $pet_id,
+                ':service_id' => 1,  // Change this to the correct ServiceId for follow-ups
+                ':appointment_date' => $followup_date,
+                ':appointment_time' => '09:00:00' // Default time, adjust as needed
             ]);
         }
     }

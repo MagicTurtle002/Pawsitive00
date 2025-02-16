@@ -82,15 +82,7 @@ SELECT
         LIMIT 1
     ) AS LastVisitTime,
 
-    -- Fetch the next follow-up if available
-    (SELECT FollowUpDate 
-        FROM FollowUps 
-        WHERE FollowUps.RecordId = Pets.PetId 
-        ORDER BY FollowUpDate ASC 
-        LIMIT 1
-    ) AS NextFollowUp,
-
-    -- Fetch next appointment details
+        -- Fetch next appointment details
     (SELECT Appointments.AppointmentDate 
         FROM Appointments 
         WHERE Appointments.PetId = Pets.PetId
@@ -98,6 +90,14 @@ SELECT
         ORDER BY Appointments.AppointmentDate ASC, Appointments.AppointmentTime ASC 
         LIMIT 1
     ) AS NextAppointment,
+
+    -- Fetch the next follow-up if available
+    (SELECT FollowUpDate 
+        FROM FollowUps 
+        WHERE FollowUps.RecordId = Pets.PetId 
+        ORDER BY FollowUpDate ASC 
+        LIMIT 1
+    ) AS NextFollowUp,
 
     -- Fetch Service for the Next Appointment
     (SELECT Services.ServiceName 
@@ -140,11 +140,9 @@ WHERE Pets.IsArchived = 0 AND Pets.IsConfined = 0
 ORDER BY NextVisit DESC
 LIMIT ?, ?;
 ";
-// Append pagination parameters
 $params[] = $offset;
 $params[] = $recordsPerPage;
 
-// Execute the query
 $stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $pets = $stmt->fetchAll(PDO::FETCH_ASSOC);
