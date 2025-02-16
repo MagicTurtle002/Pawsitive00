@@ -7,11 +7,10 @@ require '../../config/dbh.inc.php';
 session_start();
 
 if (!isset($_SESSION['LoggedIn'])) {
-    echo "User not logged in.";
-    exit;
+    header('Location: ../owner_login.php');
+    exit();
 }
 
-// Define owner ID from session
 $owner_id = $_SESSION['OwnerId'] ?? null;
 $userName = $_SESSION['OwnerName'];
 
@@ -21,7 +20,6 @@ if (!$owner_id) {
 }
 
 try {
-    // Fetch pets linked to the owner
     $query = "
         SELECT 
             p.PetId, 

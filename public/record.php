@@ -357,10 +357,15 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                                                 class="profile-img" width="10px">
                                             <div>
                                                 <strong><?= htmlspecialchars($pet['owner_name']) ?></strong><br>
-                                                <?= htmlspecialchars($pet['role'] ?? 'Authorized Representative') ?>
+                                                <?= htmlspecialchars($pet['role'] ?? 'Owner') ?>
                                             </div>
                                         </div>
                                         <hr>
+                                        <div>
+                                            <strong>Authorized Representative:</strong><br>
+                                            <?= htmlspecialchars($pet['Authorized Representative'] ?? 'No information found') ?>
+                                        </div>
+                                        <br>
                                         <div>
                                             <strong>Email:</strong><br>
                                             <?= htmlspecialchars($pet['Email']) ?>

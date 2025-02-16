@@ -8,7 +8,10 @@ require '../../src/helpers/session_helpers.php';
 require '../../src/helpers/auth_helpers.php';
 
 session_start();
-//checkAuthentication($pdo);
+if (!isset($_SESSION['LoggedIn'])) {
+    header('Location: ../owner_login.php');
+    exit();
+}
 
 $ownerId = $_SESSION['OwnerId'];
 $ownerEmail = $_SESSION['Email'];

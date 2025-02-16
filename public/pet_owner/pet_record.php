@@ -7,8 +7,8 @@ require '../../config/dbh.inc.php';
 session_start();
 
 if (!isset($_SESSION['LoggedIn'])) {
-    echo "User not logged in.";
-    exit;
+    header('Location: ../owner_login.php');
+    exit();
 }
 
 $owner_id = $_SESSION['OwnerId'] ?? null;
