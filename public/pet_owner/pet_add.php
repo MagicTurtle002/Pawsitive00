@@ -27,7 +27,6 @@ $recordsPerPage = 10;
 $offset = $currentPage * $recordsPerPage;
 
 try {
-    // Fetch pets linked to the owner with actual species and breed names
     $query = "SELECT 
         p.PetId, 
         p.Name AS PetName, 
@@ -49,7 +48,6 @@ try {
     $stmt->execute();
     $pets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Fetch pet types (species) for dropdown
     $speciesStmt = $pdo->query("SELECT Id, SpeciesName FROM Species");
     $petTypes = $speciesStmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -72,9 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    $errors = []; // Initialize error array
+    $errors = [];
 
-    // Ensure form data is stored so it persists
     $_SESSION['form_data'] = $_POST;
 
     $pet_name = sanitizeInput($_POST['Name'] ?? '');
@@ -83,8 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $gender = sanitizeInput($_POST['Gender'] ?? '');
     $birthday = sanitizeInput($_POST['Birthday'] ?? '');
     $calculated_age = filter_var($_POST['CalculatedAge'] ?? 0, FILTER_VALIDATE_INT);
-    $weight = filter_var($_POST['Weight'] ?? '', FILTER_VALIDATE_FLOAT);
-    $last_visit = !empty($_POST['LastVisit']) ? sanitizeInput($_POST['LastVisit']) : null;
 
     if (empty($pet_name)) {
         $errors['Name'] = "Pet name is required.";
@@ -119,12 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    if (empty($weight) || $weight <= 0) {
-        $errors['Weight'] = "Weight is required.";
-    } elseif ($weight < 0.1 || $weight > 500) {
-        $errors['Weight'] = "Weight must be between 0.1 and 500 kg.";
-    }
-
     if (!empty($errors)) {
         $_SESSION['errors'] = $errors;
         $_SESSION['form_data'] = $_POST;
@@ -151,8 +140,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->beginTransaction();
 
-        $sql = "INSERT INTO Pets (OwnerId, Name, SpeciesId, Breed, Gender, Birthday, CalculatedAge, Weight, LastVisit)
-                VALUES (:OwnerId, :Name, :SpeciesId, :Breed, :Gender, :Birthday, :CalculatedAge, :Weight, :LastVisit)";
+        $sql = "INSERT INTO Pets (OwnerId, Name, SpeciesId, Breed, Gender, Birthday, CalculatedAge)
+                VALUES (:OwnerId, :Name, :SpeciesId, :Breed, :Gender, :Birthday, :CalculatedAge)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':OwnerId' => $owner_id,
@@ -162,8 +151,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':Gender' => $gender,
             ':Birthday' => $birthday,
             ':CalculatedAge' => $calculated_age,
-            ':Weight' => $weight,
-            ':LastVisit' => $last_visit,
         ]);
 
         unset($_SESSION['errors'], $_SESSION['form_data']);
@@ -281,11 +268,8 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
     <main>
         <div class="main-content">
             <div class="container">
-
-                <!-- Right Section: Add Pet Form -->
                 <div class="right-section">
                     <h2>Add a New Pet</h2>
-                    <!-- <h2>Add a New Pet</h2> -->
                     <form class="staff-form" action="pet_add.php" method="POST" enctype="multipart/form-data" novalidate>
                         <input type="hidden" name="csrf_token"
                             value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
@@ -366,6 +350,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             <div class="input-container">
                                 <label for="CalculatedAge">Calculated Age:</label>
                                 <input type="text" id="CalculatedAge" name="CalculatedAge" readonly>
+                                <input type="hidden" id="CalculatedAge" name="CalculatedAge">
                             </div>
                         </div>
 
@@ -373,14 +358,6 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             <div class="input-container">
                                 <label for="ProfilePicture">Upload Profile Picture:</label>
                                 <input type="file" id="ProfilePicture" name="ProfilePicture" accept="image/*" optional>
-                            </div>
-                            <div class="input-container">
-                                <label for="Weight">Weight:<span class="required-asterisk">*</span></label>
-                                <input type="number" step="0.01" id="Weight" name="Weight"
-                                    value="<?= htmlspecialchars($form_data['Weight'] ?? '') ?>" placeholder="Enter pet's weight">
-                                <?php if (isset($errors['Weight'])): ?>
-                                    <span class="error-message"><?= htmlspecialchars($errors['Weight']) ?></span>
-                                <?php endif; ?>
                             </div>
                         </div>
 

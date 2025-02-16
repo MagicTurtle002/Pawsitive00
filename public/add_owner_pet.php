@@ -58,7 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $breed = sanitizeInput($_POST['Breed'] ?? '');
         $gender = sanitizeInput($_POST['Gender'] ?? '');
         $birthday_or_year = sanitizeInput($_POST['Birthday'] ?? '');
-        $calculated_age = filter_var($_POST['CalculatedAge'] ?? 0, FILTER_VALIDATE_INT);
+        $calculated_age = isset($_POST['CalculatedAge']) && $_POST['CalculatedAge'] !== '' 
+        ? (int) $_POST['CalculatedAge'] 
+        : null;
         $weight = filter_var($_POST['Weight'] ?? '', FILTER_VALIDATE_FLOAT);
         $last_visit = !empty($_POST['LastVisit']) ? sanitizeInput($_POST['LastVisit']) : null;
         $verification_link = "https://www.vetpawsitive.com/public/owner_login.php?email=" . urlencode($email);
@@ -182,14 +184,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ':LastVisit' => $last_visit,
         ]);
 
+        // Get the PetId of the newly added pet
         $pet_id = $pdo->lastInsertId();
 
+        // Insert the weight into the PetWeights table
         $weightInsertQuery = "INSERT INTO PetWeights (PetId, Weight, RecordedAt) VALUES (:PetId, :Weight, NOW())";
         $weightStmt = $pdo->prepare($weightInsertQuery);
         $weightStmt->execute([
             ':PetId' => $pet_id,
-            ':Weight' => $weight
-        ]);
+                    ':Weight' => $weight
+                ]);
 
         $pdo->commit();
 
