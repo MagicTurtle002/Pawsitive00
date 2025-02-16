@@ -309,6 +309,47 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 <?php endif; ?>
             </div>
         </section>
+        <section class="consultation">
+            <h2>Vaccines</h2>
+            <div class="prescription">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Weight</th>
+                            <th>Vaccination Name</th>
+                            <th>Date</th>
+                            <th>Manufacturer</th>
+                            <th>Lot Number</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($vaccinations)): ?>
+                            <?php foreach ($vaccinations as $vaccination): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars(!empty($vaccination['Weight']) ? $vaccination['Weight'] : 'No information found') ?>
+                                    </td>
+                                    <td><?= htmlspecialchars(!empty($vaccination['Vaccine']) ? $vaccination['Vaccine'] : 'No information found') ?>
+                                    </td>
+                                    <td><?= htmlspecialchars(!empty($vaccination['Date']) ? $vaccination['Date'] : 'No information found') ?>
+                                    </td>
+                                    <td><?= htmlspecialchars(!empty($vaccination['Manufacturer']) ? $vaccination['Manufacturer'] : 'No information found') ?>
+                                    </td>
+                                    <td><?= htmlspecialchars(!empty($vaccination['LotNumber']) ? $vaccination['LotNumber'] : 'No information found') ?>
+                                    </td>
+                                    <td><?= htmlspecialchars(!empty($vaccination['Notes']) ? $vaccination['Notes'] : 'No information found') ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6">No vaccination records found for this pet.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </main>
 
     <div class="pagination">
