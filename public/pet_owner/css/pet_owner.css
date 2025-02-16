@@ -323,8 +323,7 @@ margin: 0 auto; /* Center the section horizontally */
 font-size: 24px; /* Slightly larger font size */
 font-weight: bold;
 color: #333333; /* Dark gray color for the headline */
-text-align: left; /* Align text to the left */
-margin: 0 0 20px 13%; /* Adjust spacing to move the text slightly to the right */
+text-align: center; /* Align text to the left */
 }
 
 /* Appointment Cards Wrapper */
