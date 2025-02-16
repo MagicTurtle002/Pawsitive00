@@ -258,7 +258,7 @@ try {
     </div>
     <div class="main-content">
         <button class="btn" onclick="goToRecord()">Back</button>
-        <h1>Pet Profile</h1>
+        <h1 style="text-align: center; font-size: 40px; color: #156f77">Pet Profile</h1>
         <div class="profile">
             <div class="profile-image">
                 <img src="<?= !empty($pet['ProfilePicture']) && file_exists("../uploads/pet_avatars/" . $pet['ProfilePicture']) 
@@ -377,7 +377,6 @@ try {
                                     <td><?= htmlspecialchars(!empty($followUp['FollowUpDate']) ? $followUp['FollowUpDate'] : 'No information found') ?>
                                     </td>
                                     <td><?= htmlspecialchars(!empty($followUp['FollowUpNotes']) ? $followUp['FollowUpNotes'] : 'No information found') ?>
-                                    </td>
                                     <td>
                                         <button class="remind-btn"
                                             onclick="sendReminder('<?= $pet['Phone'] ?>', '<?= $pet['PetName'] ?>', '<?= $pet['OwnerName'] ?>', '<?= $followUp['FollowUpDate'] ?>', '<?= addslashes($followUp['FollowUpNotes']) ?>')">

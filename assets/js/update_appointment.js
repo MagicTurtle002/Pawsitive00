@@ -5,7 +5,9 @@ function updateAppointmentStatus(appointmentId, status, petId) {
           title: "Decline Appointment",
           html: `
               <p>Please provide a reason for declining this appointment:</p>
-              <textarea id="declineReason" class="swal2-textarea" placeholder="Enter reason..." required></textarea>
+              <textarea id="declineReason" class="swal2-textarea" 
+                placeholder="Enter reason..." required 
+                style="width: 100%; max-width: 370px; height: 100px;"></textarea>
           `,
           icon: "warning",
           showCancelButton: true,
@@ -131,17 +133,23 @@ function openRescheduleModal(appointment, appointmentId) {
     Swal.fire({
         title: "Reschedule Appointment",
         html: `
-            <div style="text-align: left;">
-                <label for="petName"><strong>Pet:</strong></label>
+            <div class="swal2-row">
+                <label for="petName"><strong>Pet:<span class="required">*</span></strong></label>
                 <input type="text" id="petName" class="swal2-input" value="${appointment.pet}" readonly>
-
-                <label for="editService"><strong>Service:</strong></label>
+            </div>
+            
+            <div class="swal2-row">
+                <label for="editService"><strong>Service:<span class="required">*</span></strong></label>
                 <select id="editService" class="swal2-select">${generateServiceOptions(appointment.service)}</select>
+            </div>
 
-                <label for="newDate"><strong>New Date:</strong></label>
+            <div class="swal2-row">
+                 <label for="newDate"><strong>New Date:<span class="required">*</span></strong></label>
                 <input type="date" id="newDate" class="swal2-input" value="${appointment.date}" min="${new Date().toISOString().split('T')[0]}" required>
-
-                <label for="newTime"><strong>New Time:</strong></label>
+            </div>
+            
+            <div class="swal2-row">
+                <label for="newTime"><strong>New Time:<span class="required">*</span></strong></label>
                 <select id="newTime" class="swal2-select">${generateTimeOptions(appointment.time, appointment.date)}</select>
             </div>
         `,

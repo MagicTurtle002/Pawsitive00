@@ -60,7 +60,9 @@ $profile_picture = (!empty($owner['ProfilePicture']) && file_exists("../../uploa
     <header>
         <nav>
             <div class="logo">
-                <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                <a href="index.php">
+                    <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                </a>
             </div>
             <ul class="nav-links">
                 <li><a href="index.php">Home</a></li>

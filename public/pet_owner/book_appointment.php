@@ -19,6 +19,11 @@ if (!isset($_SESSION['LoggedIn'])) {
 $owner_id = $_SESSION['OwnerId']; // Get the logged-in owner's ID
 $user_name = isset($_SESSION['FirstName']) ? $_SESSION['FirstName'] . ' ' . $_SESSION['LastName'] : 'Owner';
 
+$currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
+$recordsPerPage = 10; 
+$offset = $currentPage * $recordsPerPage;
+
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $petId = $_POST['PetId'] ?? null;
     $serviceId = $_POST['ServiceId'] ?? null;
@@ -112,10 +117,13 @@ try {
     INNER JOIN Pets p ON a.PetId = p.PetId
     INNER JOIN Services s ON a.ServiceId = s.ServiceId
     WHERE p.OwnerId = :owner_id
-    ORDER BY a.AppointmentTime DESC";
+    ORDER BY a.AppointmentTime DESC
+    LIMIT :offset, :recordsPerPage";
 
     $appointmentStmt = $pdo->prepare($appointmentQuery);
     $appointmentStmt->bindParam(':owner_id', $owner_id, PDO::PARAM_INT);
+    $appointmentStmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+    $appointmentStmt->bindParam(':recordsPerPage', $recordsPerPage, PDO::PARAM_INT);
     $appointmentStmt->execute();
     $appointments = $appointmentStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -136,6 +144,16 @@ try {
 } catch (PDOException $e) {
     die("Database Error: " . $e->getMessage());
 }
+
+$countQuery = "SELECT COUNT(*) FROM Appointments a
+               INNER JOIN Pets p ON a.PetId = p.PetId
+               WHERE p.OwnerId = :owner_id";
+
+$countStmt = $pdo->prepare($countQuery);
+$countStmt->bindParam(':owner_id', $owner_id, PDO::PARAM_INT);
+$countStmt->execute();
+$totalRecords = $countStmt->fetchColumn();
+$totalPages = ceil($totalRecords / $recordsPerPage);
 ?>
 
 <!DOCTYPE html>
@@ -166,7 +184,9 @@ try {
     <header>
         <nav>
             <div class="logo">
-                <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                <a href="index.php">
+                    <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                </a>
             </div>
             <ul class="nav-links">
                 <li><a href="index.php">Home</a></li>
@@ -326,6 +346,22 @@ try {
         <div id="calendar"></div>
     </div>
 
+    <div class="pagination">
+        <a href="?page=<?= max(0, $currentPage - 1) ?>" class="<?= $currentPage == 0 ? 'disabled' : '' ?>">&laquo; Previous</a>
+        
+        <?php for ($i = 0; $i < $totalPages; $i++): ?>
+            <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
+                <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active"' : '' ?>><?= $i + 1 ?></a>
+            <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
+                <span>...</span>
+            <?php endif; ?>
+        <?php endfor; ?>
+        
+        <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>" class="<?= $currentPage >= $totalPages - 1 ? 'disabled' : '' ?>">Next &raquo;</a>
+    </div>
+
+    <br>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const profileIcon = document.querySelector('.profile-icon');
@@ -344,148 +380,170 @@ try {
             });
         });
     </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const dateInput = document.getElementById('AppointmentDate');
             const timeSelect = document.getElementById('AppointmentTime');
-            const calendarElement = document.getElementById('calendar');
-            const currentMonthYearElement = document.getElementById('currentMonthYear');
-            const prevMonthBtn = document.getElementById('prevMonth');
-            const nextMonthBtn = document.getElementById('nextMonth');
 
-            let today = new Date();
-            let currentMonth = today.getMonth();
-            let currentYear = today.getFullYear();
-
-            today.setHours(0, 0, 0, 0);
-            const formattedToday = today.toISOString().split('T')[0];
-
-            dateInput.setAttribute('min', formattedToday);
-
-            const bookedTimesByDate = <?= json_encode($bookedTimesByDate, JSON_PRETTY_PRINT | JSON_HEX_TAG); ?>;
-            console.log("Booked Times Data:", bookedTimesByDate);
-
-            function generateTimeSlots(selectedDate) {
-                timeSelect.innerHTML = '<option value="">Select Time</option>';
-
-                const now = new Date();
-                const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-                let normalizedDate = new Date(selectedDate).toISOString().split('T')[0];
-                const bookedTimes = bookedTimesByDate[normalizedDate] || [];
-
-                const start = new Date();
-                start.setHours(8, 0, 0, 0);
-                const end = new Date();
-                end.setHours(17, 0, 0, 0);
+            function generateTimeSlots(startTime, endTime, interval) {
+                const start = new Date(`1970-01-01T${startTime}:00`);
+                const end = new Date(`1970-01-01T${endTime}:00`);
 
                 while (start <= end) {
                     const hours = start.getHours();
                     const minutes = start.getMinutes();
-                    const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-                    const displayTime = `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${hours >= 12 ? 'PM' : 'AM'}`;
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
+                    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+
+                    const timeString = `${formattedHours}:${formattedMinutes} ${ampm}`;
 
                     const option = document.createElement('option');
-                    option.value = formattedTime;
-                    option.textContent = displayTime;
-
-                    const slotMinutes = hours * 60 + minutes;
-
-                    if (new Date(selectedDate).toDateString() === today.toDateString() && slotMinutes <= currentMinutes) {
-                        option.disabled = true;
-                        option.textContent += " (Past)";
-                    }
-
-                    if (bookedTimes.includes(formattedTime)) {
-                        option.disabled = true;
-                        option.textContent += " (Booked)";
-                    }
-
+                    option.value = timeString;
+                    option.textContent = timeString;
                     timeSelect.appendChild(option);
-                    start.setMinutes(start.getMinutes() + 30);
+
+                    start.setMinutes(start.getMinutes() + interval);
                 }
             }
 
-            function generateCalendar(month, year) {
-                calendarElement.innerHTML = '';
-
-                const firstDay = new Date(year, month, 1).getDay();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                currentMonthYearElement.textContent = `${monthNames[month]} ${year}`;
-
-                const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                daysOfWeek.forEach(day => {
-                    const dayLabel = document.createElement('div');
-                    dayLabel.textContent = day;
-                    dayLabel.style.fontWeight = 'bold';
-                    calendarElement.appendChild(dayLabel);
-                });
-
-                for (let i = 0; i < firstDay; i++) {
-                    const emptyCell = document.createElement('div');
-                    calendarElement.appendChild(emptyCell);
-                }
-
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const dayElement = document.createElement('div');
-                    dayElement.classList.add('calendar-day');
-                    dayElement.textContent = day;
-
-                    let formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                    let selectedDate = new Date(formattedDate);
-                    selectedDate.setHours(0, 0, 0, 0);
-
-                    if (selectedDate.getTime() === today.getTime()) {
-                        dayElement.classList.add('today');
-                    }
-
-                    if (selectedDate < today) {
-                        dayElement.classList.add('disabled');
-                        dayElement.style.pointerEvents = "none";
-                    }
-
-                    dayElement.addEventListener('click', function () {
-                        if (selectedDate >= today) {
-                            dateInput.value = formattedDate;
-                            dateInput.dispatchEvent(new Event("change"));
-                        }
-                    });
-
-                    calendarElement.appendChild(dayElement);
-                }
-            }
-
-            function goToNextMonth() {
-                currentMonth++;
-                if (currentMonth > 11) {
-                    currentMonth = 0;
-                    currentYear++;
-                }
-                generateCalendar(currentMonth, currentYear);
-            }
-
-            function goToPrevMonth() {
-                currentMonth--;
-                if (currentMonth < 0) {
-                    currentMonth = 11;
-                    currentYear--;
-                }
-                generateCalendar(currentMonth, currentYear);
-            }
-
-            prevMonthBtn.addEventListener('click', goToPrevMonth);
-            nextMonthBtn.addEventListener('click', goToNextMonth);
-
-            dateInput.addEventListener("change", function () {
-                generateTimeSlots(this.value);
-            });
-
-            generateTimeSlots(formattedToday);
-            generateCalendar(currentMonth, currentYear);
+            generateTimeSlots('08:00', '17:00', 30);
         });
     </script>
-</body>
 
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const calendarElement = document.getElementById('calendar');
+        const currentMonthYearElement = document.getElementById('currentMonthYear');
+        const prevMonthBtn = document.getElementById('prevMonth');
+        const nextMonthBtn = document.getElementById('nextMonth');
+        const dateInput = document.getElementById('AppointmentDate');
+        
+        let today = new Date();
+        let currentMonth = today.getMonth();
+        let currentYear = today.getFullYear();
+
+        function generateCalendar(month, year) {
+            calendarElement.innerHTML = '';
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const monthNames = [
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            currentMonthYearElement.textContent = `${monthNames[month]} ${year}`;
+
+            // Days of the week labels
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            daysOfWeek.forEach(day => {
+                const dayLabel = document.createElement('div');
+                dayLabel.textContent = day;
+                dayLabel.style.fontWeight = 'bold';
+                calendarElement.appendChild(dayLabel);
+            });
+
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                calendarElement.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.classList.add('calendar-day');
+                dayElement.textContent = day;
+
+                // Highlight today's date
+                if (
+                    day === today.getDate() &&
+                    month === today.getMonth() &&
+                    year === today.getFullYear()
+                ) {
+                    dayElement.classList.add('today');
+                }
+
+                // Set click event for selecting date
+                dayElement.addEventListener('click', function () {
+                    let selectedDate = new Date(year, month, day);
+                    let todayWithoutTime = new Date();
+                    todayWithoutTime.setHours(0, 0, 0, 0); // Set time to midnight for proper comparison
+
+                    // Correct date formatting to YYYY-MM-DD
+                    let formattedDate = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+
+                    // Allow selecting today's date but prevent past dates
+                    if (selectedDate < todayWithoutTime) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'You cannot select a past date.',
+                        });
+                        return;
+                    }
+
+                    dateInput.value = formattedDate; // Update the input field with the selected date
+                });
+
+                calendarElement.appendChild(dayElement);
+            }
+        }
+
+        function goToNextMonth() {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            generateCalendar(currentMonth, currentYear);
+        }
+
+        function goToPrevMonth() {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            generateCalendar(currentMonth, currentYear);
+        }
+
+        prevMonthBtn.addEventListener('click', goToPrevMonth);
+        nextMonthBtn.addEventListener('click', goToNextMonth);
+
+        generateCalendar(currentMonth, currentYear);
+    });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dateInput = document.getElementById('AppointmentDate');
+
+        if (dateInput) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Ensure time is set to start of the day
+            const formattedDate = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+            dateInput.setAttribute('min', formattedDate); // Prevent selecting past dates
+
+            // Prevent user from manually inputting past dates
+            dateInput.addEventListener('change', function () {
+                const selectedDate = new Date(this.value);
+                selectedDate.setHours(0, 0, 0, 0);
+
+                if (selectedDate < today) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Date',
+                        text: 'You cannot select a past date!',
+                    });
+
+                    this.value = ''; // Reset to empty if invalid
+                }
+            });
+        }
+    });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+</body>
 </html>

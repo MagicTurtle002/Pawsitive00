@@ -17,6 +17,10 @@ $ownerId = $_SESSION['OwnerId'];
 $ownerEmail = $_SESSION['Email'];
 $ownerName = $_SESSION['OwnerName'];
 
+$currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
+$recordsPerPage = 10; // Adjust the number of records per page
+$offset = $currentPage * $recordsPerPage;
+
 $stmt = $pdo->prepare("
     SELECT i.InvoiceId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount, i.Status, i.PaidAt,
            a.AppointmentDate, p.Name AS PetName, s.ServiceName
@@ -27,9 +31,20 @@ $stmt = $pdo->prepare("
     INNER JOIN Services s ON a.ServiceId = s.ServiceId
     WHERE o.OwnerId = ?
     ORDER BY i.InvoiceDate DESC
+    LIMIT ?, ?
 ");
-$stmt->execute([$ownerId]); // ✅ Use OwnerId instead of Email
+$stmt->execute([$ownerId, $offset, $recordsPerPage]); 
 $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$countQuery = "SELECT COUNT(*) FROM Invoices i
+               INNER JOIN Appointments a ON i.AppointmentId = a.AppointmentId
+               INNER JOIN Pets p ON a.PetId = p.PetId
+               INNER JOIN Owners o ON p.OwnerId = o.OwnerId
+               WHERE o.OwnerId = ?";
+$countStmt = $pdo->prepare($countQuery);
+$countStmt->execute([$ownerId]);
+$totalRecords = $countStmt->fetchColumn();
+$totalPages = ceil($totalRecords / $recordsPerPage);
 ?>
 
 <!DOCTYPE html>
@@ -51,7 +66,9 @@ $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <header>
         <nav>
             <div class="logo">
-                <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                <a href="index.php">
+                    <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                </a>
             </div>
             <ul class="nav-links">
                 <li><a href="index.php">Home</a></li>
@@ -126,7 +143,7 @@ $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
-                                    <tr><td colspan="9">No invoices found.</td></tr>
+                                    <p class="no-invoices">No invoices found.</p>
                                 <?php endif; ?>
                             </div>
                         </section>
@@ -135,6 +152,20 @@ $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </main>
+
+    <div class="pagination">
+        <a href="?page=<?= max(0, $currentPage - 1) ?>">&laquo; Previous</a>
+        <?php for ($i = 0; $i < $totalPages; $i++): ?>
+            <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
+                <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active"' : '' ?>><?= $i + 1 ?></a>
+            <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
+                <span>...</span>
+            <?php endif; ?>
+        <?php endfor; ?>
+        <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
+    </div>
+
+    <br>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {

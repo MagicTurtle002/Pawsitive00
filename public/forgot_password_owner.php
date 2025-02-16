@@ -3,19 +3,13 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-require __DIR__ . '/../config/dbh.inc.php';
 session_start();
 
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
+$successMessage = $_SESSION['successMessage'] ?? '';
 $errors = $_SESSION['errors'] ?? [];
-unset($_SESSION['errors']);
 
-$email = '';
+unset($_SESSION['successMessage'], $_SESSION['errors']);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -39,40 +33,38 @@ $email = '';
     <div class="login-container">
         <!-- Right Panel First -->
         <div class="right-panel">
-
-            <h3 class="form-title">Log in your account</h3>
-            <form id="loginForm" action="../src/owner_handler.php" method="POST" novalidate>
+        <h3 class="form-title">Forgot Password</h3>
+            <form action="../src/forgot_password.php" method="POST" novalidate>
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
-                <?php if (!empty($errors)): ?>
-                    <div class="error-notification">
+                <?php if (!empty($successMessage)): ?>
+                    <div class="success-notification">
                         <ul>
-                            <?php foreach ($errors as $error): ?>
-                                <li><i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($error) ?></li>
-                            <?php endforeach; ?>
+                            <li><i class="fas fa-check-circle"></i>
+                                <?= htmlspecialchars($successMessage) ?>
+                            </li>
                         </ul>
                     </div>
                 <?php endif; ?>
-
-                <div class="form-group">
-                    <label for="Email">Email:<span class="required-asterisk">*</span></label>
-                    <input type="email" id="Email" name="Email" placeholder="Enter your email address"
-                        value="<?= htmlspecialchars($email) ?>" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Password:<span class="required-asterisk">*</span></label>
-                    <div class="password-container">
-                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                        <i class="fas fa-eye eye-icon" onclick="togglePassword('password', this)"></i>
+                <?php if (!empty($errors)): ?>
+                    <div class="error-notification">
+                        <ul>
+                            <li><i class="fas fa-exclamation-circle"></i>
+                                <?php foreach ($errors as $error): ?>
+                                    <?= htmlspecialchars($error) ?><br>
+                                <?php endforeach; ?>
+                            </li>
+                        </ul>
                     </div>
-                    <a href="forgot_password_owner.php" class="forgot-password-link">Forgot password?</a>
-                    <button type="submit" class="login-btn">Log in</button>
-                    <div class="form-group terms">
-                        <label for="terms">
-                            &copy; 2025 Pawsitive. All Rights Reserve.
-                            <span><a href="privacy.php" target="_blank">Policy</a> and <a href="terms.php"
-                                    target="_blank">Terms</a>.</span> </label>
-                    </div>
+                <?php endif; ?>
+                
+                <p>Enter your email address to receive a password reset link.</p>
+                <br>
+                <div class="form-group">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']); ?>">
+                        <label for="email">Email Address:<span class="required-asterisk">*</span></label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+                        <a href="owner_login.php" class="forgot-password-link">Back to Login</a>
+                        <button type="submit" class="login-btn">Send Reset Password Link</button>
                 </div>
             </form>
         </div>
@@ -87,7 +79,5 @@ $email = '';
         </div>
     </div>
 
-    <script src="../assets/js/main.js?v=1.0.0" async></script>
-    <script src="../assets/js/password.js?v=1.0.0" async></script>
 </body>
 </html>

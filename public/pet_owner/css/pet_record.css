@@ -581,35 +581,29 @@ main {
 }
 
 
-
-
-
 .pagination {
   display: flex;
   justify-content: center;
-  margin: 20px 0;
+  margin-top: 20px;
 }
-
-.pagination .page-link {
-  color: var(--color-1);
-  padding: 10px 15px;
-  margin: 0 5px;
-  text-decoration: none;
-  border: 1px solid #ddd;
+.pagination a {
+  padding: 8px 16px;
+  margin: 0 4px;
+  border: 1px solid #ccc;
   border-radius: 5px;
+  text-decoration: none;
+  color: #007b8a;
+  font-weight: 500;
 }
-
-.pagination .page-link:hover {
-  background-color: var(--color-1);
+.pagination a.active {
+  background-color: #007b8a;
+  color: white;
+  border-color: #007b8a;
+}
+.pagination a:hover {
+  background-color: #005f6b;
   color: white;
 }
-
-.pagination .page-link.active {
-  background-color: var(--color-1);
-  color: white;
-  border: 1px solid var(--color-1);
-}
-
 
 
 .pet-details-section {

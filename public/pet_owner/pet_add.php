@@ -22,23 +22,30 @@ $user_name = isset($_SESSION['FirstName']) ? $_SESSION['FirstName'] . ' ' . $_SE
 $errors = $_SESSION['errors'] ?? [];
 $form_data = $_SESSION['form_data'] ?? [];
 unset($_SESSION['errors'], $_SESSION['form_data']);
+$currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
+$recordsPerPage = 10;
+$offset = $currentPage * $recordsPerPage;
 
 try {
     // Fetch pets linked to the owner with actual species and breed names
     $query = "SELECT 
-                p.PetId, 
-                p.Name AS PetName, 
-                s.SpeciesName AS PetType, 
-                p.Gender, 
-                p.CalculatedAge, 
-                b.BreedName AS Breed
-              FROM pets p
-              LEFT JOIN Species s ON p.SpeciesId = s.Id
-              LEFT JOIN Breeds b ON p.Breed = b.BreedId
-              WHERE p.OwnerId = :OwnerId";
+        p.PetId, 
+        p.Name AS PetName, 
+        s.SpeciesName AS PetType, 
+        p.Gender, 
+        p.CalculatedAge, 
+        b.BreedName AS Breed
+    FROM pets p
+    LEFT JOIN Species s ON p.SpeciesId = s.Id
+    LEFT JOIN Breeds b ON p.Breed = b.BreedId
+    WHERE p.OwnerId = :OwnerId
+    ORDER BY p.PetId ASC
+    LIMIT :offset, :recordsPerPage";  // Add pagination
 
     $stmt = $pdo->prepare($query);
     $stmt->bindParam(':OwnerId', $owner_id, PDO::PARAM_INT);
+    $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+    $stmt->bindParam(':recordsPerPage', $recordsPerPage, PDO::PARAM_INT);
     $stmt->execute();
     $pets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -172,6 +179,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 }
+$countQuery = "SELECT COUNT(*) FROM pets WHERE OwnerId = :OwnerId";
+$countStmt = $pdo->prepare($countQuery);
+$countStmt->bindParam(':OwnerId', $owner_id, PDO::PARAM_INT);
+$countStmt->execute();
+$totalRecords = $countStmt->fetchColumn();
+$totalPages = ceil($totalRecords / $recordsPerPage);
 ?>
 
 <!DOCTYPE html>
@@ -200,7 +213,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <header>
         <nav>
             <div class="logo">
-                <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                <a href="index.php">
+                    <img src="../../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+                </a>
             </div>
             <ul class="nav-links">
                 <li><a href="index.php">Home</a></li>
@@ -258,7 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </table>
                         </div>
                     <?php else: ?>
-                        <p>You have no pets registered.</p>
+                        <p class="no-pets">You have no pets registered.</p>
                     <?php endif; ?>
                 </div>
     </main>
@@ -377,6 +392,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </form>
                 </div>
     </main>
+
+    <div class="pagination">
+        <a href="?page=<?= max(0, $currentPage - 1) ?>">&laquo; Previous</a>
+        <?php for ($i = 0; $i < $totalPages; $i++): ?>
+            <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
+                <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active"' : '' ?>><?= $i + 1 ?></a>
+            <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
+                <span>...</span>
+            <?php endif; ?>
+        <?php endfor; ?>
+        <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
+    </div>
+
+    <br>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

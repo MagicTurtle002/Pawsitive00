@@ -302,13 +302,13 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                         </button>
                         <div class="dropdown-content">
                             <label>
-                                <input type="checkbox" name="filter[]" value="pet_name"> Pet Name
+                                <input type="radio" name="filter[]" value="pet_name"> Pet Name
                             </label>
                             <label>
-                                <input type="checkbox" name="filter[]" value="pet_service"> Services
+                                <input type="radio" name="filter[]" value="pet_service"> Services
                             </label>
                             <label>
-                                <input type="checkbox" name="filter[]" value="owner_name"> Owner Name
+                                <input type="radio" name="filter[]" value="owner_name"> Owner Name
                             </label>
                             <hr>
                             <label>
