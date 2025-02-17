@@ -140,7 +140,6 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             </div>
         </nav>
     </header>
-
     <main>
         <section class="hero">
             <div class="hero-text">
@@ -189,189 +188,209 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 </div>
             </div>
         </section>
+    </main>
 
-        <hr style="width: 50%; margin: 0 auto;">
+    <main>
+        <div class="main-content">
+            <div class="container">
+                <?php if (isset($_SESSION['message'])): ?>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            Swal.fire({
+                                icon: '<?= $_SESSION['message_type'] === "success" ? "success" : "error" ?>',
+                                title: '<?= $_SESSION['message'] ?>',
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                        });
+                    </script>
+                    <?php unset($_SESSION['message'], $_SESSION['message_type']); ?>
+                <?php endif; ?>
 
-        <section class="consultation-section">
-            <h2 class="section-headline">Consultation Records</h2>
-            <div class="consultation-container">
-                <?php if (!empty($consultations)): ?>
-                    <?php foreach ($consultations as $record): ?>
-                        <div class="consultation-card">
-                        <h2>General Details</h2>
-            <div class="form-row">
-                <div class="input-container">
-                    <label><b>Primary Concern:</b></label>
-                    <p><?= !empty($record['ChiefComplaint']) ? nl2br(htmlspecialchars($record['ChiefComplaint'], ENT_QUOTES)) : 'Not Provided' ?></p>
 
-                    <?php if (!empty($_SESSION['errors']['chief_complaint'])): ?>
-                        <span class="error-message" style="color: red;"><?= htmlspecialchars($_SESSION['errors']['chief_complaint']) ?></span>
-                    <?php endif; ?>
-                </div>
-            </div>
+                <!-- Right Section: Add Pet Form -->
+                <div class="right-section">
+                <h2 class="section-headline" style="margin-bottom: 10px;">Consultation Records</h2>
+                    <h2 style="color: #156f77;">General Details</h2>
+                    <div class="consultation-container">
 
-            <div class="form-row">
-                <div class="input-container">
-                    <label><b>Observed Symptoms:</b></label>
-                    <div style="display: flex; flex-wrap: wrap; gap: 46.9px;">
-                        <?php
-                        $symptomsList = ['Vomiting', 'Diarrhea', 'Lethargy', 'Coughing', 'Sneezing', 'Other'];
-                        $hasSymptoms = !empty($form_data['symptoms']); // Check if symptoms exist
+                    <?php if (!empty($consultations)): ?>
+                        <?php foreach ($consultations as $record): ?>  
 
-                        if ($hasSymptoms) {
-                            foreach ($symptomsList as $symptom):
-                                $symptomKey = strtolower(str_replace(' ', '_', $symptom)); // Convert to lowercase for input naming
-                                $isChecked = in_array($symptom, $form_data['symptoms'] ?? []);
-                                $details = htmlspecialchars($form_data[$symptomKey . '-detail'] ?? '', ENT_QUOTES);
-                        ?>
-                                <label>
-                                    <input type="checkbox" name="symptoms[]" value="<?= $symptom ?>" 
-                                        <?= $isChecked ? 'checked' : ''; ?>
-                                        onclick="toggleSymptomDetail(this, '<?= $symptomKey ?>')">
-                                    <?= $symptom ?>
-                                </label>
-                                <input type="text" id="<?= $symptomKey ?>-detail" name="<?= $symptomKey ?>-detail" 
-                                    placeholder="Specify details for <?= $symptom ?>"
-                                    value="<?= $details ?>"
-                                    style="display: <?= !empty($details) ? 'block' : 'none'; ?>;">
-                        <?php endforeach;
-                        } else {
-                            echo '<p style="color: red;">Not Provided</p>';
-                        }
-                        ?>
-                    </div>
-                <br>
+                            <div class="form-row">
+                            <div class="input-container">
+                                <label><b>Primary Concern:</b></label>
+                                <p><?= !empty($record['ChiefComplaint']) ? nl2br(htmlspecialchars($record['ChiefComplaint'], ENT_QUOTES)) : 'Not Provided' ?></p>
 
-                <div class="form-row">
-                    <div class="input-container">
-                        <label><b>Onset of Symptoms:</b></label>
-                        <p><?= !empty($record['OnsetDate']) ? htmlspecialchars($record['OnsetDate'], ENT_QUOTES) : 'Not Provided' ?></p>
-                    </div>
+                                <?php if (!empty($_SESSION['errors']['chief_complaint'])): ?>
+                                    <span class="error-message" style="color: red;"><?= htmlspecialchars($_SESSION['errors']['chief_complaint']) ?></span>
+                                <?php endif; ?>
+                            </div>
 
-                    <div class="input-container">
-                        <label><b>Duration (Days):</b></label>
-                        <p>
-                            <?php 
-                            $durationMapping = [
-                                '1' => '1 Day', '2' => '2 Days', '3' => '3 Days', '5' => '5 Days', 
-                                '7' => '1 Week', '14' => '2 Weeks', '30' => '1 Month'
-                            ];
-                            echo isset($record['DurationDays']) ? ($durationMapping[$record['DurationDays']] ?? 'Not Provided') : 'Not Provided';
-                            ?>
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="input-container">
-                        <label><b>Appetite:</b></label>
-                        <p><?= !empty($record['Appetite']) ? htmlspecialchars($record['Appetite'], ENT_QUOTES) : 'Not Provided' ?></p>
-                    </div>
+                            <div class="input-container">
+                                <label><b>Observed Symptoms:</b></label>
+                                    <?php
+                                    $symptomsList = ['Vomiting', 'Diarrhea', 'Lethargy', 'Coughing', 'Sneezing', 'Other'];
+                                    $hasSymptoms = !empty($form_data['symptoms']); // Check if symptoms exist
 
-                    <div class="input-container">
-                        <label><b>Diet:</b></label>
-                        <p><?= !empty($record['Diet']) ? htmlspecialchars($record['Diet'], ENT_QUOTES) : 'Not Provided' ?></p>
-                    </div>
-                </div>
+                                    if ($hasSymptoms) {
+                                        foreach ($symptomsList as $symptom):
+                                            $symptomKey = strtolower(str_replace(' ', '_', $symptom)); // Convert to lowercase for input naming
+                                            $isChecked = in_array($symptom, $form_data['symptoms'] ?? []);
+                                            $details = htmlspecialchars($form_data[$symptomKey . '-detail'] ?? '', ENT_QUOTES);
+                                    ?>
+                                            <label>
+                                                <input type="checkbox" name="symptoms[]" value="<?= $symptom ?>" 
+                                                    <?= $isChecked ? 'checked' : ''; ?>
+                                                    onclick="toggleSymptomDetail(this, '<?= $symptomKey ?>')">
+                                                <?= $symptom ?>
+                                            </label>
+                                            <input type="text" id="<?= $symptomKey ?>-detail" name="<?= $symptomKey ?>-detail" 
+                                                placeholder="Specify details for <?= $symptom ?>"
+                                                value="<?= $details ?>"
+                                                style="display: <?= !empty($details) ? 'block' : 'none'; ?>;">
+                                    <?php endforeach;
+                                    } else {
+                                        echo '<p style="color: red;">Not Provided</p>';
+                                    }
+                                    ?>
+                            </div>
+                        </div>
 
-                <div class="form-row">
-                    <div class="input-container">
-                        <label><b>Urine Frequency:</b></label>
-                        <p><?= !empty($record['UrineFrequency']) ? htmlspecialchars($record['UrineFrequency'], ENT_QUOTES) : 'Not Provided' ?></p>
-                    </div>
+                        <div class="form-row">
+                            <div class="input-container">
+                                <label><b>Onset of Symptoms:</b></label>
+                                <p><?= !empty($record['OnsetDate']) ? htmlspecialchars($record['OnsetDate'], ENT_QUOTES) : 'Not Provided' ?></p>
+                            </div>
 
-                    <div class="input-container">
-                        <label><b>Urine Color:</b></label>
-                        <p><?= !empty($record['UrineColor']) ? htmlspecialchars($record['UrineColor'], ENT_QUOTES) : 'Not Provided' ?></p>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="input-container">
-                        <label><b>Water Intake:</b></label>
-                        <p><?= !empty($record['WaterIntake']) ? htmlspecialchars($record['WaterIntake'], ENT_QUOTES) : 'Not Provided' ?></p>
-                    </div>
+                            <div class="input-container">
+                                <label><b>Duration (Days):</b></label>
+                                <p>
+                                    <?php 
+                                    $durationMapping = [
+                                        '1' => '1 Day', '2' => '2 Days', '3' => '3 Days', '5' => '5 Days', 
+                                        '7' => '1 Week', '14' => '2 Weeks', '30' => '1 Month'
+                                    ];
+                                    echo isset($record['DurationDays']) ? ($durationMapping[$record['DurationDays']] ?? 'Not Provided') : 'Not Provided';
+                                    ?>
+                                </p>
+                            </div>
+                        </div>
 
-                    <div class="input-container">
-                        <label><b>Environment:</b></label>
-                        <p><?= !empty($record['Environment']) ? htmlspecialchars($record['Environment'], ENT_QUOTES) : 'Not Provided' ?></p>
-                    </div>
-                </div>
+                        <div class="form-row">
+                            <div class="input-container">
+                                <label><b>Appetite:</b></label>
+                                <p><?= !empty($record['Appetite']) ? htmlspecialchars($record['Appetite'], ENT_QUOTES) : 'Not Provided' ?></p>
+                            </div>
 
-                <div class="form-row">
-                    <!-- Fecal Score -->
-                    <div class="input-container" style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px; width: 100%;">
-                        <label><b>Fecal Score (Bristol):</b></label>
-                        <p><?= !empty($record['FecalScore']) ? htmlspecialchars($record['FecalScore'], ENT_QUOTES) : 'Not Provided'; ?></p>
-                    </div>
+                            <div class="input-container">
+                                <label><b>Diet:</b></label>
+                                <p><?= !empty($record['Diet']) ? htmlspecialchars($record['Diet'], ENT_QUOTES) : 'Not Provided' ?></p>
+                            </div>
+                        </div>
 
-                    <!-- Pain Level -->
-                    <div class="input-container">
-                        <label><b>Pain Level (1-10):</b></label>
-                        <p><?= htmlspecialchars($record['PainLevel'] ?? 'Not Provided', ENT_QUOTES, 'UTF-8'); ?></p>
-                    </div>
-                </div>
+                        <div class="form-row">
+                            <div class="input-container">
+                                <label><b>Urine Frequency:</b></label>
+                                <p><?= !empty($record['UrineFrequency']) ? htmlspecialchars($record['UrineFrequency'], ENT_QUOTES) : 'Not Provided' ?></p>
+                            </div>
 
-                <div class="form-row">
-                    <div class="input-container">
-                        <label><b>Medication given prior to check-up:</b></label>
-                        <p><?= !empty($record['MedicationPriorCheckup']) 
-                                ? htmlspecialchars($record['MedicationPriorCheckup'], ENT_QUOTES, 'UTF-8') 
-                                : 'No medication recorded'; ?>
-                        </p>
-                    </div>
-                </div>   
+                            <div class="input-container">
+                                <label><b>Urine Color:</b></label>
+                                <p><?= !empty($record['UrineColor']) ? htmlspecialchars($record['UrineColor'], ENT_QUOTES) : 'Not Provided' ?></p>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="input-container">
+                                <label><b>Water Intake:</b></label>
+                                <p><?= !empty($record['WaterIntake']) ? htmlspecialchars($record['WaterIntake'], ENT_QUOTES) : 'Not Provided' ?></p>
+                            </div>
+
+                            <div class="input-container">
+                                <label><b>Environment:</b></label>
+                                <p><?= !empty($record['Environment']) ? htmlspecialchars($record['Environment'], ENT_QUOTES) : 'Not Provided' ?></p>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="input-container">
+                                <label><b>Fecal Score (Bristol):</b></label>
+                                <p><?= !empty($record['FecalScore']) ? htmlspecialchars($record['FecalScore'], ENT_QUOTES) : 'Not Provided'; ?></p>
+                            </div>
+
+                            <div class="input-container">
+                                <label><b>Pain Level (1-10):</b></label>
+                                <p><?= htmlspecialchars($record['PainLevel'] ?? 'Not Provided', ENT_QUOTES, 'UTF-8'); ?></p>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="input-container">
+                                <label><b>Medication given prior to check-up:</b></label>
+                                <p><?= !empty($record['MedicationPriorCheckup']) 
+                                        ? htmlspecialchars($record['MedicationPriorCheckup'], ENT_QUOTES, 'UTF-8') 
+                                        : 'No medication recorded'; ?>
+                                </p>
+                            </div>
+
+                            <div class="input-container">
+                            
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <p class="no-consultations-text">No consultation records found.</p>
                 <?php endif; ?>
             </div>
-        </section>
-        <section class="consultation">
-            <h2>Vaccines</h2>
-            <div class="prescription">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Weight</th>
-                            <th>Vaccination Name</th>
-                            <th>Date</th>
-                            <th>Manufacturer</th>
-                            <th>Lot Number</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($vaccinations)): ?>
-                            <?php foreach ($vaccinations as $vaccination): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars(!empty($vaccination['Weight']) ? $vaccination['Weight'] : 'No information found') ?>
-                                    </td>
-                                    <td><?= htmlspecialchars(!empty($vaccination['Vaccine']) ? $vaccination['Vaccine'] : 'No information found') ?>
-                                    </td>
-                                    <td><?= htmlspecialchars(!empty($vaccination['Date']) ? $vaccination['Date'] : 'No information found') ?>
-                                    </td>
-                                    <td><?= htmlspecialchars(!empty($vaccination['Manufacturer']) ? $vaccination['Manufacturer'] : 'No information found') ?>
-                                    </td>
-                                    <td><?= htmlspecialchars(!empty($vaccination['LotNumber']) ? $vaccination['LotNumber'] : 'No information found') ?>
-                                    </td>
-                                    <td><?= htmlspecialchars(!empty($vaccination['Notes']) ? $vaccination['Notes'] : 'No information found') ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="6">No vaccination records found for this pet.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        </div>
     </main>
 
+    <div class="main-content">
+        <div class="container">
+            <div class="right-section">
+                <h2 style="color: #156f77;">Vaccines</h2>
+                <?php if (!empty($pets)): ?>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Weight</th>
+                                    <th>Vaccination Name</th>
+                                    <th>Date</th>
+                                    <th>Manufacturer</th>
+                                    <th>Lot Number</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($vaccinations)): ?>
+                                    <?php foreach ($vaccinations as $vaccination): ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars(!empty($vaccination['Weight']) ? $vaccination['Weight'] : 'No information found') ?></td>
+                                            <td><?= htmlspecialchars(!empty($vaccination['Vaccine']) ? $vaccination['Vaccine'] : 'No information found') ?></td>
+                                            <td><?= htmlspecialchars(!empty($vaccination['Date']) ? $vaccination['Date'] : 'No information found') ?></td>
+                                            <td><?= htmlspecialchars(!empty($vaccination['Manufacturer']) ? $vaccination['Manufacturer'] : 'No information found') ?></td>
+                                            <td><?= htmlspecialchars(!empty($vaccination['LotNumber']) ? $vaccination['LotNumber'] : 'No information found') ?></td>
+                                            <td><?= htmlspecialchars(!empty($vaccination['Notes']) ? $vaccination['Notes'] : 'No information found') ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="6">No vaccination records found for this pet.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
     <div class="pagination">
-        <a href="?page=<?= max(0, $currentPage - 1) ?>">&laquo; Previous</a>
+        <a href="?page=<?= max(0, $currentPage - 1) ?>" class="<?= $currentPage == 0 ? 'disabled' : '' ?>">&laquo; Previous</a>
+        
         <?php for ($i = 0; $i < $totalPages; $i++): ?>
             <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
                 <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active"' : '' ?>><?= $i + 1 ?></a>
@@ -379,7 +398,8 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 <span>...</span>
             <?php endif; ?>
         <?php endfor; ?>
-        <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
+        
+        <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>" class="<?= $currentPage >= $totalPages - 1 ? 'disabled' : '' ?>">Next &raquo;</a>
     </div>
 
     <br>
@@ -402,55 +422,127 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             });
         });
     </script>
+
     <script>
-    document.getElementById("pet-dropdown").addEventListener("change", function () {
-        let selectedOption = this.options[this.selectedIndex];
+        document.addEventListener("DOMContentLoaded", function () {
+            const petDropdown = document.getElementById("pet-dropdown");
+            const speciesElement = document.getElementById("species");
+            const genderElement = document.getElementById("gender");
+            const breedElement = document.getElementById("breed");
+            const profileImg = document.querySelector(".pet-photo img");
+            const recordsContainer = document.querySelector(".consultation-container");
 
-        // ✅ Update pet details dynamically
-        document.getElementById("species").textContent = selectedOption.getAttribute("data-species");
-        document.getElementById("gender").textContent = selectedOption.getAttribute("data-gender");
-        document.getElementById("breed").textContent = selectedOption.getAttribute("data-breed");
+            function updatePetDetails(selectedOption) {
+                speciesElement.textContent = selectedOption.getAttribute("data-species");
+                genderElement.textContent = selectedOption.getAttribute("data-gender");
+                breedElement.textContent = selectedOption.getAttribute("data-breed");
+                profileImg.src = selectedOption.getAttribute("data-profile");
+            }
 
-        // ✅ Update profile picture dynamically
-        document.querySelector(".pet-photo img").src = selectedOption.getAttribute("data-profile");
+            function fetchConsultationRecords(petId) {
+                fetch(`../../src/fetch_pet_records.php?pet_id=${petId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        recordsContainer.innerHTML = ""; // Clear previous records
 
-        // ✅ Fetch and update consultation records dynamically
-        let petId = this.value;
-        fetch(`../../src/fetch_pet_records.php?pet_id=${petId}`)
-            .then(response => response.json())
-            .then(data => {
-                let recordsContainer = document.querySelector(".consultation-container");
-                recordsContainer.innerHTML = ""; // Clear previous records
+                        let record = data.length > 0 ? data[0] : {}; // Use first record if exists, else empty object
 
-                if (data.length > 0) {
-                    data.forEach(record => {
                         let recordElement = `
-                            <div class="consultation-card">
-                                <h3 class="consultation-title">General Details</h3>
-                                <p><b>Date:</b> ${record.OnsetDate || 'N/A'}</p>
-                                <p><b>Primary Concern:</b> ${record.ChiefComplaint || 'N/A'}</p>
-                                <p><b>Observed Symptoms:</b> ${record.ObservedSymptoms || 'N/A'}</p>
-                                <p><b>Duration (Days):</b> ${record.DurationDays || 'N/A'}</p>
-                                <p><b>Appetite:</b> ${record.Appetite || 'N/A'}</p>
-                                <p><b>Diet:</b> ${record.Diet || 'N/A'}</p>
-                                <p><b>Urine Frequency:</b> ${record.UrineFrequency || 'N/A'}</p>
-                                <p><b>Urine Color:</b> ${record.UrineColor || 'N/A'}</p>
-                                <p><b>Water Intake:</b> ${record.WaterIntake || 'N/A'}</p>
-                                <p><b>Environment:</b> ${record.Environment || 'N/A'}</p>
-                                <p><b>Fecal Score:</b> ${record.FecalScore || 'N/A'}</p>
-                                <p><b>Pain Level:</b> ${record.PainLevel || 'N/A'}</p>
-                                <p><b>Medication Prior to Check Up:</b> ${record.MedicationPriorCheckup || 'N/A'}</p>
+                            <div class="form-row">
+                                <div class="input-container">
+                                    <label><b>Primary Concern:</b></label>
+                                    <p>${record.ChiefComplaint || 'Not Provided'}</p>
+                                </div>
+                                <div class="input-container">
+                                    <label><b>Observed Symptoms:</b></label>
+                                    <p>${record.ObservedSymptoms || 'Not Provided'}</p>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="input-container">
+                                    <label><b>Onset of Symptoms:</b></label>
+                                    <p>${record.OnsetDate || 'Not Provided'}</p>
+                                </div>
+                                <div class="input-container">
+                                    <label><b>Duration (Days):</b></label>
+                                    <p>${record.DurationDays || 'Not Provided'}</p>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="input-container">
+                                    <label><b>Appetite:</b></label>
+                                    <p>${record.Appetite || 'Not Provided'}</p>
+                                </div>
+                                <div class="input-container">
+                                    <label><b>Diet:</b></label>
+                                    <p>${record.Diet || 'Not Provided'}</p>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="input-container">
+                                    <label><b>Urine Frequency:</b></label>
+                                    <p>${record.UrineFrequency || 'Not Provided'}</p>
+                                </div>
+                                <div class="input-container">
+                                    <label><b>Urine Color:</b></label>
+                                    <p>${record.UrineColor || 'Not Provided'}</p>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="input-container">
+                                    <label><b>Water Intake:</b></label>
+                                    <p>${record.WaterIntake || 'Not Provided'}</p>
+                                </div>
+                                <div class="input-container">
+                                    <label><b>Environment:</b></label>
+                                    <p>${record.Environment || 'Not Provided'}</p>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="input-container">
+                                    <label><b>Fecal Score (Bristol):</b></label>
+                                    <p>${record.FecalScore || 'Not Provided'}</p>
+                                </div>
+                                <div class="input-container">
+                                    <label><b>Pain Level (1-10):</b></label>
+                                    <p>${record.PainLevel || 'Not Provided'}</p>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="input-container">
+                                    <label><b>Medication given prior to check-up:</b></label>
+                                    <p>${record.MedicationPriorCheckup || 'Not Provided'}</p>
+                                </div>
                             </div>
                         `;
-                        recordsContainer.innerHTML += recordElement;
-                    });
-                } else {
-                    recordsContainer.innerHTML = "<p class='no-consultations-text'>No consultation records found.</p>";
-                }
-            })
-            .catch(error => console.error("Error loading records:", error));
-    });
+
+                        recordsContainer.innerHTML = recordElement;
+                    })
+                    .catch(error => console.error("Error loading records:", error));
+            }
+
+            // On pet selection change
+            petDropdown.addEventListener("change", function () {
+                let selectedOption = this.options[this.selectedIndex];
+                let petId = this.value;
+
+                updatePetDetails(selectedOption);
+                fetchConsultationRecords(petId);
+            });
+
+            // Load first pet’s records on page load
+            if (petDropdown.options.length > 0) {
+                let firstPet = petDropdown.options[0];
+                updatePetDetails(firstPet);
+                fetchConsultationRecords(firstPet.value);
+            }
+        });
     </script>
 </body>
-
 </html>

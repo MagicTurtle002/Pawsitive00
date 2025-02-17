@@ -141,9 +141,13 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                                                 </button>
                                             </td>
                                         </tr>
-                                    <?php endforeach; ?>
+                                        <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
                                 <?php else: ?>
-                                    <p class="no-invoices">No invoices found.</p>
+                                    <div class="no-invoices-container">
+                                        <p class="no-invoices">No invoices found.</p>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         </section>
@@ -153,6 +157,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
         </div>
     </main>
 
+    <div class="pagination-container">
     <div class="pagination">
         <a href="?page=<?= max(0, $currentPage - 1) ?>">&laquo; Previous</a>
         <?php for ($i = 0; $i < $totalPages; $i++): ?>
@@ -164,6 +169,8 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
         <?php endfor; ?>
         <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
     </div>
+</div>
+
 
     <br>
 
