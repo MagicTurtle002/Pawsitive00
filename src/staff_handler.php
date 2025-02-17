@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user = getUserByEmail($pdo, $email);
 
             if ($user && password_verify($password, $user['Password'])) {
-                if (!$user['EmailVerified']) {
+                if (!$user['IsVerified']) {
                     $errors[] = "Please verify your email before logging in.";
                 } else {
                     session_regenerate_id(true);

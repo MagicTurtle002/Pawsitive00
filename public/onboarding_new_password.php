@@ -3,83 +3,61 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+session_start(); // Ensure session is started
+
 require __DIR__ . '/../config/dbh.inc.php';
 require __DIR__ . '/../src/helpers/auth_helpers.php';
 require __DIR__ . '/../src/helpers/session_helpers.php';
-require __DIR__ . '/../src/helpers/permissions.php';
 
 checkAuthentication($pdo);
 enhanceSessionSecurity();
 
-$token = $_GET['token']?? null;
 $errors = [];
+$successMessage = "";
 
-$stmt = $pdo->prepare("SELECT * FROM StaffInvitations WHERE Token = ? AND Status = 'Pending'");
-$stmt->execute([$token]);
-$invitation = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$invitation) {
-    $errors[] = "Invalid or expired invitation token.";
+// Ensure the user is logged in
+if (!isset($_SESSION['Email'])) {
+    header("Location: staff_login.php");
+    exit();
 }
 
-if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
-    $new_password = $_POST["new_password"] ?? "";
+$email = $_SESSION['Email']; // Fetch logged-in user's email
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $new_password = $_POST["password"] ?? "";
     $confirm_password = $_POST["confirm_password"] ?? "";
 
-    if (strlen($new_password) < 8) {
-        $errors[] = "Password must be at least 8 characters long.";
-    }
-    if (!preg_match('/[A-Z]/', $new_password)) {
-        $errors[] = "Password must contain at least one uppercase letter.";
-    }
-    if (!preg_match('/[a-z]/', $new_password)) {
-        $errors[] = "Password must contain at least one lowercase letter.";
-    }
-    if (!preg_match('/[0-9]/', $new_password)) {
-        $errors[] = "Password must contain at least one number.";
-    }
-    if (!preg_match('/[\W]/', $new_password)) {
-        $errors[] = "Password must contain at least one special character.";
-    }
-    if ($new_password !== $confirm_password) {
+    // **Validate Input**
+    if (empty($new_password) || empty($confirm_password)) {
+        $errors[] = "All fields are required.";
+    } elseif ($new_password !== $confirm_password) {
         $errors[] = "Passwords do not match.";
+    } elseif (strlen($new_password) < 8) {
+        $errors[] = "Password must be at least 8 characters long.";
     }
 
     if (empty($errors)) {
         try {
-            $pdo->beginTransaction();
-
             $hashedPassword = password_hash($new_password, PASSWORD_DEFAULT);
 
-            // 2️⃣ Insert into Users Table
+            // **Update User Password & Onboarding Status**
             $stmt = $pdo->prepare("
-                INSERT INTO Users (Email, Password, RoleId, EmploymentType, OnboardingComplete) 
-                VALUES (?, ?, ?, ?, 1)
+                UPDATE Users 
+                SET Password = ?, FirstLogin = 0, OnboardingComplete = 1 
+                WHERE Email = ?
             ");
-            $stmt->execute([
-                $invitation['Email'],
-                $hashedPassword,
-                $invitation['RoleId'],
-                $invitation['EmploymentType']
-            ]);
+            $stmt->execute([$hashedPassword, $email]);
 
-            // 3️⃣ Update Invitation Status
-            $stmt = $pdo->prepare("UPDATE StaffInvitations SET Status = 'Done' WHERE Token = ?");
-            $stmt->execute([$token]);
-
-            $pdo->commit();
-
-            $_SESSION['success'] = "Account setup successful! You can now log in.";
+            $_SESSION['success'] = "Password updated successfully! You can now log in.";
             header("Location: staff_login.php");
             exit();
-
         } catch (Exception $e) {
-            $pdo->rollBack();
-            error_log("Error during onboarding: " . $e->getMessage());
-            $errors[] = "An error occurred while creating your account. Please try again.";
+            error_log("Error updating password: " . $e->getMessage());
+            $errors[] = "An error occurred while updating the password. Please try again.";
         }
     }
 }
+?>
 ?>
 <!DOCTYPE html>
 <html lang="en">
