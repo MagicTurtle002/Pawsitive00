@@ -24,11 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['petId'])) {
 
     try {
         // ✅ Update pet status to confined
-        $stmt = $pdo->prepare("UPDATE Pets SET IsConfined = 1 WHERE PetId = ?");
+        $stmt = $pdo->prepare("UPDATE Pets SET IsConfined = 1, LastVisit = NOW() WHERE PetId = ?");
         $stmt->execute([$petId]);
 
         if ($stmt->rowCount() > 0) {
-            logActivity($pdo, $userId, $userName, $role, 'confine_pet.php', "Confined Pet ID: $petId");
+            logActivity($pdo, $userId, $userName, $role, 'confine_pet.php', "Confined Pet ID: $petId . date('Y-m-d H:i:s')");
             echo json_encode(["success" => true]);
         } else {
             echo json_encode(["success" => false, "error" => "Failed to confine pet."]);
@@ -39,4 +39,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['petId'])) {
 } else {
     echo json_encode(["success" => false, "error" => "Invalid request."]);
 }
-?>

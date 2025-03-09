@@ -22,22 +22,33 @@ $currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
 $recordsPerPage = 10;
 $offset = $currentPage * $recordsPerPage;
 
-// ✅ Correct where clause for confined pets
 $where_clause = ["Pets.IsConfined = 1"];
 $params = [];
 
 // ✅ Search filter
 if (!empty($_GET['search'])) {
     $search = '%' . $_GET['search'] . '%';
-    $where_clause[] = "(Pets.Name LIKE ? OR Pets.PetCode LIKE ?)";
+    $where_clause[] = "(LOWER(Pets.Name) LIKE LOWER(?) OR LOWER(Pets.PetCode) LIKE LOWER(?))";
     array_push($params, $search, $search);
+}
+
+// ✅ Date range filter
+if (!empty($_GET['startDate']) && !empty($_GET['endDate'])) {
+    $where_clause[] = "Pets.LastVisit BETWEEN ? AND ?";
+    array_push($params, $_GET['startDate'], $_GET['endDate']);
+}
+
+// ✅ Sorting filter (Ascending or Descending)
+$orderBy = "ORDER BY Pets.LastVisit DESC";
+if (!empty($_GET['order']) && $_GET['order'] === 'asc') {
+    $orderBy = "ORDER BY Pets.LastVisit ASC";
 }
 
 $where_sql = 'WHERE ' . implode(' AND ', $where_clause);
 
-// ✅ Main Query to Fetch Confined Pets
 $query = "
     SELECT 
+        Pets.LastVisit AS ConfinementDate,
         Owners.OwnerId,
         CONCAT(Owners.FirstName, ' ', Owners.LastName) AS OwnerName,
         Owners.Email,
@@ -49,11 +60,11 @@ $query = "
         Pets.Breed,
         Pets.Gender,
         Pets.Birthday,
-        Pets.Weight,
-        Pets.LastVisit
+        Pets.Weight
     FROM Pets
     LEFT JOIN Owners ON Pets.OwnerId = Owners.OwnerId
     LEFT JOIN Species ON Pets.SpeciesId = Species.Id
+
     $where_sql
     ORDER BY Pets.LastVisit DESC
     LIMIT ?, ?
@@ -65,7 +76,8 @@ $stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $confinedPets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ✅ Count total confined pets for pagination
+$currentDate = null; // Variable to track the current date
+
 $countQuery = "
     SELECT COUNT(*) 
     FROM Pets
@@ -209,68 +221,41 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
         <div class="header">
             <h1>Confined Pets</h1>
             <div class="actions">
-                <form method="GET" action="record.php" class="filter-container">
+                <form id="filterForm" class="filter-container">
+                    <!-- Search Input -->
                     <input type="text" id="searchInput" name="search" placeholder="Search confined pets..."
-                        value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                        value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
+                        oninput="applyFilters()">
 
+                    <!-- Filter Dropdown -->
                     <div class="dropdown-filter">
                         <button type="button" class="filter-btn">
                             <i class="fa fa-filter"></i> Filter
                         </button>
                         <div class="dropdown-content">
-                            <!-- Date Filter -->
-                            <label>
-                                <input type="radio" name="filter" value="all" <?= isset($_GET['filter']) && $_GET['filter'] === 'all' ? 'checked' : ''; ?>> All
-                            </label>
-                            <label>
-                                <input type="radio" name="filter" value="today" <?= isset($_GET['filter']) && $_GET['filter'] === 'today' ? 'checked' : ''; ?>> Today
-                            </label>
-                            <label>
-                                <input type="radio" name="filter" value="lastWeek" <?= isset($_GET['filter']) && $_GET['filter'] === 'lastWeek' ? 'checked' : ''; ?>> Last Week
-                            </label>
-                            <label>
-                                <input type="radio" name="filter" value="lastMonth" <?= isset($_GET['filter']) && $_GET['filter'] === 'lastMonth' ? 'checked' : ''; ?>> Last Month
-                            </label>
+                            <!-- Date Range Filters -->
+                            <label>Date Range:</label>
+                            <input type="date" id="startDate" name="startDate" onchange="applyFilters()">
+                            <input type="date" id="endDate" name="endDate" onchange="applyFilters()">
+
                             <hr>
-                            <!-- Ascending / Descending -->
-                            <label>
-                                <input type="radio" name="order" value="asc" <?= isset($_GET['order']) && $_GET['order'] === 'asc' ? 'checked' : ''; ?>> Ascending
-                            </label>
-                            <label>
-                                <input type="radio" name="order" value="desc" <?= isset($_GET['order']) && $_GET['order'] === 'desc' ? 'checked' : ''; ?>> Descending
-                            </label>
+
+                            <!-- Sort Order -->
+                            <label>Sort By:</label>
+                            <select id="sortOrder" name="order" onchange="applyFilters()">
+                                <option value="desc">Newest First</option>
+                                <option value="asc">Oldest First</option>
+                            </select>
+
                             <hr>
-                            <button type="submit" class="apply-btn">Apply Filter</button>
-                            <button type="button" class="clear-btn" onclick="location.href='record.php'">Clear
-                                Filter</button>
+
+
+                            <button type="button" class="apply-btn" onclick="applyFilters()">Apply Filter</button>
+                            <button type="button" class="clear-btn" onclick="clearFilters()">Clear Filter</button>
                         </div>
                     </div>
                 </form>
             </div>
-
-            <!-- Filter na may Calendar -->
-            <!--
-            <div class="actions">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    placeholder="Search records..." 
-                    class="search-bar">
-                <input 
-                    type="date" 
-                    id="startDate" 
-                    class="date-filter" 
-                    value="<?= htmlspecialchars($_GET['startDate'] ?? '') ?>" 
-                    placeholder="Start Date">
-                <input 
-                    type="date" 
-                    id="endDate" 
-                    class="date-filter" 
-                    value="<?= htmlspecialchars($_GET['endDate'] ?? '') ?>" 
-                    placeholder="End Date">
-                <button id="filterBtn" class="filter-btn">Filter</button>
-                <button class="add-btn" onclick="location.href='register_owner.php'">+ Add Owner</button>
-            </div> -->
         </div>
 
         <table class="staff-table">
@@ -287,28 +272,36 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             </thead>
             <tbody id="confinedPetsList">
                 <?php if (count($confinedPets) > 0): ?>
-                    <?php foreach ($confinedPets as $pet): ?>
-                        <tr class="pet-row" id="pet-row-<?= htmlspecialchars($pet['PetId']) ?>">
-                            <td><?= htmlspecialchars($pet['PetCode'] ?? 'No information found') ?></td>
+                    <?php
+                    $currentDate = null;
+                    foreach ($confinedPets as $pet):
+                        $confinedDate = !empty($pet['ConfinementDate']) ? date("F j, Y", strtotime($pet['ConfinementDate'])) : 'N/A';
+
+                        // ✅ Update only the existing header (don't create a new <thead>)
+                        if ($currentDate !== $confinedDate):
+                            $currentDate = $confinedDate;
+                            echo "<tr><th colspan='7' class='date-header'>$confinedDate</th></tr>";
+                        endif;
+                        ?>
+                        <tr>
+                            <td><?= htmlspecialchars($pet['PetCode']) ?></td>
                             <td>
-                                <a href="pet_profile.php?pet_id=<?= htmlspecialchars($pet['PetId']) ?>"
-                                    class="pet-profile-link">
-                                    <?= htmlspecialchars($pet['PetName'] ?? 'No Name') ?>
+                                <a href="pet_profile.php?pet_id=<?= htmlspecialchars($pet['PetId']) ?>">
+                                    <?= htmlspecialchars($pet['PetName']) ?>
                                 </a>
                             </td>
-                            <td><?= htmlspecialchars($pet['PetType'] ?? 'N/A') ?></td>
-                            <td><?= htmlspecialchars($pet['Weight'] ?? 'N/A') ?></td>
-                            <td><?= htmlspecialchars($pet['Weight'] ?? 'N/A') ?></td>
-                            <td><?= htmlspecialchars($pet['Weight'] ?? 'N/A') ?></td>
+                            <td><?= htmlspecialchars($pet['PetType']) ?></td>
+                            <td><?= htmlspecialchars($pet['Weight']) ?> kg</td>
+                            <td><?= htmlspecialchars($pet['ConfinementDate'] ?? 'N/A') ?></td>
+                            <td><?= htmlspecialchars($pet['Day'] ?? 'N/A') ?></td>
                             <td>
-                                <a href="#"
-                                    onclick="addConfinementReport('<?= htmlspecialchars($pet['PetId']) ?>'); return false;"
-                                    class="action-btn add-report-btn">
+                                <a href="#" class="action-btn add-report-btn"
+                                    onclick="addConfinementReport('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">
                                     Add Report
                                 </a>
-                                <a href="#" onclick="releasePet(<?= htmlspecialchars($pet['PetId']) ?>); return false;"
-                                    class="action-btn release-btn">
-                                    Release Pet
+                                <a href="#" class="action-btn release-btn"
+                                    onclick="releasePet('<?= htmlspecialchars($pet['PetId']) ?>'); return false;">
+                                    Release
                                 </a>
                             </td>
                         </tr>
@@ -380,12 +373,16 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                                 if (data.success) {
                                     Swal.fire("Released!", "The pet has been successfully released.", "success");
 
-                                    const row = document.getElementById(`pet-row-${petId}`);
+                                    // ✅ Remove the row without reloading the page
+                                    const row = document.querySelector(`#pet-row-${petId}`);
                                     if (row) row.remove();
 
-                                    const tableBody = document.querySelector("tbody");
+                                    // ✅ If no pets remain, show "No confined pets found."
+                                    const tableBody = document.getElementById("confinedPetsList");
                                     if (tableBody.children.length === 0) {
-                                        tableBody.innerHTML = `<tr><td colspan="6">No confined pets found.</td></tr>`;
+                                        tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; font-weight: bold; color: red;">
+                            No confined pets found.
+                        </td></tr>`;
                                     }
                                 } else {
                                     Swal.fire("Error!", data.error || "Failed to release pet.", "error");
@@ -402,7 +399,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             function addConfinementReport(petId) {
                 Swal.fire({
                     title: "Confinement Daily Report",
-                    width: "60%", 
+                    width: "60%",
                     html: `
                         <form id="confinementForm">
                             <input type="hidden" id="pet_id" name="pet_id" value="${petId}">
@@ -513,6 +510,67 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                         console.error("Error:", error);
                         Swal.fire("Error!", "An unexpected error occurred.", "error");
                     });
+            }
+
+            function applyFilters() {
+                const search = document.getElementById("searchInput").value;
+                const startDate = document.getElementById("startDate").value;
+                const endDate = document.getElementById("endDate").value;
+                const order = document.getElementById("sortOrder").value;
+
+                const params = new URLSearchParams({ search, startDate, endDate, order });
+
+                fetch("../src/fetch_filtered_pets.php?" + params.toString())
+                    .then(response => response.json()) // ✅ Convert response to JSON
+                    .then(data => {
+                        const tableBody = document.getElementById("confinedPetsList");
+
+                        // ✅ Clear previous records in tbody
+                        tableBody.innerHTML = "";
+
+                        let currentDate = null;
+                        let rowsHTML = "";
+
+                        data.forEach(pet => {
+                            let confinementDate = pet.ConfinementDate ? new Date(pet.ConfinementDate).toDateString() : "N/A";
+
+                            // ✅ Update only existing date headers (do not create new `<thead>`)
+                            if (currentDate !== confinementDate) {
+                                rowsHTML += `<tr><th colspan='7' class='date-header'>${confinementDate}</th></tr>`;
+                                currentDate = confinementDate;
+                            }
+
+                            // ✅ Create a row for each pet
+                            rowsHTML += `
+                    <tr>
+                        <td>${pet.PetCode}</td>
+                        <td><a href="pet_profile.php?pet_id=${pet.PetId}">${pet.PetName}</a></td>
+                        <td>${pet.PetType}</td>
+                        <td>${pet.Weight} kg</td>
+                        <td>${pet.ConfinementDate || 'N/A'}</td>
+                        <td>N/A</td>
+                        <td>
+                            <a href="#" class="action-btn add-report-btn" onclick="addConfinementReport('${pet.PetId}'); return false;">Add Report</a>
+                            <a href="#" class="action-btn release-btn" onclick="releasePet('${pet.PetId}'); return false;">Release</a>
+                        </td>
+                    </tr>
+                `;
+                        });
+
+                        // ✅ Update only the existing <tbody> (confinedPetsList)
+                        tableBody.innerHTML = rowsHTML;
+                    })
+                    .catch(error => console.error("Error fetching filtered data:", error));
+            }
+            function clearFilters() {
+                // ✅ Reset all filter input fields
+                document.getElementById("searchInput").value = "";
+                document.getElementById("startDate").value = "";
+                document.getElementById("endDate").value = "";
+                document.getElementById("sortOrder").value = "desc"; // Default sorting order
+
+                // ✅ Re-fetch and display unfiltered data
+                applyFilters();
             }
         </script>
 </body>

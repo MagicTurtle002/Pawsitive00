@@ -214,8 +214,8 @@ try {
                                 <div class="detail">
                                     <span class="label">Age</span>
                                     <span class="value">
-                                        <?= isset($pet['CalculatedAge']) && is_numeric($pet['CalculatedAge'])
-                                            ? htmlspecialchars($pet['CalculatedAge']) . " year(s)"
+                                        <?= isset($pet['Age']) && is_numeric($pet['Age'])
+                                            ? htmlspecialchars($pet['Age']) . " year(s)"
                                             : 'Not Available'; ?>
                                     </span>
                                 </div>

@@ -15,9 +15,7 @@ enhanceSessionSecurity();
 $userId = $_SESSION['UserId'];
 $userName = isset($_SESSION['FirstName']) ? $_SESSION['FirstName'] . ' ' . $_SESSION['LastName'] : 'Staff';
 $role = $_SESSION['Role'] ?? 'Role';
-//logActivity($pdo, $userId, $userName, $role, 'record.php', 'Accessed Record page');
 
-// Pagination setup
 $currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
 $recordsPerPage = 10;
 $offset = $currentPage * $recordsPerPage;

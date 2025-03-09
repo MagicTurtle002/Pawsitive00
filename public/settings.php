@@ -273,25 +273,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <input type="text" id="role_name" name="role_name" placeholder="Enter role name" required>
                     </div>
                     <label for="permissions">Assign Permissions:</label>
-                    <table class="permissions-table">
-                        <thead>
-                            <tr>
-                                <th>Permission</th>
-                                <th>Allow</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($permissions as $permission): ?>
+                    <div class="permissions-container">
+                        <table class="permissions-table">
+                            <thead>
                                 <tr>
-                                    <td><?= htmlspecialchars($permission['PermissionName']); ?></td>
-                                    <td style="text-align: center;">
-                                        <input type="checkbox" name="permissions[]"
-                                            value="<?= $permission['PermissionId']; ?>">
-                                    </td>
+                                    <th>Permission</th>
+                                    <th>Allow</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($permissions as $permission): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($permission['PermissionName']); ?></td>
+                                        <td style="text-align: center;">
+                                            <input type="checkbox" name="permissions[]" value="<?= $permission['PermissionId']; ?>">
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                     <button type="submit">Add Role</button>
                 </form>
             </section>
@@ -472,61 +473,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
 
         document.getElementById("restore-backup").addEventListener("click", function () {
-        Swal.fire({
-            title: "Restore Backup?",
-            text: "This will overwrite the current database with the backup file.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, restore it!",
-            html: `
+            Swal.fire({
+                title: "Restore Backup?",
+                text: "This will overwrite the current database with the backup file.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, restore it!",
+                html: `
                 <input type="file" id="backup-file" class="swal2-file file-input" accept=".sql">
             `,
-            didOpen: () => {
-                const fileInput = document.getElementById("backup-file");
-                fileInput.addEventListener("change", function () {
-                    if (fileInput.files.length > 0) {
-                        fileInput.classList.add("file-selected"); // Adds styling when a file is chosen
-                    }
-                });
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const fileInput = document.getElementById("backup-file");
-                const file = fileInput.files[0];
-
-                if (!file) {
-                    Swal.fire("No File Selected", "Please choose a backup file to restore.", "error");
-                    return;
+                didOpen: () => {
+                    const fileInput = document.getElementById("backup-file");
+                    fileInput.addEventListener("change", function () {
+                        if (fileInput.files.length > 0) {
+                            fileInput.classList.add("file-selected"); // Adds styling when a file is chosen
+                        }
+                    });
                 }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const fileInput = document.getElementById("backup-file");
+                    const file = fileInput.files[0];
 
-                const formData = new FormData();
-                formData.append("backup_file", file);
+                    if (!file) {
+                        Swal.fire("No File Selected", "Please choose a backup file to restore.", "error");
+                        return;
+                    }
 
-                fetch("../config/restore_backup.php", {
-                    method: "POST",
-                    body: formData
-                })
-                .then(response => response.text())
-                .then(result => {
-                    Swal.fire(
-                        "Restoration Complete!",
-                        "The database has been successfully restored.",
-                        "success"
-                    );
-                })
-                .catch(error => {
-                    console.error("Restore failed:", error);
-                    Swal.fire(
-                        "Restoration Failed!",
-                        "An error occurred while restoring the database. Please try again.",
-                        "error"
-                    );
-                });
-            }
+                    const formData = new FormData();
+                    formData.append("backup_file", file);
+
+                    fetch("../config/restore_backup.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                        .then(response => response.text())
+                        .then(result => {
+                            Swal.fire(
+                                "Restoration Complete!",
+                                "The database has been successfully restored.",
+                                "success"
+                            );
+                        })
+                        .catch(error => {
+                            console.error("Restore failed:", error);
+                            Swal.fire(
+                                "Restoration Failed!",
+                                "An error occurred while restoring the database. Please try again.",
+                                "error"
+                            );
+                        });
+                }
+            });
         });
-    });
     </script>
 
     <script>

@@ -27,19 +27,13 @@ $params = [];
 // ✅ Search Logic
 if (!empty($_GET['search'])) {
     $search = '%' . $_GET['search'] . '%';
-    $where_clause[] = "(Users.FirstName LIKE ? 
-                        OR Users.LastName LIKE ? 
-                        OR Roles.RoleName LIKE ?)";
+    $where_clause[] = "(LOWER(Users.FirstName) LIKE LOWER(?) 
+                        OR LOWER(Users.LastName) LIKE LOWER(?) 
+                        OR LOWER(Roles.RoleName) LIKE LOWER(?))";
     $params = array_fill(0, 3, $search);
 }
 
-// ✅ Filter by Name or Role
-$orderBy = 'Users.FirstName'; // Default to Name
-if ($filterQuery === 'role') {
-    $orderBy = 'Roles.RoleName'; // Sort by Role
-}
-
-$currentPage = isset($_GET['page']) ? max(0, (int)$_GET['page']) : 0;
+$currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
 $recordsPerPage = 10;
 $offset = $currentPage * $recordsPerPage;
 
@@ -107,103 +101,115 @@ try {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pawsitive</title>
     <link rel="icon" type="image/x-icon" href="../assets/images/logo/LOGO.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/staff_view.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src = "../assets/js/staff_view.js"></script>
+    <script src="../assets/js/staff_view.js"></script>
     <style>
-    .toast-container {
-        position: fixed;
-        bottom: 20px; /* Position at the bottom */
-        right: 20px; /* Position on the right side */
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px; /* Space between multiple toasts */
-    }
-
-    /* Success Toast */
-    .success-toast {
-        color: #155724; /* Green text */
-        background-color: #d4edda; /* Light green background */
-        padding: 12px 20px;
-        border: 1px solid #c3e6cb;
-        border-radius: 8px;
-        font-weight: bold;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        animation: slide-in 0.5s ease, fade-out 0.5s ease 3s;
-        opacity: 1;
-    }
-
-    /* Error Toast */
-    .error-toast {
-        color: #721c24; /* Red text */
-        background-color: #f8d7da; /* Light red background */
-        padding: 12px 20px;
-        border: 1px solid #f5c6cb;
-        border-radius: 8px;
-        font-weight: bold;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        animation: slide-in 0.5s ease, fade-out 0.5s ease 3s;
-        opacity: 1;
-    }
-
-    @keyframes slide-in {
-        from {
-            transform: translateX(100%); /* Start off-screen */
-            opacity: 0;
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            /* Position at the bottom */
+            right: 20px;
+            /* Position on the right side */
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            /* Space between multiple toasts */
         }
-        to {
-            transform: translateX(0);
+
+        /* Success Toast */
+        .success-toast {
+            color: #155724;
+            /* Green text */
+            background-color: #d4edda;
+            /* Light green background */
+            padding: 12px 20px;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slide-in 0.5s ease, fade-out 0.5s ease 3s;
             opacity: 1;
         }
-    }
 
-    @keyframes fade-out {
-        to {
-            opacity: 0;
-            transform: translateX(100%);
+        /* Error Toast */
+        .error-toast {
+            color: #721c24;
+            /* Red text */
+            background-color: #f8d7da;
+            /* Light red background */
+            padding: 12px 20px;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slide-in 0.5s ease, fade-out 0.5s ease 3s;
+            opacity: 1;
         }
-    }
 
+        @keyframes slide-in {
+            from {
+                transform: translateX(100%);
+                /* Start off-screen */
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fade-out {
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
     </style>
 </head>
+
 <body>
-<div class="sidebar">
-<div class="logo">
+    <div class="sidebar">
+        <div class="logo">
             <img src="../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
         </div>
         <nav>
             <ul class="nav-links">
-            <h3>Hello, <?= htmlspecialchars($userName) ?></h3>
-            <h4><?= htmlspecialchars($role) ?></h4>
-            <br>
+                <h3>Hello, <?= htmlspecialchars($userName) ?></h3>
+                <h4><?= htmlspecialchars($role) ?></h4>
+                <br>
                 <li><a href="main_dashboard.php">
-                    <img src="../assets/images/Icons/Chart 1.png" alt="Overview Icon">Overview</a></li>
+                        <img src="../assets/images/Icons/Chart 1.png" alt="Overview Icon">Overview</a></li>
                 <li><a href="record.php">
-                    <img src="../assets/images/Icons/Record 1.png" alt="Record Icon">Record</a></li>
+                        <img src="../assets/images/Icons/Record 1.png" alt="Record Icon">Record</a></li>
                 <li class="active"><a href="staff_view.php">
-                    <img src="../assets/images/Icons/Staff 3.png" alt="Schedule Icon">Staff</a></li>
+                        <img src="../assets/images/Icons/Staff 3.png" alt="Schedule Icon">Staff</a></li>
                 <li><a href="appointment.php">
-                    <img src="../assets/images/Icons/Schedule 1.png" alt="Schedule Icon">Schedule</a></li>
+                        <img src="../assets/images/Icons/Schedule 1.png" alt="Schedule Icon">Schedule</a></li>
                 <li><a href="invoice_billing_form.php">
-                    <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice</a></li>
+                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice</a></li>
             </ul>
         </nav>
         <div class="sidebar-bottom">
@@ -239,30 +245,34 @@ try {
 
             <div class="actions">
                 <div class="left">
-                    <input type="text" id="searchInput" placeholder="Search staff...">
-                    
+                    <input type="text" id="searchInput" name="search" placeholder="Search staff..."
+                        value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
+                        oninput="applyFilters()">
+
                     <!-- Filter dropdown -->
                     <div class="dropdown">
-                    <button class="filter-btn">
+                        <button class="filter-btn">
                             <i class="fa fa-filter"></i> Filter
                         </button>
                         <div class="dropdown-content">
-                        <label>
-                            <input type="radio" name="filter" value="name" <?= $filterQuery == 'name' ? 'checked' : '' ?>> Name
-                        </label>
-                        <label>
-                            <input type="radio" name="filter" value="role" <?= $filterQuery == 'role' ? 'checked' : '' ?>> Role
-                        </label>
-                        <hr>
-                        <label>
-                            <input type="radio" name="order" value="ASC" <?= $orderQuery == 'ASC' ? 'checked' : '' ?>> Ascending
-                        </label>
-                        <label>
-                            <input type="radio" name="order" value="DESC" <?= $orderQuery == 'DESC' ? 'checked' : '' ?>> Descending
-                        </label>
-                        <hr>
+                            <label>
+                                <input type="radio" name="filter" value="name" <?= $filterQuery == 'name' ? 'checked' : '' ?>> Name
+                            </label>
+                            <label>
+                                <input type="radio" name="filter" value="role" <?= $filterQuery == 'role' ? 'checked' : '' ?>> Role
+                            </label>
+                            <hr>
+                            <label>
+                                <input type="radio" name="order" value="ASC" <?= $orderQuery == 'ASC' ? 'checked' : '' ?>>
+                                Ascending
+                            </label>
+                            <label>
+                                <input type="radio" name="order" value="DESC" <?= $orderQuery == 'DESC' ? 'checked' : '' ?>> Descending
+                            </label>
+                            <hr>
                             <button type="submit" class="apply-btn">Apply Filter</button>
-                            <button type="button" class="clear-btn" onclick="window.location.href='staff_view.php'">Clear Filter</button>
+                            <button type="button" class="clear-btn"
+                                onclick="window.location.href='staff_view.php'">Clear Filter</button>
                         </div>
                     </div>
                 </div>
@@ -295,7 +305,8 @@ try {
                                     <i class="fas fa-info-circle"></i> <!-- Info Icon -->
                                     <div class="hover-card">
                                         <div class="profile-info">
-                                            <img src="../assets/images/Icons/Profile User.png" alt="Profile Pic" class="profile-img">
+                                            <img src="../assets/images/Icons/Profile User.png" alt="Profile Pic"
+                                                class="profile-img">
                                             <div>
                                                 <strong><?= htmlspecialchars($staff_member['name']) ?></strong><br>
                                                 Position: <?= htmlspecialchars($staff_member['role'] ?? 'No Role Assigned') ?>
@@ -338,8 +349,10 @@ try {
 
                             <?php if (hasPermission($pdo, 'Manage Staff')): ?>
                                 <td>
-                                    <button class="action-btn edit-btn" onclick="editStaff('<?= $staff_member['Email']; ?>')">Edit</button>
-                                    <button class="action-btn delete-btn" onclick="deleteStaff('<?= $staff_member['Email']; ?>')">Delete</button>
+                                    <button class="action-btn edit-btn"
+                                        onclick="editStaff('<?= $staff_member['Email']; ?>')">Edit</button>
+                                    <button class="action-btn delete-btn"
+                                        onclick="deleteStaff('<?= $staff_member['Email']; ?>')">Delete</button>
                                     <button class="action-btn toggle-btn" onclick="toggleStatus('<?= $staff_member['Email']; ?>')">
                                         <?= $staff_member['Status'] == 'active' ? 'Deactivate' : 'Activate'; ?>
                                     </button>
@@ -550,100 +563,114 @@ try {
                 }
             });
         }
+    </script>
 
+    <script>
         document.addEventListener("DOMContentLoaded", () => {
-        const toast = document.getElementById("successToast");
-        if (toast) {
-            // Automatically remove toast after 3.5 seconds
-            setTimeout(() => {
-                toast.remove();
-            }, 3500); // Wait for the fade-out animation to complete
-        }
-    });
-    </script>
+            const infoIcons = document.querySelectorAll('.fas.fa-info-circle'); // All "i" icons
+            const hoverCards = document.querySelectorAll('.hover-card'); // All hover cards
 
-    <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const infoIcons = document.querySelectorAll('.fas.fa-info-circle'); // All "i" icons
-        const hoverCards = document.querySelectorAll('.hover-card'); // All hover cards
+            // Track the open state
+            let activeCard = null;
 
-        // Track the open state
-        let activeCard = null;
+            // Function to show the hover card
+            const showHoverCard = (card) => {
+                card.style.display = 'block';
+            };
 
-        // Function to show the hover card
-        const showHoverCard = (card) => {
-            card.style.display = 'block';
-        };
+            // Function to hide the hover card
+            const hideHoverCard = (card) => {
+                card.style.display = 'none';
+            };
 
-        // Function to hide the hover card
-        const hideHoverCard = (card) => {
-            card.style.display = 'none';
-        };
+            // Add hover and click listeners
+            infoIcons.forEach((icon, index) => {
+                const hoverCard = hoverCards[index];
 
-        // Add hover and click listeners
-        infoIcons.forEach((icon, index) => {
-            const hoverCard = hoverCards[index];
-
-            // Show the hover card on hover
-            icon.addEventListener('mouseenter', () => {
-                showHoverCard(hoverCard);
-            });
-
-            // Keep the hover card visible on hover
-            hoverCard.addEventListener('mouseenter', () => {
-                showHoverCard(hoverCard);
-            });
-
-            // Hide the hover card when not hovering
-            icon.addEventListener('mouseleave', () => {
-                if (activeCard !== hoverCard) {
-                    hideHoverCard(hoverCard);
-                }
-            });
-
-            hoverCard.addEventListener('mouseleave', () => {
-                if (activeCard !== hoverCard) {
-                    hideHoverCard(hoverCard);
-                }
-            });
-
-            // Toggle the hover card visibility on click
-            icon.addEventListener('click', (event) => {
-                event.stopPropagation(); // Prevent bubbling up
-                if (activeCard === hoverCard) {
-                    activeCard = null; // Deselect active card
-                    hideHoverCard(hoverCard);
-                } else {
-                    if (activeCard) hideHoverCard(activeCard); // Close any open card
-                    activeCard = hoverCard; // Set the new active card
+                // Show the hover card on hover
+                icon.addEventListener('mouseenter', () => {
                     showHoverCard(hoverCard);
+                });
+
+                // Keep the hover card visible on hover
+                hoverCard.addEventListener('mouseenter', () => {
+                    showHoverCard(hoverCard);
+                });
+
+                // Hide the hover card when not hovering
+                icon.addEventListener('mouseleave', () => {
+                    if (activeCard !== hoverCard) {
+                        hideHoverCard(hoverCard);
+                    }
+                });
+
+                hoverCard.addEventListener('mouseleave', () => {
+                    if (activeCard !== hoverCard) {
+                        hideHoverCard(hoverCard);
+                    }
+                });
+
+                // Toggle the hover card visibility on click
+                icon.addEventListener('click', (event) => {
+                    event.stopPropagation(); // Prevent bubbling up
+                    if (activeCard === hoverCard) {
+                        activeCard = null; // Deselect active card
+                        hideHoverCard(hoverCard);
+                    } else {
+                        if (activeCard) hideHoverCard(activeCard); // Close any open card
+                        activeCard = hoverCard; // Set the new active card
+                        showHoverCard(hoverCard);
+                    }
+                });
+            });
+
+            // Close hover cards when clicking outside
+            document.addEventListener('click', (event) => {
+                if (activeCard && !activeCard.contains(event.target) && !event.target.classList.contains('fa-info-circle')) {
+                    hideHoverCard(activeCard);
+                    activeCard = null; // Reset active card
                 }
             });
         });
 
-        // Close hover cards when clicking outside
-        document.addEventListener('click', (event) => {
-            if (activeCard && !activeCard.contains(event.target) && !event.target.classList.contains('fa-info-circle')) {
-                hideHoverCard(activeCard);
-                activeCard = null; // Reset active card
-            }
-        });
-    });
-    </script>
-    
-    <script>
-            document.querySelector('.apply-btn').addEventListener('click', function () {
-        const filter = document.querySelector('input[name="filter"]:checked')?.value || '';
-        const order = document.querySelector('input[name="order"]:checked')?.value || '';
-        const searchQuery = document.getElementById('searchInput').value.trim();
+        function applyFilters() {
+            const search = document.getElementById("searchInput").value
 
-        let url = `staff_view.php?`;
-        if (filter) url += `filter=${filter}&`;
-        if (order) url += `order=${order}&`;
-        if (searchQuery) url += `search=${encodeURIComponent(searchQuery)}`;
+            fetch(`../src/staff_search.php?search=${encodeURIComponent(search)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById("staffList");
+                    tableBody.innerHTML = "";
 
-        window.location.href = url;
-    });
+                    let rowsHTML = "";
+
+                    if (data.length === 0) {
+                        rowsHTML = `<tr><td colspan="6">No staff members found.</td></tr>`;
+                    } else {
+                        data.forEach(staff => {
+                            rowsHTML += `
+                        <tr>
+                            <td>${staff.StaffCode || 'N/A'}</td>
+                            <td>${staff.name || 'N/A'}</td>
+                            <td>${staff.role || 'No Role Assigned'}</td>
+                            <td>${staff.EmploymentType || 'N/A'}</td>
+                            <td>
+                                <button class="edit-btn" onclick="editStaff('${staff.Email}')">Edit</button>
+                                <button class="delete-btn" onclick="deleteStaff('${staff.Email}')">Delete</button>
+                                <button class="toggle-btn" onclick="toggleStatus('${staff.Email}', '${staff.Status}')">
+                                    ${staff.Status === 'active' ? 'Deactivate' : 'Activate'}
+                                </button>
+                            </td>
+                        </tr>
+                        `;
+                        });
+                    }
+                    tableBody.innerHTML = rowsHTML;
+                })
+                .catch(error => console.error("Error fetching filtered data:", error));
+        }
+        document.getElementById("searchInput").addEventListener("input", applyFilters);
     </script>
 </body>
+
 </html>

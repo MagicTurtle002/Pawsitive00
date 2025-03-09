@@ -361,25 +361,44 @@ table td button:hover {
     padding-bottom: 10px; /* Prevents scrollbar overlap */
 }
 
+
 .scrollable-container {
-    overflow-x: auto;   /* Enables horizontal scrolling */
-    max-width: 100%;    /* Restricts width to the container */
+    max-height: 300px; /* Set a fixed height for scrolling */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border: 1px solid #ccc; /* Optional: Adds a border for clarity */
+    border-radius: 8px; /* Rounded corners */
+    position: relative;
 }
 
-.permissions-table {
-    width: max-content; /* Allows table to extend beyond container */
-    min-width: 100%; /* Ensures it doesn’t shrink smaller than container */
-    border-collapse: collapse;
+.permissions-container {
+    max-height: 300px; /* Set a fixed height */
+    overflow-y: auto; /* Enables vertical scrolling */
+    border: 1px solid #ccc; /* Matches table border for consistency */
+    position: relative;
 }
 
+/* Keeps the header fixed at the top while scrolling */
+.permissions-table thead {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa; /* Matches existing table styles */
+    z-index: 10; /* Ensures the header stays above content */
+}
+
+/* Prevents text from wrapping inside table */
 .permissions-table th, .permissions-table td {
-    white-space: nowrap;  /* Prevents text from wrapping */
+    white-space: nowrap;
     padding: 12px;
     text-align: center;
     border: 1px solid #ccc;
 }
 
-/* Permission column is wider */
+.permissions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Adjusts first column width */
 .permissions-table th:first-child, 
 .permissions-table td:first-child {
     width: 70%; /* More space for Permission text */
@@ -387,7 +406,7 @@ table td button:hover {
     padding-left: 15px;
 }
 
-/* Admin and Veterinarian columns are narrower */
+/* Adjusts other columns */
 .permissions-table th:not(:first-child),
 .permissions-table td:not(:first-child) {
     width: 30%; /* Smaller width for checkboxes */

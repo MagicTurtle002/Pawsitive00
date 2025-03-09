@@ -17,41 +17,29 @@ if (!isset($_SESSION['LoggedIn'])) {
 $userId = $_SESSION['UserId'];
 $userName = isset($_SESSION['FirstName']) ? $_SESSION['FirstName'] . ' ' . $_SESSION['LastName'] : 'Staff';
 $role = $_SESSION['Role'] ?? 'Role';
-logActivity($pdo, $userId, $userName, $role, 'record.php', 'Accessed Record page');
 
-$currentPage = isset($_GET['page']) ? max(0, (int)$_GET['page']) : 0;
+$currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
 $recordsPerPage = 10;
 $offset = $currentPage * $recordsPerPage;
 
 $where_clause = [];
+$where_clause[] = "Pets.IsArchived = 1";
 $params = [];
 
-$where_clause[] = "Pets.IsArchived = 1";
-
-if (isset($_GET['search'])) {
+if (!empty($_GET['search'])) {
     $search = '%' . $_GET['search'] . '%';
-    $where_clause[] = "(Pets.Name LIKE ? 
-                        OR Pets.PetCode LIKE ? 
-                        OR Services.ServiceName LIKE ? 
-                        OR Species.SpeciesName LIKE ?)";
-    $params[] = $search;
-    $params[] = $search;
-    $params[] = $search;
-    $params[] = $search;
+    $where_clause[] = "(LOWER(Pets.PetCode) LIKE LOWER(?) 
+                        OR LOWER(Pets.Name) LIKE LOWER(?) 
+                        OR LOWER(CONCAT(Owners.FirstName, ' ', Owners.LastName)) LIKE LOWER(?) 
+                        OR LOWER(Species.SpeciesName) LIKE LOWER(?))";
+    array_push($params, $search, $search, $search, $search);
 }
 
-if (!empty($_GET['startDate']) && !empty($_GET['endDate'])) {
-    $startDate = $_GET['startDate'];
-    $endDate = $_GET['endDate'];
-    $where_clause[] = "Appointments.AppointmentDate BETWEEN ? AND ?";
-    $params[] = $startDate;
-    $params[] = $endDate;
-}
-
-$where_sql = !empty($where_clause) ? 'WHERE ' . implode(' AND ', $where_clause) : '';
+// ✅ Ensure WHERE SQL is Properly Built
+$where_sql = count($where_clause) > 0 ? 'WHERE ' . implode(' AND ', $where_clause) : '';
 
 $query = "
-    SELECT 
+    SELECT DISTINCT
         Owners.OwnerId,
         CONCAT(Owners.FirstName, ' ', Owners.LastName) AS owner_name,
         Owners.Email,
@@ -64,7 +52,6 @@ $query = "
     LEFT JOIN Pets ON Pets.OwnerId = Owners.OwnerId
     LEFT JOIN Species ON Pets.SpeciesId = Species.Id
     $where_sql
-    GROUP BY Pets.PetId
     ORDER BY Pets.PetCode ASC
     LIMIT ?, ?
 ";
@@ -79,6 +66,7 @@ $countQuery = "
     SELECT COUNT(*) 
     FROM Pets
     LEFT JOIN Owners ON Pets.OwnerId = Owners.OwnerId
+        LEFT JOIN Species ON Pets.SpeciesId = Species.Id
     $where_sql
 ";
 
@@ -90,6 +78,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -98,52 +87,53 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="../assets/css/vet_record.css">
 </head>
+
 <body>
     <div class="sidebar">
-            <div class="logo">
-                <img src="../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
-            </div>
-            <nav>
-                <h3>Hello, <?= htmlspecialchars($userName) ?></h3>
-                <h4><?= htmlspecialchars($role) ?></h4>
-                <br>
-                <ul class="nav-links">
-                    <li><a href="main_dashboard.php">
-                        <img src="../assets/images/Icons/Chart 1.png" alt="Overview Icon">Overview</a></li>
-                    <li class="active"><a href="record.php">
-                        <img src="../assets/images/Icons/Record 3.png" alt="Record Icon">Record</a></li>
-                    <li><a href="staff.php">
-                        <img src="../assets/images/Icons/Staff 1.png" alt="Contacts Icon">Staff</a></li>
-                    <li><a href="appointment.php">
-                        <img src="../assets/images/Icons/Schedule 1.png" alt="Schedule Icon">Schedule</a></li>
-                    <li><a href="invoice_billing_form.php">
-                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice</a></li>
-                </ul>
-            </nav>
-            <div class="sidebar-bottom">
-                <button onclick="window.location.href='settings.php';">
-                    <img src="../assets/images/Icons/Settings 1.png" alt="Settings Icon">Settings
-                </button>
-                <button onclick="window.location.href='../logout.php';">
-                    <img src="../assets/images/Icons/Logout 1.png" alt="Logout Icon">Log out
-                </button>
-            </div>
+        <div class="logo">
+            <img src="../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
         </div>
-        <div class="main-content">
+        <nav>
+            <h3>Hello, <?= htmlspecialchars($userName) ?></h3>
+            <h4><?= htmlspecialchars($role) ?></h4>
+            <br>
+            <ul class="nav-links">
+                <li><a href="main_dashboard.php">
+                        <img src="../assets/images/Icons/Chart 1.png" alt="Overview Icon">Overview</a></li>
+                <li class="active"><a href="record.php">
+                        <img src="../assets/images/Icons/Record 3.png" alt="Record Icon">Record</a></li>
+                <li><a href="staff.php">
+                        <img src="../assets/images/Icons/Staff 1.png" alt="Contacts Icon">Staff</a></li>
+                <li><a href="appointment.php">
+                        <img src="../assets/images/Icons/Schedule 1.png" alt="Schedule Icon">Schedule</a></li>
+                <li><a href="invoice_billing_form.php">
+                        <img src="../assets/images/Icons/Billing 1.png" alt="Schedule Icon">Invoice</a></li>
+            </ul>
+        </nav>
+        <div class="sidebar-bottom">
+            <button onclick="window.location.href='settings.php';">
+                <img src="../assets/images/Icons/Settings 1.png" alt="Settings Icon">Settings
+            </button>
+            <button onclick="window.location.href='../logout.php';">
+                <img src="../assets/images/Icons/Logout 1.png" alt="Logout Icon">Log out
+            </button>
+        </div>
+    </div>
+    <div class="main-content">
         <div class="header">
             <h1>Archive Pets</h1>
             <div class="actions">
                 <form method="GET" action="archive_list.php" class="filter-container">
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        name="search" 
-                        placeholder="Search archive pets..."
-                        value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+
+                    <input type="text" id="searchInput" name="search" placeholder="Search confined pets..."
+                        value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
+                        oninput="applyFilters()">
 
                     <div class="dropdown-filter">
                         <button type="button" class="filter-btn">
@@ -173,36 +163,12 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             </label>
                             <hr>
                             <button type="submit" class="apply-btn">Apply Filter</button>
-                            <button type="button" class="clear-btn" onclick="location.href='record.php'">Clear Filter</button>
+                            <button type="button" class="clear-btn" onclick="location.href='record.php'">Clear
+                                Filter</button>
                         </div>
                     </div>
                 </form>
             </div>
-            
-
-            <!-- Filter na may Calendar -->
-            <!--
-            <div class="actions">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    placeholder="Search records..." 
-                    class="search-bar">
-                <input 
-                    type="date" 
-                    id="startDate" 
-                    class="date-filter" 
-                    value="<?= htmlspecialchars($_GET['startDate'] ?? '') ?>" 
-                    placeholder="Start Date">
-                <input 
-                    type="date" 
-                    id="endDate" 
-                    class="date-filter" 
-                    value="<?= htmlspecialchars($_GET['endDate'] ?? '') ?>" 
-                    placeholder="End Date">
-                <button id="filterBtn" class="filter-btn">Filter</button>
-                <button class="add-btn" onclick="location.href='register_owner.php'">+ Add Owner</button>
-            </div> -->
         </div>
         <table class="staff-table">
             <thead>
@@ -216,7 +182,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                     <th>Action</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="archivedList">
                 <?php if (count($archivedPets) > 0): ?>
                     <?php foreach ($archivedPets as $pet): ?>
                         <tr id="pet-row-<?= $pet['PetId'] ?>">
@@ -261,15 +227,43 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
         </div>
         <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                const toast = document.getElementById("successToast");
-                if (toast) {
-                    // Remove the toast after 4 seconds
-                    setTimeout(() => {
-                        toast.remove();
-                    }, 4000);
-                }
-            });
+            function applyFilters() {
+                const search = document.getElementById("searchInput").value;
+
+                fetch(`../src/archived_search.php?search=${encodeURIComponent(search)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tableBody = document.getElementById("archivedList");
+                        tableBody.innerHTML = "";
+
+                        let rowsHTML = "";
+
+                        if (data.length === 0) {
+                            rowsHTML = `<tr><td colspan="7">No archived pets found.</td></tr>`;
+                        } else {
+                            data.forEach(pet => {
+                                rowsHTML += `
+                            <tr id="pet-row-${pet.PetId}">
+                                <td>${pet.PetCode || 'No information found'}</td>
+                                <td>${pet.PetName || 'No information found'}</td>
+                                <td>${pet.PetType || 'No information found'}</td>
+                                <td>${pet.owner_name || 'No information found'}</td>
+                                <td>${pet.Email || 'No information found'}</td>
+                                <td>${pet.Phone || 'No information found'}</td>
+                                <td>
+                                    <button class="restore-btn" onclick="restorePet(${pet.PetId})">
+                                        Restore
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                            });
+                        }
+
+                        tableBody.innerHTML = rowsHTML;
+                    })
+                    .catch(error => console.error("Error fetching filtered data:", error));
+            }
 
             function restorePet(petId) {
                 Swal.fire({
@@ -287,35 +281,36 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             headers: { "Content-Type": "application/x-www-form-urlencoded" },
                             body: `petId=${petId}`
                         })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                Swal.fire("Restored!", "Pet has been restored successfully.", "success");
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Swal.fire("Restored!", "Pet has been restored successfully.", "success");
 
-                                // Remove the restored pet's row from the table
-                                const row = document.getElementById(`pet-row-${petId}`);
-                                if (row) row.remove();
+                                    // Remove the restored pet's row from the table
+                                    const row = document.getElementById(`pet-row-${petId}`);
+                                    if (row) row.remove();
 
-                                // Check if the table is empty and show a message if needed
-                                const tableBody = document.querySelector("tbody");
-                                if (tableBody.children.length === 0) {
-                                    tableBody.innerHTML = `
+                                    // Check if the table is empty and show a message if needed
+                                    const tableBody = document.querySelector("tbody");
+                                    if (tableBody.children.length === 0) {
+                                        tableBody.innerHTML = `
                                         <tr>
                                             <td colspan="7">No archived pets found.</td>
                                         </tr>
                                     `;
+                                    }
+                                } else {
+                                    Swal.fire("Error!", data.error || "Failed to restore pet.", "error");
                                 }
-                            } else {
-                                Swal.fire("Error!", data.error || "Failed to restore pet.", "error");
-                            }
-                        })
-                        .catch(error => {
-                            console.error("Error restoring pet:", error);
-                            Swal.fire("Error!", "Something went wrong. Please try again.", "error");
-                        });
+                            })
+                            .catch(error => {
+                                console.error("Error restoring pet:", error);
+                                Swal.fire("Error!", "Something went wrong. Please try again.", "error");
+                            });
                     }
                 });
             }
         </script>
 </body>
+
 </html>

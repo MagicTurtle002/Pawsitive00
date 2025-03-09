@@ -20,24 +20,60 @@ $currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
 $recordsPerPage = 10;
 $offset = $currentPage * $recordsPerPage;
 
-$where_clause = [];
-$params = [];
+$conditions = [
+    "Pets.IsArchived = 0",
+    "Pets.IsConfined = 0"
+];
+$bindings = [];
 
 if (!empty($_GET['search'])) {
     $search = '%' . $_GET['search'] . '%';
-    $where_clause[] = "(
-        (Pets.Name LIKE ?)
-        OR (Pets.PetCode LIKE ?)
-        OR (Owners.FirstName LIKE ?)
-        OR (Owners.LastName LIKE ?)
-        OR (Species.SpeciesName LIKE ?)
-    )";
-    $params = array_fill(0, 5, $search); // Ensure exactly 5 placeholders
+    $conditions[] = "(Pets.Name LIKE ? OR Pets.PetCode LIKE ? OR Owners.FirstName LIKE ? OR Owners.LastName LIKE ? OR Species.SpeciesName LIKE ?)";
+    array_push($bindings, $search, $search, $search, $search, $search);
+}
+
+if (!empty($_GET['status']) && is_array($_GET['status'])) {
+    $statusConditions = [];
+    foreach ($_GET['status'] as $status) {
+        $statusConditions[] = "Pets.Status = ?";
+        $bindings[] = $status;
+    }
+    $conditions[] = "(" . implode(" OR ", $statusConditions) . ")";
+}
+
+if (!empty($_GET['pet_type']) && is_array($_GET['pet_type'])) {
+    $petTypeConditions = [];
+    foreach ($_GET['pet_type'] as $petType) {
+        $petTypeConditions[] = "Species.SpeciesName = ?";
+        $bindings[] = $petType;
+    }
+    $conditions[] = "(" . implode(" OR ", $petTypeConditions) . ")";
+}
+
+if (!empty($_GET['vaccination_status'])) {
+    if ($_GET['vaccination_status'] === 'Vaccinated') {
+        $conditions[] = "(Vaccinations.VaccineId IS NOT NULL)";
+    } elseif ($_GET['vaccination_status'] === 'Not Vaccinated') {
+        $conditions[] = "(Vaccinations.VaccineId IS NULL)";
+    }
+}
+
+if (!empty($_GET['from_date']) && !empty($_GET['to_date'])) {
+    $fromDate = $_GET['from_date'];
+    $toDate = $_GET['to_date'];
+    $conditions[] = "(NextVisit BETWEEN ? AND ?)";
+    array_push($bindings, $fromDate, $toDate);
+}
+
+
+$orderBy = "NextVisit DESC"; // Default sorting
+if (!empty($_GET['sort_by']) && $_GET['sort_by'] === 'last_modified') {
+    $orderBy = "Pets.LastModified DESC";
 }
 
 $where_clause[] = "CAST(Pets.IsArchived AS UNSIGNED) = 0 AND CAST(Pets.IsConfined AS UNSIGNED) = 0";
 
-$where_sql = !empty($where_clause) ? 'WHERE ' . implode(' AND ', $where_clause) : '';
+$where_sql = count($conditions) > 0 ? "WHERE " . implode(" AND ", $conditions) : "";
 
 $query = "
 SELECT 
@@ -57,7 +93,7 @@ SELECT
         WHERE Appointments.PetId = Pets.PetId
         AND Appointments.AppointmentDate <= CURDATE()
         AND Appointments.Status IN ('Done', 'Paid')
-        ORDER BY Appointments.AppointmentDate DESC, Appointments.AppointmentTime DESC 
+        ORDER BY Appointments.AppointmentDate DESC 
         LIMIT 1
     ) AS LastVisit,
 
@@ -82,22 +118,20 @@ SELECT
         LIMIT 1
     ) AS LastVisitTime,
 
-        -- Fetch next appointment details
-    (SELECT Appointments.AppointmentDate 
-        FROM Appointments 
-        WHERE Appointments.PetId = Pets.PetId
-        AND Appointments.AppointmentDate >= CURDATE()
-        ORDER BY Appointments.AppointmentDate ASC, Appointments.AppointmentTime ASC 
-        LIMIT 1
-    ) AS NextAppointment,
-
     -- Fetch the next follow-up if available
-    (SELECT FollowUpDate 
-        FROM FollowUps 
-        WHERE FollowUps.RecordId = Pets.PetId 
-        ORDER BY FollowUpDate ASC 
-        LIMIT 1
-    ) AS NextFollowUp,
+    COALESCE(
+        (SELECT FollowUpDate 
+            FROM FollowUps 
+            WHERE FollowUps.RecordId = Pets.PetId 
+            ORDER BY FollowUpDate ASC 
+            LIMIT 1),
+        (SELECT Appointments.AppointmentDate 
+            FROM Appointments 
+            WHERE Appointments.PetId = Pets.PetId
+            AND Appointments.AppointmentDate >= CURDATE()
+            ORDER BY Appointments.AppointmentDate ASC 
+            LIMIT 1)
+    ) AS NextVisit,
 
     -- Fetch Service for the Next Appointment
     (SELECT Services.ServiceName 
@@ -136,27 +170,24 @@ SELECT
 FROM Pets
 INNER JOIN Owners ON Pets.OwnerId = Owners.OwnerId
 LEFT JOIN Species ON Pets.SpeciesId = Species.Id
-WHERE Pets.IsArchived = 0 AND Pets.IsConfined = 0
+$where_sql
 ORDER BY NextVisit DESC
 LIMIT ?, ?;
 ";
-$params[] = $offset;
-$params[] = $recordsPerPage;
+$bindings[] = $offset;
+$bindings[] = $recordsPerPage;
 
 $stmt = $pdo->prepare($query);
-$stmt->execute($params);
+$stmt->execute($bindings);
 $pets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$countQuery = "
-    SELECT COUNT(DISTINCT Pets.PetId) 
-    FROM Pets
-    INNER JOIN Owners ON Pets.OwnerId = Owners.OwnerId
-    LEFT JOIN Species ON Pets.SpeciesId = Species.Id
-    $where_sql
-";
+$countQuery = "SELECT COUNT(DISTINCT Pets.PetId) FROM Pets 
+    INNER JOIN Owners ON Pets.OwnerId = Owners.OwnerId 
+    LEFT JOIN Species ON Pets.SpeciesId = Species.Id 
+    $where_sql";
 
 $countStmt = $pdo->prepare($countQuery);
-$countStmt->execute(array_slice($params, 0, -2));
+$countStmt->execute(array_slice($bindings, 0, -2));
 $totalRecords = $countStmt->fetchColumn();
 $totalPages = ceil($totalRecords / $recordsPerPage);
 ?>
@@ -513,157 +544,6 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 });
             </script>
         <?php endif; ?>
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                document.querySelector(".apply-btn").addEventListener("click", function (event) {
-                    event.preventDefault();
-                    loadFilteredPets();
-                });
-
-                document.querySelector(".clear-btn").addEventListener("click", function () {
-                    resetFilters();
-                });
-
-                // Initialize the three-dot menu on page load
-                initializeThreeDotMenu();
-            });
-
-            // Function to fetch filtered pets and retain styles & interactions
-            function loadFilteredPets() {
-                const formData = new FormData(document.querySelector(".filter-container"));
-                const queryString = new URLSearchParams(formData).toString();
-
-                fetch(`../src/filter_pets.php?${queryString}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const tableBody = document.getElementById("staffList");
-                        tableBody.innerHTML = "";
-
-                        if (data.length === 0) {
-                            tableBody.innerHTML = "<tr><td colspan='6'>No pets found.</td></tr>";
-                            return;
-                        }
-
-                        data.forEach(pet => {
-                            const row = `<tr class="pet-row">
-                    <td>
-                        <div class="hover-container">
-                            ${pet.PetCode ?? 'No information'}
-                            <i class="fas fa-info-circle"></i>
-                            <div class="hover-card">
-                                <div class="profile-info">
-                                    <img src="../assets/images/Icons/Profile User.png" class="profile-img" width="10px">
-                                    <div>
-                                        <strong>${pet.OwnerName}</strong><br>
-                                        <span class="role">Authorized Representative</span>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div><strong>Email:</strong><br> ${pet.Email}</div><br>
-                                <div><strong>Phone Number:</strong><br> ${pet.Phone}</div>
-                                <hr>
-                                <div style="text-align: center; margin-top: 10px;">
-                                    <a href="add_pet.php?owner_id=${pet.OwnerId}" class="add-pet-button">+ Add Pet</a>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="three-dot-menu">
-                            <button class="three-dot-btns">⋮</button>
-                            <div class="dropdown-menus">
-                                <a href="#" onclick="confirmConfine('${pet.PetId}')">Confine Pet</a>
-                                <a href="add_vaccine.php?pet_id=${pet.PetId}">Add Vaccination</a>
-                                <a href="#" onclick="confirmArchive('${pet.PetId}'); return false;">Archive Pet</a>
-                                <a href="#" onclick="confirmDelete('${pet.PetId}'); return false;">Delete</a>
-                            </div>
-                        </div>
-                        <a href="pet_profile.php?pet_id=${pet.PetId}" class="pet-profile-link">${pet.PetName ?? 'No Name'}</a>
-                    </td>
-                    <td>${pet.PetType ?? 'No information'}</td>
-                    <td>${pet.PetStatus ?? 'Unknown'}</td>
-                    <td>${pet.LastVisit ?? 'No past visit'}</td>
-                    <td>${pet.NextVisit ?? 'No upcoming visit'}</td>
-                </tr>`;
-                            tableBody.innerHTML += row;
-                        });
-
-                        initializeThreeDotMenu(); // Reinitialize event listeners after updating table
-                    })
-                    .catch(error => console.error("Error fetching pets:", error));
-            }
-
-            function resetFilters() {
-                document.querySelector(".filter-container").reset();
-                loadFilteredPets();
-            }
-
-            // Function to handle three-dot button clicks dynamically
-            function initializeThreeDotMenu() {
-                document.querySelectorAll(".three-dot-btns").forEach(button => {
-                    button.addEventListener("click", function (event) {
-                        event.stopPropagation(); // Prevents clicking outside from closing immediately
-                        closeOtherDropdowns();
-                        const menu = this.nextElementSibling;
-                        menu.style.display = menu.style.display === "block" ? "none" : "block";
-                    });
-                });
-
-                // Close dropdown when clicking outside
-                document.addEventListener("click", function () {
-                    closeOtherDropdowns();
-                });
-            }
-
-            // Function to close all open dropdowns
-            function closeOtherDropdowns() {
-                document.querySelectorAll(".dropdown-menus").forEach(menu => {
-                    menu.style.display = "none";
-                });
-            }
-        </script>
-        <script>
-            function confirmDelete(petId) {
-                if (!petId || isNaN(petId)) {
-                    Swal.fire("Error!", "Invalid Pet ID.", "error");
-                    return;
-                }
-
-                Swal.fire({
-                    title: "Are you sure?",
-                    text: "This action will permanently delete the pet record.",
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#d33",
-                    cancelButtonColor: "#3085d6",
-                    confirmButtonText: "Yes, delete it!",
-                    cancelButtonText: "Cancel"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        console.log("Sending delete request for Pet ID:", petId);
-                        fetch("../src/delete_pet.php", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ pet_id: petId })
-                        })
-                            .then(response => response.json())
-                            .then(data => {
-                                console.log("Response from server:", data);
-                                if (data.success) {
-                                    Swal.fire("Deleted!", "The pet record has been deleted.", "success")
-                                        .then(() => location.reload());
-                                } else {
-                                    Swal.fire("Error!", data.error || "Failed to delete the pet.", "error");
-                                }
-                            })
-                            .catch(error => {
-                                console.error("Error deleting pet:", error);
-                                Swal.fire("Error!", "An error occurred while deleting the pet.", "error");
-                            });
-                    }
-                });
-            }
-        </script>
         <script src="../assets/js/record.js?v=<?= time(); ?>"></script>
 </body>
 
