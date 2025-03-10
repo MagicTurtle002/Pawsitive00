@@ -370,7 +370,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <div id="menu-<?= $appointment['AppointmentId']; ?>" class="dropdown-content"
                                                 style="display: none;">
                                                 <a href="#" 
-                                                    onclick="updateAppointmentStatus(<?= $appointment['AppointmentId']; ?>, 'Declined', <?= $appointment['PetId']; ?>); return false;">
+                                                    onclick="updateAppointmentStatus(<?= $appointment['AppointmentId']; ?>, 'Done', <?= $appointment['PetId']; ?>); return false;"
+                                                    <?= ($appointment['Status'] === 'Done' || $appointment['Status'] === 'Declined') ? 'style="pointer-events: none; color: gray; cursor: not-allowed;"' : ''; ?>>
+                                                    Mark as Done
+                                                </a>
+                                                <a href="#"
+                                                    onclick="updateAppointmentStatus(<?= $appointment['AppointmentId']; ?>, 'Declined', <?= $appointment['PetId']; ?>); return false;"
+                                                    <?= ($appointment['Status'] === 'Done' || $appointment['Status'] === 'Declined') ? 'style="pointer-events: none; color: gray; cursor: not-allowed;"' : ''; ?>>
                                                     Decline
                                                 </a>
                                             </div>
@@ -393,15 +399,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 <button class="status-button" disabled>Invoice and Billing</button>
                                             <?php endif; ?>
                                         <?php else: ?>
-                                            <?php if (hasPermission($pdo, 'Modify Appointment Status')): ?>
-                                                <button class="status-button"
-                                                    onclick="updateAppointmentStatus(<?= htmlspecialchars($appointment['AppointmentId']); ?>, 'Done', <?= htmlspecialchars($appointment['PetId']); ?>)">
-                                                    Mark as Done
-                                                </button>
-                                            <?php else: ?>
-                                                <button class="status-button" disabled>Mark as Done</button>
-                                            <?php endif; ?>
-
                                             <?php if ($appointment['Status'] === 'Confirmed'): ?>
                                                 <?php if ($appointment['ServiceName'] === 'Pet Vaccination & Deworming'): ?>
                                                     <button
@@ -461,24 +458,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
-    <div id="toast" class="success-message" style="display: none;">
-        <i class="fas fa-check-circle"></i> <!-- Optional Font Awesome icon -->
-        <span id="toast-message"></span>
-    </div>
-    <script>
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toast-message');
-
-            toastMessage.textContent = message;
-            toast.classList.add('show');
-
-            // Hide after 4 seconds
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 4000);
-        }
-    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const chartElement = document.getElementById('appointmentsChart');
