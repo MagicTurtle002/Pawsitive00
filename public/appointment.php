@@ -322,6 +322,8 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
                 </select>
             </div>
         </header>
+        <hr>
+        <br>
         <div id="calendar"></div>
         <div class="appointment-list">
             <?php foreach ($appointments as $appointment): ?>
@@ -339,6 +341,8 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
     <form action="" method="POST" class="appointment-form" novalidate>
         <div class="right-section">
             <h2>Appointment Section</h2>
+            <br>
+            <hr>
             <div class="appointment-form-buttons">
                 <a href="appointment_list.php" class="btn btn-primary view-all-btn">View All Appointments</a>
             </div>

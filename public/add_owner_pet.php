@@ -381,15 +381,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 
     <div class="main-content">
-        <h1>Register Pet Owner</h1>
         <form class="staff-form" action="add_owner_pet.php" method="POST" novalidate>
+        <h1>Register Pet Owner</h1>
+        <hr>
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
-            <?php if ($success): ?>
-                <div class="success-message">
-                    <i class="fas fa-check-circle"></i>
-                    <?= htmlspecialchars($success) ?>
-                </div>
-            <?php endif; ?>
+            <br>
             <h2>Owner Information</h2>
             <br>
             <div class="form-group">
@@ -439,6 +435,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </div>
             </div>
+            <br>
+            <hr>
+            <br>
             <h2>Pet Information</h2>
             <br>
             <div class="form-group">
@@ -542,7 +541,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </div>
             </div>
-
+            <br>
+                            <hr>
+                            <br>
             <div class="form-buttons">
                 <button type="button" class="cancel-btn" onclick="window.location.href='record.php'">Cancel</button>
                 <button type="button" class="confirm-btn" onclick="confirmSubmission()">Add Owner and Pet</button>

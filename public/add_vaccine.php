@@ -285,9 +285,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </div>
     </div>
     <div class="main-content">
-        <h2>Add Vaccination</h2>
         <form class="staff-form" action="add_vaccine.php?pet_id=<?= htmlspecialchars($pet['PetId']) ?>" method="POST"
             novalidate>
+            <h1>Add Vaccination</h1>
+            <hr>
+            <br>
             <input type="hidden" name="pet_id" value="<?= htmlspecialchars($pet['PetId'] ?? '', ENT_QUOTES); ?>">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
             <h2>Vaccine Details</h2>
@@ -371,7 +373,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </div>
                 </div>
             </div>
-
+            <hr>
+            <br>
             <div class="form-buttons">
                 <button type="submit" class="confirm-btn" onclick="confirmSubmission()">Save Vaccine</button>
             </div>

@@ -1,5 +1,11 @@
 <?php
 require '../config/dbh.inc.php';
+require __DIR__ . '/../src/helpers/permissions.php'; // ✅ Ensure permission functions are included
+
+session_start();
+
+// ✅ Get user permissions
+$canManageStaff = hasPermission($pdo, 'Manage Staff'); // Check if user has 'Manage Staff' permission
 
 $where_clause = [];
 $params = [];
@@ -39,5 +45,8 @@ $staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // ✅ Return JSON Response
 header('Content-Type: application/json');
-echo json_encode($staff);
+echo json_encode([
+    "staff" => $staff,
+    "canManageStaff" => $canManageStaff  // ✅ Include permission in response
+]);
 ?>

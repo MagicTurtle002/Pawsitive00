@@ -114,22 +114,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // **Send Welcome Email with Temporary Password**
         $mail = new PHPMailer(true);
         $mail->isSMTP();
-        $mail->Host = 'smtp.hostinger.com';
+        $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'no-reply@vetpawsitive.com';
-        $mail->Password = 'Pawsitive3.';
+        $mail->Username = 'danvincentteodoro11@gmail.com';
+        $mail->Password = 'fhvt onlo hdwm wjlx';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
+        $mail->SMTPDebug = 0;
 
-        $mail->setFrom('no-reply@vetpawsitive.com', 'Pawsitive HR');
-        $mail->addReplyTo('support@pawsitive.com', 'Pawsitive Support');
+        $mail->setFrom('danvincentteodoro11@gmail.com', 'Pawsitive HR');
+        $mail->addReplyTo('danvincentteodoro11@gmail.com', 'Pawsitive Support');
         $mail->addAddress($email);
 
         $mail->isHTML(true);
         $mail->Subject = "Welcome to Pawsitive - Your Account Details";
 
         $login_link = "https://www.vetpawsitive.com/public/staff_login.php";
-        $contact_email = "support@pawsitive.com";
+        $contact_email = "danvincentteodoro11@gmail.com";
 
         $mail->Body = "
 <!DOCTYPE html>

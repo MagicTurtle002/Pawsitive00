@@ -111,11 +111,9 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         if ($_POST['action'] === 'backup') {
-            // Redirect or execute backup logic
             header("Location: ../config/backup.php");
             exit;
         } elseif ($_POST['action'] === 'restore') {
-            // Redirect or execute restore logic
             header("Location: ../config/restore_backup.php");
             exit;
         }
@@ -210,64 +208,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </aside>
         <main class="settings-main">
             <section id="user">
-                <h3>User Profile</h3>
                 <form action="../src/update_profile.php" method="POST" enctype="multipart/form-data" id="profileForm"
                     novalidate>
-                    <?php if (isset($_SESSION['success_message'])): ?>
-                        <div class="alert success-alert"><?= htmlspecialchars($_SESSION['success_message']) ?></div>
-                        <?php unset($_SESSION['success_message']); ?>
-                    <?php endif; ?>
-
-                    <?php if (isset($_SESSION['error_message'])): ?>
-                        <div class="alert error-alert"><?= htmlspecialchars($_SESSION['error_message']) ?></div>
-                        <?php unset($_SESSION['error_message']); ?>
-                    <?php endif; ?>
+                    <h3>User Profile</h3>
                     <input type="hidden" name="UserId" value="<?= htmlspecialchars($userId) ?>">
 
-                    <label for="FirstName">First Name:</label>
-                    <input type="text" id="FirstName" name="FirstName"
-                        value="<?= htmlspecialchars($_SESSION['FirstName'] ?? '') ?>" required>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label for="FirstName">First Name:</label>
+                            <input type="text" id="FirstName" name="FirstName"
+                                value="<?= htmlspecialchars($_SESSION['FirstName'] ?? '') ?>" required>
+                        </div>
 
-                    <label for="LastName">Last Name:</label>
-                    <input type="text" id="LastName" name="LastName"
-                        value="<?= htmlspecialchars($_SESSION['LastName'] ?? '') ?>" required>
-
-                    <label for="Email">Email:</label>
-                    <input type="email" id="Email" name="Email"
-                        value="<?= htmlspecialchars($_SESSION['Email'] ?? '') ?>" required>
-
-                    <label for="PhoneNumber">Phone Number:</label>
-                    <div style="display: flex;">
-                        <!-- Read-only field for +63 -->
-                        <input type="text" name="CountryCode" value="+63" readonly
-                            style="width: 70px; text-align: center; border: 1px solid var(--color-3); border-right: none; border-radius: 5px 0 0 5px; background-color: #f0f0f0;">
-
-                        <!-- Editable field for the phone number -->
-                        <input type="text" id="PhoneNumber" name="PhoneNumber" pattern="^[0-9]{10}$" maxlength="10"
-                            value="<?= htmlspecialchars(substr($_SESSION['PhoneNumber'] ?? '', 3)) ?>" required
-                            placeholder="9123456789"
-                            style="flex: 1; border: 1px solid var(--color-3); border-radius: 0 5px 5px 0; padding: 8px;">
-                    </div>
-                    <div id="phone-error" style="color: red; font-size: 0.9em; margin-top: 5px;">
-                        <?php
-                        if (isset($_SESSION['phone_error'])):
-                            echo htmlspecialchars($_SESSION['phone_error']);
-                            unset($_SESSION['phone_error']); // ✅ Clear the error after displaying
-                        endif;
-                        ?>
+                        <div style="flex: 1;">
+                            <label for="LastName">Last Name:</label>
+                            <input type="text" id="LastName" name="LastName"
+                                value="<?= htmlspecialchars($_SESSION['LastName'] ?? '') ?>" required>
+                        </div>
                     </div>
 
-                    <!--<label for="ProfilePicture">Profile Picture:</label>
-                    <input type="file" id="ProfilePicture" name="ProfilePicture" accept="image/*">
-                    <?php if (!empty($_SESSION['ProfilePicture'])): ?>
-                        <img src="../uploads/profile_pictures/<?= htmlspecialchars($_SESSION['ProfilePicture']) ?>" alt="Profile Picture" width="100">
-                    <?php endif; ?>-->
+                    <div style="display: flex; gap: 10px;">
+
+                        <div style="flex: 1;">
+                            <label for="Email">Email:</label>
+                            <input type="email" id="Email" name="Email"
+                                value="<?= htmlspecialchars($_SESSION['Email'] ?? '') ?>" required>
+                        </div>
+
+                        <div style="flex: 1;">
+                            <label for="PhoneNumber">Phone Number:</label>
+                            <div style="display: flex;">
+                                <input type="text" name="CountryCode" value="+63" readonly
+                                    style="width: 70px; text-align: center; border: 1px solid var(--color-3); border-right: none; border-radius: 5px 0 0 5px; background-color: #f0f0f0;">
+
+                                <input type="text" id="PhoneNumber" name="PhoneNumber" pattern="^[0-9]{10}$"
+                                    maxlength="10" value="<?= htmlspecialchars($_SESSION['PhoneNumber'] ?? '') ?>"
+                                    required placeholder="9123456789"
+                                    style="flex: 1; border: 1px solid var(--color-3); border-radius: 0 5px 5px 0; padding: 8px;">
+                            </div>
+                        </div>
+                    </div>
                     <button type="submit" name="update_profile">Save Changes</button>
                 </form>
             </section>
             <section id="roles">
-                <h3>Manage Roles</h3>
                 <form action="../src/add_roles.php" method="POST">
+                    <h3>Manage Roles</h3>
                     <div class="form-group">
                         <label for="role_name">Role Name:</label>
                         <input type="text" id="role_name" name="role_name" placeholder="Enter role name" required>
@@ -286,7 +272,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <tr>
                                         <td><?= htmlspecialchars($permission['PermissionName']); ?></td>
                                         <td style="text-align: center;">
-                                            <input type="checkbox" name="permissions[]" value="<?= $permission['PermissionId']; ?>">
+                                            <input type="checkbox" name="permissions[]"
+                                                value="<?= $permission['PermissionId']; ?>">
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -297,21 +284,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </form>
             </section>
             <section id="features">
-                <h3>Feature Access</h3>
-                <?php if (isset($_SESSION['success_message'])): ?>
-                    <div class="alert success-alert">
-                        <?= htmlspecialchars($_SESSION['success_message']); ?>
-                    </div>
-                    <?php unset($_SESSION['success_message']); ?> <!-- Remove after displaying -->
-                <?php endif; ?>
-
-                <?php if (isset($_SESSION['error_message'])): ?>
-                    <div class="alert error-alert">
-                        <?= htmlspecialchars($_SESSION['error_message']); ?>
-                    </div>
-                    <?php unset($_SESSION['error_message']); ?> <!-- Remove after displaying -->
-                <?php endif; ?>
                 <form action="../src/update_permissions.php" method="POST">
+                    <h3>Feature Access</h3>
                     <div class="scrollable-container">
                         <table class="permissions-table">
                             <thead>
@@ -403,8 +377,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </table>
             </section>
             <section id="backup-recovery">
-                <h3>Backup and Recovery</h3>
                 <form id="backup-form">
+                    <h3>Backup and Recovery</h3>
+                    <hr>
+                    <br>
                     <button type="button" id="create-backup">Create Backup</button>
                     <button type="button" id="restore-backup">Restore from Backup</button>
                 </form>

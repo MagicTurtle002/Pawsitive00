@@ -22,7 +22,6 @@ $offset = $currentPage * $recordsPerPage;
 
 $conditions = [
     "Pets.IsArchived = 0",
-    "Pets.IsConfined = 0"
 ];
 $bindings = [];
 
@@ -66,12 +65,12 @@ if (!empty($_GET['from_date']) && !empty($_GET['to_date'])) {
 }
 
 
-$orderBy = "NextVisit DESC"; // Default sorting
+$orderBy = "NextVisit DESC";
 if (!empty($_GET['sort_by']) && $_GET['sort_by'] === 'last_modified') {
     $orderBy = "Pets.LastModified DESC";
 }
 
-$where_clause[] = "CAST(Pets.IsArchived AS UNSIGNED) = 0 AND CAST(Pets.IsConfined AS UNSIGNED) = 0";
+$where_clause[] = "CAST(Pets.IsArchived AS UNSIGNED)";
 
 $where_sql = count($conditions) > 0 ? "WHERE " . implode(" AND ", $conditions) : "";
 
@@ -354,7 +353,6 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 </form>
 
                 <div class="button-group">
-                    <button class="add-btn" onclick="location.href='confined_pets.php'">Confined Pet</button>
                     <button class="add-btn" onclick="location.href='archive_list.php'">Archive</button>
                     <button class="add-btn" onclick="location.href='add_owner_pet.php'">+ Add Owner and Pet</button>
                 </div>
@@ -394,12 +392,12 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                                             <strong>Authorized Representative:</strong><br>
                                             <?= htmlspecialchars($pet['Authorized Representative'] ?? 'No information found') ?>
                                         </div>
-                                        <br>
+                                        <hr>
                                         <div>
                                             <strong>Email:</strong><br>
                                             <?= htmlspecialchars($pet['Email']) ?>
                                         </div>
-                                        <br>
+                                        <hr>
                                         <div>
                                             <strong>Phone Number:</strong><br>
                                             <?= htmlspecialchars($pet['Phone']) ?>
@@ -418,8 +416,6 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                                 <div class="three-dot-menu" style="display: inline-block;">
                                     <button class="three-dot-btns">⋮</button>
                                     <div class="dropdown-menus" style="display: none;">
-                                        <a href="#" onclick="confirmConfine('<?= htmlspecialchars($pet['PetId']) ?>')">Confine
-                                            Pet</a>
                                         <a href="add_vaccine.php?pet_id=<?= htmlspecialchars($pet['PetId']) ?>">Add
                                             Vaccination</a>
                                         <a href="#"
@@ -508,17 +504,48 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 <?php endif; ?>
             </tbody>
         </table>
-        <div class="pagination">
-            <a href="?page=<?= max(0, $currentPage - 1) ?>">&laquo; Previous</a>
-            <?php for ($i = 0; $i < $totalPages; $i++): ?>
-                <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
-                    <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active"' : '' ?>><?= $i + 1 ?></a>
-                <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
-                    <span style="display: inline-block; margin-top: 15px;">...</span>
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <?php if ($totalPages > 1): ?>
+                    <!-- First Page Link -->
+                    <?php if ($currentPage > 0): ?>
+                        <li><a href="?page=0" aria-label="First">First</a></li>
+                    <?php endif; ?>
+
+                    <!-- Previous Page Link -->
+                    <?php if ($currentPage > 0): ?>
+                        <li><a href="?page=<?= max(0, $currentPage - 1) ?>" aria-label="Previous">&laquo; Previous</a></li>
+                    <?php endif; ?>
                 <?php endif; ?>
-            <?php endfor; ?>
-            <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
-        </div>
+
+                <!-- Page Numbers -->
+                <?php for ($i = 0; $i < $totalPages; $i++): ?>
+                    <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
+                        <li>
+                            <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active" aria-current="page"' : '' ?>>
+                                <?= $i + 1 ?>
+                            </a>
+                        </li>
+                    <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
+                        <li><span>...</span></li>
+                    <?php endif; ?>
+                <?php endfor; ?>
+
+                <?php if ($totalPages > 1): ?>
+                    <!-- Next Page Link -->
+                    <?php if ($currentPage < $totalPages - 1): ?>
+                        <li><a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>" aria-label="Next">Next &raquo;</a>
+                        </li>
+                    <?php endif; ?>
+
+                    <!-- Last Page Link -->
+                    <?php if ($currentPage < $totalPages - 1): ?>
+                        <li><a href="?page=<?= $totalPages - 1 ?>" aria-label="Last">Last</a></li>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </ul>
+            <p class="pagination-info">Page <?= $currentPage + 1 ?> of <?= $totalPages ?></p>
+        </nav>
         <?php if (isset($_SESSION['errors']['duplicate'])): ?>
             <script>
                 document.addEventListener("DOMContentLoaded", function () {
@@ -530,7 +557,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                     });
                 });
             </script>
-            <?php unset($_SESSION['errors']['duplicate']); // Clear error after displaying ?>
+            <?php unset($_SESSION['errors']['duplicate']); ?>
         <?php endif; ?>
         <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
             <script>

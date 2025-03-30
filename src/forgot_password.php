@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if (sendResetEmail($email, $resetToken)) {
                         $_SESSION['successMessage'] = "A password reset link has been sent to your email.";
-                        header("Location: ../public/forgot_password.php");
+                        header("Location: ../public/forgot_password_staff.php");
                         exit();
                     } else {
                         $errors[] = "We could not send the email. Please try again later.";
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $_SESSION['errors'] = $errors;
     $_SESSION['old_email'] = $_POST['email'] ?? '';
-    header("Location: ../public/forgot_password.php");
+    header("Location: ../public/forgot_password_staff.php");
     exit();
 }
 
@@ -106,15 +106,15 @@ function sendResetEmail($email, $token)
 
     try {
         $mail->isSMTP();
-        $mail->Host = 'smtp.hostinger.com';
+        $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'no-reply@vetpawsitive.com';
-        $mail->Password = 'Pawsitive3.';
+        $mail->Username = 'danvincentteodoro11@gmail.com';
+        $mail->Password = 'fhvt onlo hdwm wjlx';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-        $mail->Port = 465;
+        $mail->Port = 587;
 
-        $mail->setFrom('no-reply@vetpawsitive.com', 'Pawsitive Support');
-        $mail->addReplyTo('support@vetpawsitive.com', 'Pawsitive Support');
+        $mail->setFrom('danvincentteodoro11@gmail.com', 'Pawsitive Support');
+        $mail->addReplyTo('danvincentteodoro11@gmail.com', 'Pawsitive Support');
         $mail->addAddress($email);
 
         $mail->isHTML(true);

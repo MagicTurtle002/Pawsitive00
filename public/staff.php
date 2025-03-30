@@ -82,10 +82,6 @@ $query .= " LIMIT ?, ?";
 $params[] = $offset;
 $params[] = $recordsPerPage;
 
-$stmt = $pdo->prepare($query);
-$stmt->execute($params);
-$staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 try {
     $stmt = $pdo->prepare($query);
     $stmt->execute($params);
@@ -245,7 +241,7 @@ try {
                     <input type="text" id="searchInput" name="search" placeholder="Search staff..."
                         value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
                         oninput="applyFilters()">
-                        
+
                     <div class="dropdown">
                         <button class="filter-btn">
                             <i class="fa fa-filter"></i> Filter
@@ -284,7 +280,9 @@ try {
                     <th>Name</th>
                     <th>Role</th>
                     <th>Employment Type</th>
-                    <th>Actions</th>
+                    <?php if (hasPermission($pdo, 'Manage Staff')): ?>
+                        <th>Actions</th>
+                    <?php endif; ?>
                 </tr>
             </thead>
             <tbody id="staffList">
@@ -310,12 +308,12 @@ try {
                                             <strong>Updated At:</strong><br>
                                             <?= htmlspecialchars($staff_member['UpdatedAt'] ?? 'No update yet') ?>
                                         </div>
-                                        <br>
+                                        <hr>
                                         <div>
                                             <strong>Email:</strong><br>
                                             <?= htmlspecialchars($staff_member['Email']) ?>
                                         </div>
-                                        <br>
+                                        <hr>
                                         <div>
                                             <strong>Phone Number:</strong><br>
                                             <?= htmlspecialchars($staff_member['PhoneNumber'] ?? 'No information found') ?>
@@ -340,23 +338,55 @@ try {
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6">No staff members found.</td>
+                        <td colspan="5">No staff members found.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
         </table>
 
-        <div class="pagination">
-            <a href="?page=<?= max(0, $currentPage - 1) ?>">&laquo; Previous</a>
-            <?php for ($i = 0; $i < $totalPages; $i++): ?>
-                <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
-                    <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active"' : '' ?>><?= $i + 1 ?></a>
-                <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
-                    <span style="display: inline-block; margin-top: 15px;">...</span>
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <?php if ($totalPages > 1): ?>
+                    <!-- First Page Link -->
+                    <?php if ($currentPage > 0): ?>
+                        <li><a href="?page=0" aria-label="First">First</a></li>
+                    <?php endif; ?>
+
+                    <!-- Previous Page Link -->
+                    <?php if ($currentPage > 0): ?>
+                        <li><a href="?page=<?= max(0, $currentPage - 1) ?>" aria-label="Previous">&laquo; Previous</a></li>
+                    <?php endif; ?>
                 <?php endif; ?>
-            <?php endfor; ?>
-            <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
-        </div>
+
+                <!-- Page Numbers -->
+                <?php for ($i = 0; $i < $totalPages; $i++): ?>
+                    <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
+                        <li>
+                            <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active" aria-current="page"' : '' ?>>
+                                <?= $i + 1 ?>
+                            </a>
+                        </li>
+                    <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
+                        <li><span>...</span></li>
+                    <?php endif; ?>
+                <?php endfor; ?>
+
+                <?php if ($totalPages > 1): ?>
+                    <!-- Next Page Link -->
+                    <?php if ($currentPage < $totalPages - 1): ?>
+                        <li><a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>" aria-label="Next">Next &raquo;</a>
+                        </li>
+                    <?php endif; ?>
+
+                    <!-- Last Page Link -->
+                    <?php if ($currentPage < $totalPages - 1): ?>
+                        <li><a href="?page=<?= $totalPages - 1 ?>" aria-label="Last">Last</a></li>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </ul>
+            <p class="pagination-info">Page <?= $currentPage + 1 ?> of <?= $totalPages ?></p>
+        </nav>
+
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -612,41 +642,86 @@ try {
         });
 
         function applyFilters() {
-            const search = document.getElementById("searchInput").value
+    const search = document.getElementById("searchInput").value;
 
-            fetch(`../src/staff_search.php?search=${encodeURIComponent(search)}`)
-                .then(response => response.json())
-                .then(data => {
-                    const tableBody = document.getElementById("staffList");
-                    tableBody.innerHTML = "";
+    fetch(`../src/staff_search.php?search=${encodeURIComponent(search)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.staff) {
+                console.error("Invalid response format:", data);
+                return;
+            }
 
-                    let rowsHTML = "";
+            const tableBody = document.getElementById("staffList");
+            tableBody.innerHTML = ""; // ✅ Clears previous results properly
 
-                    if (data.length === 0) {
-                        rowsHTML = `<tr><td colspan="6">No staff members found.</td></tr>`;
-                    } else {
-                        data.forEach(staff => {
-                            rowsHTML += `
-                        <tr>
-                            <td>${staff.StaffCode || 'N/A'}</td>
-                            <td>${staff.name || 'N/A'}</td>
-                            <td>${staff.role || 'No Role Assigned'}</td>
-                            <td>${staff.EmploymentType || 'N/A'}</td>
-                            <td>
-                                <button class="edit-btn" onclick="editStaff('${staff.Email}')">Edit</button>
-                                <button class="delete-btn" onclick="deleteStaff('${staff.Email}')">Delete</button>
-                                <button class="toggle-btn" onclick="toggleStatus('${staff.Email}', '${staff.Status}')">
-                                    ${staff.Status === 'active' ? 'Deactivate' : 'Activate'}
-                                </button>
-                            </td>
-                        </tr>
-                        `;
-                        });
-                    }
-                    tableBody.innerHTML = rowsHTML;
-                })
-                .catch(error => console.error("Error fetching filtered data:", error));
-        }
+            if (data.staff.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 10px;">No staff members found.</td></tr>`;
+                return; // ✅ Stops further execution if empty
+            }
+
+            let rowsHTML = "";
+
+            data.staff.forEach(staff => {
+                let actionButtons = "";
+
+                if (data.canManageStaff) {
+                    actionButtons = `
+                        <button class="edit-btn" onclick="editStaff('${staff.Email}')">Edit</button>
+                        <button class="delete-btn" onclick="deleteStaff('${staff.Email}')">Delete</button>
+                        <button class="toggle-btn" onclick="toggleStatus('${staff.Email}', '${staff.Status}')">
+                            ${staff.Status === 'active' ? 'Deactivate' : 'Activate'}
+                        </button>
+                    `;
+                }
+
+                rowsHTML += `
+                    <tr>
+                        <td>${staff.StaffCode || 'N/A'}</td>
+                        <td>
+                            <div class="hover-container">
+                                ${staff.name || 'N/A'}
+                                <i class="fas fa-info-circle"></i> <!-- Info Icon -->
+                                <div class="hover-card">
+                                    <div class="profile-info">
+                                        <img src="../assets/images/Icons/Profile User.png" alt="Profile Pic" class="profile-img">
+                                        <div>
+                                            <strong>${staff.name}</strong><br>
+                                            Position: ${staff.role || 'No Role Assigned'}
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div>
+                                        <strong>Updated At:</strong><br>
+                                        ${staff.UpdatedAt || 'No update yet'}
+                                    </div>
+                                    <hr>
+                                    <div>
+                                        <strong>Email:</strong><br>
+                                        ${staff.Email}
+                                    </div>
+                                    <hr>
+                                    <div>
+                                        <strong>Phone Number:</strong><br>
+                                        ${staff.PhoneNumber || 'No information found'}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${staff.role || 'No Role Assigned'}</td>
+                        <td>${staff.EmploymentType || 'N/A'}</td>
+                        <td>${actionButtons.trim() || '-'}</td> <!-- ✅ Prevents empty cells from affecting layout -->
+                    </tr>
+                `;
+            });
+
+            tableBody.innerHTML = rowsHTML;
+        })
+        .catch(error => console.error("Error fetching filtered data:", error));
+}
+
+
+
         document.getElementById("searchInput").addEventListener("input", applyFilters);
     </script>
 </body>

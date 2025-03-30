@@ -133,15 +133,11 @@ try {
     </div>
 
     <div class="main-content">
-    <h1>Add New Staff</h1>
     <form class="staff-form" action="../src/add_staff.php" method="POST" novalidate>
         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
-        <?php if ($success): ?>
-            <div class="success-message">
-                <i class="fas fa-check-circle"></i>
-                    <?= htmlspecialchars($success) ?>
-            </div>
-        <?php endif; ?>
+        <h1>Add New Staff</h1>
+        <hr>
+        <br>
         <h2>Profile Information</h2>
         <br>
         <div class="form-group">
@@ -182,6 +178,8 @@ try {
                 </div>
             </div>
         </div>   
+        <hr>
+        <br>
         <h2>Position Information</h2>
         <br>
         <div class="form-group">
@@ -209,6 +207,8 @@ try {
                     </select>
                 </div>
             </div>
+            <br>
+            <hr>
         </div>   
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
             <div class="form-buttons">

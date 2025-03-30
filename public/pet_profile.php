@@ -423,7 +423,7 @@ try {
                                     </td>
                                     <td><?= htmlspecialchars(!empty($vaccination['LotNumber']) ? $vaccination['LotNumber'] : 'No information found') ?>
                                     </td>
-                                    <td><?= htmlspecialchars(!empty($vaccination['Notes']) ? $vaccination['Notes'] : 'No information found') ?>
+                                    <td><?= htmlspecialchars(!empty($vaccination['Notes']) ? $vaccination['Notes'] : 'None') ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

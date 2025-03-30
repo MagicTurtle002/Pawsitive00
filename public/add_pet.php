@@ -305,8 +305,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <div class="main-content">
-        <h1>Add Pet for <?= htmlspecialchars($owner_name); ?></h1>
         <form class="staff-form" action="add_pet.php" method="POST" novalidate>
+        <h1>Add Pet for <?= htmlspecialchars($owner_name); ?></h1>
+        <hr>
+        <br>
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
             <h2>Pet Information</h2>
             <br>
@@ -405,6 +407,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="date" id="LastVisit" name="LastVisit">
                 </div>
             </div>
+            <br>
+            <hr>
+            <br>
             <div class="form-buttons">
                 <button type="button" class="cancel-btn">Cancel</button>
                 <button type="submit" class="regowner-btn">Add Pet</button>
