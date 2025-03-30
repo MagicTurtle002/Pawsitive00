@@ -11,7 +11,7 @@ if ($pet_id <= 0) {
 
 try {
     $stmt = $pdo->prepare("
-        SELECT Weight, RecordedAt 
+        SELECT Weight, Temperature, RecordedAt 
         FROM PetWeights 
         WHERE PetId = :pet_id 
         ORDER BY RecordedAt ASC

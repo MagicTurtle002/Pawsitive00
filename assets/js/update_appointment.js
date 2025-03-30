@@ -112,9 +112,6 @@ function updateAppointmentUI(appointmentId, petId, status, reason = null) {
               createButton(buttonsContainer, "Start Consultation", "status-button", () =>
                   promptVitalsUpdate(appointmentId, petId)
               );
-              createButton(buttonsContainer, "Mark as Done", "status-button", () =>
-                  updateAppointmentStatus(appointmentId, "Done", petId)
-              );
           }
       }
   }

@@ -261,9 +261,9 @@ try {
         <h1 style="text-align: center; font-size: 40px; color: #156f77">Pet Profile</h1>
         <div class="profile">
             <div class="profile-image">
-                <img src="<?= !empty($pet['ProfilePicture']) && file_exists("../uploads/pet_avatars/" . $pet['ProfilePicture']) 
-                            ? "../uploads/pet_avatars/" . htmlspecialchars($pet['ProfilePicture']) 
-                            : '../assets/images/Icons/Profile User.png'; ?>" 
+                <img src="<?= !empty($pet['ProfilePicture']) && file_exists("../uploads/pet_avatars/" . $pet['ProfilePicture'])
+                    ? "../uploads/pet_avatars/" . htmlspecialchars($pet['ProfilePicture'])
+                    : '../assets/images/Icons/Profile User.png'; ?>"
                     alt="<?= htmlspecialchars($pet['PetName']); ?>'s Profile Picture">
             </div>
             <div class="profile-details-horizontal">
@@ -439,30 +439,36 @@ try {
         <br>
         <h2>Pet Weight Over Time</h2>
         <canvas id="weightChart" width="800" height="400"></canvas>
-    </div>
-    <div id="toastContainer" class="toast-container">
-        <?php if (!empty($_SESSION['success'])): ?>
-            <div class="success-toast" id="successToast">
-                <i class="fas fa-check-circle"></i>
-                <?= htmlspecialchars($_SESSION['success']); ?>
-            </div>
-            <?php unset($_SESSION['success']); ?>
-        <?php endif; ?>
-    </div>
+        <br>
+        <h2>Pet Temperature Over Time</h2>
+        <canvas id="temperatureChart" width="800" height="400"></canvas>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const ctx = document.getElementById('weightChart').getContext('2d');
             const petId = new URLSearchParams(window.location.search).get('pet_id');
 
             fetch(`../src/fetch_weight.php?pet_id=${petId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.data.length > 0) {
-                        const labels = data.data.map(item => item.RecordedAt);
-                        const weights = data.data.map(item => parseFloat(item.Weight));
+                        const labels = data.data.map(item => {
+                            const date = new Date(item.RecordedAt);
+                            return date.toLocaleString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: 'numeric',
+                                minute: 'numeric',
+                                hour12: true
+                            });
+                        });
 
-                        new Chart(ctx, {
+                        const weights = data.data.map(item => parseFloat(item.Weight));
+                        const temperatures = data.data.map(item => parseFloat(item.Temperature));
+
+                        // Plot Weight Chart
+                        new Chart(document.getElementById('weightChart').getContext('2d'), {
                             type: 'line',
                             data: {
                                 labels: labels,
@@ -477,36 +483,42 @@ try {
                             },
                             options: {
                                 responsive: true,
-                                plugins: {
-                                    tooltip: {
-                                        callbacks: {
-                                            label: function (tooltipItem) {
-                                                return `Weight: ${tooltipItem.raw} kg`;
-                                            }
-                                        }
-                                    }
-                                },
                                 scales: {
-                                    x: {
-                                        title: { display: true, text: 'Date' }
-                                    },
-                                    y: {
-                                        title: { display: true, text: 'Weight (kg)' },
-                                        beginAtZero: true
-                                    }
+                                    x: { title: { display: true, text: 'Date & Time' } },
+                                    y: { title: { display: true, text: 'Weight (kg)' }, beginAtZero: true }
                                 }
                             }
                         });
+
+                        // Plot Temperature Chart
+                        new Chart(document.getElementById('temperatureChart').getContext('2d'), {
+                            type: 'line',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Temperature (°C)',
+                                    data: temperatures,
+                                    borderColor: 'rgb(255, 99, 132)',
+                                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                    fill: true,
+                                    tension: 0.1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                scales: {
+                                    x: { title: { display: true, text: 'Date & Time' } },
+                                    y: { title: { display: true, text: 'Temperature (°C)' }, beginAtZero: false }
+                                }
+                            }
+                        });
+
                     } else {
-                        ctx.font = "16px Poppins";
-                        ctx.fillStyle = "gray";
-                        ctx.textAlign = "center";
-                        ctx.textBaseline = "middle";
-                        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);  // Clear canvas if previously rendered
-                        ctx.fillText("No weight record found.", ctx.canvas.width / 2, ctx.canvas.height / 2);
+                        document.getElementById('weightChart').getContext('2d').fillText("No weight record found.", 400, 200);
+                        document.getElementById('temperatureChart').getContext('2d').fillText("No temperature record found.", 400, 200);
                     }
                 })
-                .catch(error => console.error('Error fetching weight data:', error));
+                .catch(error => console.error('Error fetching data:', error));
         });
     </script>
     <script>

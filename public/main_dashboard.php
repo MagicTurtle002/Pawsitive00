@@ -161,6 +161,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     exit;
 }
+
+date_default_timezone_set('Asia/Manila');
 ?>
 
 <!DOCTYPE html>
@@ -180,50 +182,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="../assets/css/admin.css">
     <script src="../assets/js/update_appointment.js?v=1.0.3"></script>
-    <style>
-        .success-message {
-            color: #155724;
-            background-color: #d4edda;
-            padding: 12px 15px;
-            margin-bottom: 15px;
-            border: 1px solid #c3e6cb;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
-            transform: translateY(-20px);
-        }
-
-        .success-message.show {
-            display: flex;
-            opacity: 1;
-            transform: translateY(0);
-        }
-    </style>
-    <style>
-        .status-button:not(:disabled):hover {
-            background-color: #45a049;
-        }
-
-        .status-button:disabled,
-        .decline-btn:disabled,
-        .confirm-btn:disabled {
-            background-color: #cccccc;
-            color: #666666;
-            cursor: not-allowed;
-            opacity: 0.6;
-            border: 1px solid #bbbbbb;
-        }
-    </style>
 </head>
 
 <body>
@@ -429,8 +387,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php else: ?>
                             <p>No upcoming appointments.</p>
                         <?php endif; ?>
-                        <button class="see-all-button" onclick="window.location.href='appointment_list.php';">See
-                            All</button>
+                        <?php if (!empty($upcomingAppointments)): ?>
+                            <button class="see-all-button" onclick="window.location.href='appointment_list.php';">See All</button>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="alerts">
@@ -444,7 +403,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <p><strong>Role:</strong> <?= htmlspecialchars($activity['Role']); ?></p>
                                         <p><strong>Activity:</strong>
                                             <?= htmlspecialchars_decode($activity['ActionDetails']); ?></p>
-                                        <p><strong>Timestamp:</strong> <?= htmlspecialchars($activity['CreatedAt']); ?></p>
+                                        <p><strong>Timestamp:</strong> <?= date('Y-m-d h:i:s A', strtotime($activity['CreatedAt'])); ?></p>
                                     </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
@@ -458,188 +417,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const chartElement = document.getElementById('appointmentsChart');
-            const appointmentData = JSON.parse(chartElement.dataset.appointments);
-            let currentChart = null;
-
-            function renderBarChart(range) {
-                const data = appointmentData[range];
-
-                if (currentChart) currentChart.destroy(); // Clear the existing chart
-
-                currentChart = new Chart(chartElement, {
-                    type: 'bar',
-                    data: {
-                        labels: data.labels,
-                        datasets: [{
-                            label: `Appointments Per ${range.charAt(0).toUpperCase() + range.slice(1)}`,
-                            data: data.counts,
-                            backgroundColor: '#a8ebf0',  // Bar color
-                            borderColor: '#156f77',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function (tooltipItem) {
-                                        return `Appointments: ${tooltipItem.raw}`;
-                                    }
-                                }
-                            },
-                            legend: {
-                                display: false // Hides the legend for cleaner look
-                            }
-                        },
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Date Range'
-                                },
-                                ticks: {
-                                    maxRotation: 45,
-                                    minRotation: 45
-                                }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Number of Appointments'
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Default view: Month
-            renderBarChart('month');
-
-            // Event Listener for dropdown change
-            document.getElementById('appointmentRange').addEventListener('change', (event) => {
-                renderBarChart(event.target.value);
-            });
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const ctx = document.getElementById('speciesPieChart').getContext('2d');
-            const allLabels = JSON.parse(ctx.canvas.dataset.labels);
-            const allCounts = JSON.parse(ctx.canvas.dataset.counts);
-
-            // Define consistent colors for each species
-            const speciesColors = {
-                "Dog": "#FF6384",
-                "Cat": "#36A2EB",
-                "Rabbit": "#FFCE56",
-                "Bird": "#4CAF50",
-                "Hamster": "#9C27B0",
-                "Guinea Pig": "#FF9800",
-                "Reptile": "#795548",
-                "Ferret": "#03A9F4",
-                "Fish": "#E91E63"
-            };
-
-            // Generate color mapping for existing labels
-            const assignedColors = allLabels.map(species => speciesColors[species] || "#CCCCCC"); // Default gray if missing
-
-            let speciesChart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: allLabels,
-                    datasets: [{
-                        data: allCounts,
-                        backgroundColor: assignedColors,
-                        borderColor: '#fff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                color: '#4A4A4A',
-                                font: { size: 14, family: 'Poppins' }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    return `${speciesChart.data.labels[tooltipItem.dataIndex]}: ${speciesChart.data.datasets[0].data[tooltipItem.dataIndex]} pets`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Event Listener for Species Dropdown
-            document.getElementById('speciesFilter').addEventListener('change', function () {
-                const selectedSpecies = this.value;
-
-                if (selectedSpecies === 'all') {
-                    speciesChart.data.labels = allLabels;
-                    speciesChart.data.datasets[0].data = allCounts;
-                    speciesChart.data.datasets[0].backgroundColor = assignedColors;
-                } else {
-                    const index = allLabels.indexOf(selectedSpecies);
-                    if (index !== -1) {
-                        speciesChart.data.labels = [allLabels[index]];
-                        speciesChart.data.datasets[0].data = [allCounts[index]];
-                        speciesChart.data.datasets[0].backgroundColor = [speciesColors[selectedSpecies]];
-                    }
-                }
-
-                speciesChart.update(); // Refresh the chart
-            });
-        });
-    </script>
-    <script>
-        function generateInvoice(appointmentId, petId) {
-            if (!appointmentId || !petId) {
-                console.error("❌ Missing appointment or pet ID.");
-                return;
-            }
-
-            Swal.fire({
-                title: "Generate Invoice?",
-                text: "Are you sure you want to generate an invoice for this appointment?",
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonText: "Yes, Generate",
-                cancelButtonText: "Cancel"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch('../src/generate_invoice.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ appointment_id: appointmentId, pet_id: petId })
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                Swal.fire("Success", "Invoice generated successfully!", "success")
-                                    .then(() => {
-                                        window.location.href = 'invoice_billing_form.php';
-                                    });
-                            } else {
-                                Swal.fire("Error", data.message, "error");
-                            }
-                        })
-                        .catch(error => console.error("❌ Error:", error));
-                }
-            });
-        }
-    </script>
     <script>
         function toggleMenu(appointmentId) {
             const menu = document.getElementById(`menu-${appointmentId}`);
@@ -667,7 +444,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/js/main_dashboard.js?v=1.0.6"></script>
+    <script src="../assets/js/main_dashboard.js?v=1.0.7"></script>
 </body>
 
 </html>

@@ -24,7 +24,6 @@ $orderQuery = isset($_GET['order']) ? strtoupper($_GET['order']) : '';  // No de
 $where_clause = [];
 $params = [];
 
-// ✅ Search Logic
 if (!empty($_GET['search'])) {
     $search = '%' . $_GET['search'] . '%';
     $where_clause[] = "(LOWER(Users.FirstName) LIKE LOWER(?) 
@@ -55,7 +54,7 @@ try {
     $totalPages = ceil($totalRecords / $recordsPerPage); // ✅ Calculates total pages
 } catch (PDOException $e) {
     echo "Error counting staff: " . $e->getMessage();
-    $totalPages = 1; // ✅ Fallback to at least 1 page if an error occurs
+    $totalPages = 1;
 }
 
 $query = "
@@ -76,15 +75,13 @@ $query = "
 if ($orderQuery) {
     $query .= " ORDER BY $orderBy $orderQuery";
 } else {
-    $query .= " ORDER BY RAND()"; // Random order when no filter is applied
+    $query .= " ORDER BY name ASC";
 }
 $query .= " LIMIT ?, ?";
 
-// ✅ Pagination
 $params[] = $offset;
 $params[] = $recordsPerPage;
 
-// Execute Query
 $stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -248,8 +245,7 @@ try {
                     <input type="text" id="searchInput" name="search" placeholder="Search staff..."
                         value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
                         oninput="applyFilters()">
-
-                    <!-- Filter dropdown -->
+                        
                     <div class="dropdown">
                         <button class="filter-btn">
                             <i class="fa fa-filter"></i> Filter
@@ -295,10 +291,7 @@ try {
                 <?php if (!empty($staff)): ?>
                     <?php foreach ($staff as $staff_member): ?>
                         <tr class="staff-row">
-                            <!-- ✅ Staff Code Column -->
                             <td><?= htmlspecialchars($staff_member['StaffCode'] ?? 'N/A') ?></td>
-
-                            <!-- ✅ Name with Hover Details -->
                             <td>
                                 <div class="hover-container">
                                     <?= htmlspecialchars($staff_member['name']) ?>
@@ -327,26 +320,11 @@ try {
                                             <strong>Phone Number:</strong><br>
                                             <?= htmlspecialchars($staff_member['PhoneNumber'] ?? 'No information found') ?>
                                         </div>
-                                        <br>
-                                        <div>
-                                            <strong>Emergency Contact Name:</strong><br>
-                                            <?= htmlspecialchars($staff_member['EmergencyContactName'] ?? 'No information found') ?>
-                                        </div>
-                                        <br>
-                                        <div>
-                                            <strong>Emergency Contact Number:</strong><br>
-                                            <?= htmlspecialchars($staff_member['EmergencyContactNumber'] ?? 'No information found') ?>
-                                        </div>
                                     </div>
                                 </div>
                             </td>
-
-                            <!-- ✅ Role -->
                             <td><?= htmlspecialchars($staff_member['role'] ?? 'No Role Assigned') ?></td>
-
-                            <!-- ✅ Employment Type -->
                             <td><?= htmlspecialchars($staff_member['EmploymentType']) ?></td>
-
                             <?php if (hasPermission($pdo, 'Manage Staff')): ?>
                                 <td>
                                     <button class="action-btn edit-btn"
@@ -406,7 +384,7 @@ try {
         // Open the Edit Modal and populate the form
         function editStaff(email) {
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', 'get_staff_details.php?email=' + encodeURIComponent(email), true);
+            xhr.open('GET', '../src/get_staff_details.php?email=' + encodeURIComponent(email), true);
             xhr.onload = function () {
                 if (xhr.status === 200) {
                     const staff = JSON.parse(xhr.responseText);
@@ -475,7 +453,7 @@ try {
 
         function updateStaffDetails(email, data) {
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', 'update_staff_details.php', true);
+            xhr.open('POST', '../src/update_staff_details.php', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
             xhr.onload = function () {
                 if (xhr.status === 200) {
@@ -515,7 +493,7 @@ try {
             }).then((result) => {
                 if (result.isConfirmed) {
                     const xhr = new XMLHttpRequest();
-                    xhr.open('GET', 'delete_staff.php?email=' + encodeURIComponent(email), true);
+                    xhr.open('GET', '../src/delete_staff.php?email=' + encodeURIComponent(email), true);
                     xhr.onload = function () {
                         if (xhr.status === 200) {
                             Swal.fire('Deleted!', 'The staff member has been removed.', 'success').then(() => {

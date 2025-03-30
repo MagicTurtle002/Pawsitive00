@@ -268,220 +268,7 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
         var bookedTimesByDate = <?= json_encode($booked_times_by_date) ?>;
         var services = <?= json_encode($services, JSON_HEX_TAG | JSON_HEX_QUOT | JSON_HEX_APOS | JSON_HEX_AMP); ?>;
     </script>
-    <style>
-        /* Toast Styling */
-        #successToast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1050;
-            min-width: 300px;
-            max-width: 400px;
-            background-color: #28a745;
-            /* Success green */
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            display: none;
-            /* Hidden by default */
-            font-family: "Poppins", sans-serif;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            /* Subtle shadow */
-            animation: fadeInOut 4s ease-in-out;
-            /* Fade animation */
-        }
 
-        #successToast.show {
-            display: block;
-            /* Show when active */
-        }
-
-        #successToast .btn-close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
-
-        /* Toast Fade Animation */
-        @keyframes fadeInOut {
-            0% {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            10%,
-            90% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-
-            100% {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-        }
-    </style>
-    <style>
-        /* Modal Container */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            /* Slightly darker background for focus */
-        }
-
-        /* Modal Content */
-        .modal-content {
-            position: relative;
-            background-color: #fff;
-            margin: 5% auto;
-            padding: 20px;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 500px;
-            /* Increased from 400px to 500px */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        /* Modal Header */
-        .modal-header {
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: #333;
-            padding: 15px 20px;
-            border-bottom: 1px solid #e0e0e0;
-            text-align: center;
-        }
-
-        .modal-header .btn-close {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-            background: none;
-            border: none;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-
-        /* Modal Body */
-        .modal-body {
-            padding: 20px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.95rem;
-            color: #555;
-        }
-
-        .modal-body p {
-            margin-bottom: 10px;
-        }
-
-        /* Modal Footer */
-        .modal-footer {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .modal-footer .btn {
-            font-size: 0.9rem;
-            font-weight: 500;
-            padding: 10px 30px;
-            border-radius: 6px;
-            transition: background-color 0.2s, transform 0.2s ease-in-out;
-        }
-
-        .modal-footer .btn:hover {
-            transform: scale(1.05);
-        }
-
-        /* Button Variants */
-        .btn {
-            cursor: pointer;
-            outline: none;
-            border: none;
-        }
-
-        .btn-light {
-            background-color: #f8f9fa;
-            color: #333;
-        }
-
-        .btn-light:hover {
-            background-color: #e2e6ea;
-        }
-
-        .btn-outline-danger {
-            color: #dc3545;
-            border: 1px solid #dc3545;
-        }
-
-        .btn-outline-danger:hover {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        .btn-outline-success {
-            color: #28a745;
-            border: 1px solid #28a745;
-        }
-
-        .btn-outline-success:hover {
-            background-color: #28a745;
-            color: white;
-        }
-
-        .btn-outline-primary {
-            color: #007bff;
-            border: 1px solid #007bff;
-        }
-
-        .btn-outline-primary:hover {
-            background-color: #007bff;
-            color: white;
-        }
-
-        /* Fade-in Animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        /* Responsive Design */
-        @media (max-width: 576px) {
-            .modal-content {
-                width: 90%;
-            }
-
-            .modal-footer {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .modal-footer .btn {
-                width: 100%;
-                /* Full width for better accessibility */
-            }
-        }
-    </style>
 </head>
 
 <body>
@@ -612,53 +399,8 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
         <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
         <script src="../assets/js/appointment.js?v=<?= time() ?>"></script>
         <script src="../assets/js/update_appointment.js?v=<?= time() ?>"></script>
-        <script>
-            $(document).ready(function () {
-                $("#PetSearch").on("input", function () {
-                    let query = $(this).val().trim();
-                    let suggestionsBox = $("#PetSuggestions");
-
-                    if (query.length === 0) {
-                        suggestionsBox.hide();
-                        return;
-                    }
-
-                    $.ajax({
-                        url: "../src/fetch_pets.php",
-                        type: "GET",
-                        data: { query: query },
-                        dataType: "json",
-                        success: function (pets) {
-                            suggestionsBox.empty();
-                            if (pets.length > 0) {
-                                pets.forEach(pet => {
-                                    let item = $("<div>")
-                                        .addClass("suggestion-item")
-                                        .text(`${pet.pet_name} (Owner: ${pet.owner_name})`)
-                                        .data("pet-id", pet.PetId)
-                                        .click(function () {
-                                            $("#PetSearch").val(pet.pet_name);
-                                            $("#PetId").val(pet.PetId);
-                                            suggestionsBox.hide();
-                                        });
-                                    suggestionsBox.append(item);
-                                });
-                            } else {
-                                suggestionsBox.append('<div class="no-result">No Pet Found</div>');
-                            }
-                            suggestionsBox.show();
-                        }
-                    });
-                });
-
-                // Hide suggestions when clicking outside
-                $(document).on("click", function (event) {
-                    if (!$(event.target).closest("#PetSearch, #PetSuggestions").length) {
-                        $("#PetSuggestions").hide();
-                    }
-                });
-            });
-        </script>
+        <script src="../assets/js/pet_search.js?v=<?= time() ?>"></script>
+        <script src="../assets/js/script.js"></script>
         <script>
             document.addEventListener("DOMContentLoaded", () => {
                 const appointmentItems = document.querySelectorAll(".appointment-item");
@@ -688,39 +430,21 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
                     return;
                 }
 
+                // Use the function from update_appointment.js
                 updateAppointmentStatus(appointmentId, "Confirmed", petId);
             }
 
-            function declineAppointment(appointmentId, petId) {
+            function declineAppointment(appointmentId) {
+                const petElement = document.querySelector(`[data-id='${appointmentId}']`);
+                const petId = petElement ? petElement.getAttribute("data-pet-id") : null;
+
                 if (!petId) {
                     console.error("Error: petId is missing for appointmentId:", appointmentId);
                     Swal.fire("Error", "Pet ID is missing. Cannot decline appointment.", "error");
                     return;
                 }
 
-                // Now correctly passing `appointmentId` and `petId`
                 updateAppointmentStatus(appointmentId, "Declined", petId);
-            }
-
-
-            function sendStatusUpdate(appointmentId, status, reason = null) {
-                $.ajax({
-                    url: 'update_appointment.php',
-                    type: 'POST',
-                    data: { appointmentId: appointmentId, status: status, reason: reason },
-                    success: function (response) {
-                        Swal.fire({
-                            title: "Success!",
-                            text: `Appointment has been ${status.toLowerCase()}.`,
-                            icon: "success"
-                        }).then(() => {
-                            location.reload();
-                        });
-                    },
-                    error: function () {
-                        Swal.fire("Error", "Failed to update appointment.", "error");
-                    }
-                });
             }
 
             function showAppointmentDetails(event) {
@@ -729,17 +453,17 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
                 }
 
                 Swal.fire({
-                    title: 'Appointment Details',
+                    title: event.extendedProps.petName || "Appointment Details", // ✅ Set title to pet's name
                     html: `
-                        <button class="swal2-close-button" onclick="Swal.close()">×</button>
-                        <div style="text-align: left; margin-top: 10px;">
-                            <p><strong>Appointment For:</strong> ${event.extendedProps.description || "No Description"}</p>
-                            <p><strong>Service:</strong> ${event.title || "No Title"}</p>
-                            <p><strong>Date:</strong> ${formatDateWithoutTimezone(event.start)}</p>
-                            <p><strong>Time:</strong> ${event.extendedProps.time ? formatTime(event.extendedProps.time) : "No Time"}</p>
-                            <p><strong>Status:</strong> <span class="status-badge">${event.extendedProps.status || "Pending"}</span></p>
-                        </div>
-                    `,
+                            <button class="swal2-close-button" onclick="Swal.close()">×</button>
+                            <div style="text-align: left; margin-top: 10px;">
+                                <p><strong>Appointment For:</strong> ${event.extendedProps.description || "No Description"}</p>
+                                <p><strong>Service:</strong> ${event.title || "No Title"}</p>
+                                <p><strong>Date:</strong> ${formatDateWithoutTimezone(event.start)}</p>
+                                <p><strong>Time:</strong> ${event.extendedProps.time ? formatTime(event.extendedProps.time) : "No Time"}</p>
+                                <p><strong>Status:</strong> <span class="status-badge">${event.extendedProps.status || "Pending"}</span></p>
+                            </div>
+                        `,
                     showCancelButton: true,
                     showDenyButton: true,
                     showConfirmButton: true,
@@ -761,10 +485,11 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
                             pet: event.extendedProps.description, // 🐛 Ensure pet name is passed
                             service: event.title,
                             date: formatDateWithoutTimezone(event.start), // 🐛 Fix date issue
-                            time: event.extendedProps.time
+                            time: event.extendedProps.time,
+                            petId: event.extendedProps.petId
                         }, event.id);
                     } else if (result.dismiss === Swal.DismissReason.cancel) {
-                        updateAppointmentStatus(event.id, "Declined");
+                        declineAppointment(event.id);
                     }
                 });
             }

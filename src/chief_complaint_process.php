@@ -1,14 +1,11 @@
 <?php
-// Enable error reporting
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-echo "Step 1: Script started.<br>";
 session_start();
 require __DIR__ . '/../config/dbh.inc.php';
 
-// Capture form data
 $appointment_id = $_POST['appointment_id'] ?? '';
 $pet_id = $_POST['pet_id'] ?? '';
 $chief_complaint = trim(htmlspecialchars($_POST['chief_complaint'] ?? '', ENT_QUOTES));
@@ -30,7 +27,11 @@ $environment = htmlspecialchars($_POST['environment'] ?? '', ENT_QUOTES);
 $medication_prior = trim(htmlspecialchars($_POST['medication'] ?? '', ENT_QUOTES));
 $current_timestamp = date("Y-m-d H:i:s");
 
-// Handle "Other" input fields properly
+if (empty($chief_complaint)) {
+    $_SESSION['error_message'] = "Chief complaint is required.";
+    header("Location: ../public/patient_records.php?appointment_id=$appointment_id&pet_id=$pet_id");
+    exit();
+}
 if ($duration_days === "Other") {
     $duration_days = (!empty($custom_duration) && is_numeric($custom_duration) && $custom_duration > 0) ? $custom_duration : null;
 }
@@ -44,9 +45,6 @@ if ($urine_color === "Other" && !empty($custom_color)) {
     $urine_color = $custom_color;
 }
 
-echo "Step 2: Processing database query.<br>";
-
-// Check if record exists
 $stmt_check = $pdo->prepare("SELECT RecordId FROM PatientRecords WHERE AppointmentId = :appointment_id AND PetId = :pet_id");
 $stmt_check->execute([
     ':appointment_id' => $appointment_id,
@@ -56,7 +54,6 @@ $record = $stmt_check->fetch(PDO::FETCH_ASSOC);
 
 try {
     if ($record) {
-        echo "Step 3: Updating record.<br>";
         $stmt_update = $pdo->prepare("
             UPDATE PatientRecords
             SET ChiefComplaint = :chief_complaint,
@@ -94,7 +91,6 @@ try {
             ':appointment_id' => $appointment_id,
             ':pet_id' => $pet_id
         ])) {
-            echo "SQL UPDATE Error: ";
             print_r($stmt_update->errorInfo());
             exit();
         } else {
@@ -103,7 +99,6 @@ try {
 
         $_SESSION['success_message'] = "Chief complaint updated successfully!";
     } else {
-        echo "Step 3: Inserting new record.<br>";
         $stmt_insert = $pdo->prepare("
             INSERT INTO PatientRecords (
                 AppointmentId, PetId, ChiefComplaint, OnsetDate, DurationDays, ObservedSymptoms,
@@ -152,7 +147,5 @@ try {
     exit();
 }
 
-// Redirect back
 header("Location: ../public/patient_records.php?appointment_id=$appointment_id&pet_id=$pet_id");
 exit();
-?>

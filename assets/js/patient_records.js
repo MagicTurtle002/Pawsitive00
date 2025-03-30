@@ -1,4 +1,22 @@
 document.addEventListener('DOMContentLoaded', function () {
+    const lastVaccinationInput = document.getElementById("last_vaccination");
+    const lastDewormingInput = document.getElementById("last_deworming");
+    const lastHeatCycle = document.getElementById("LastHeatCycle");
+
+    if (lastVaccinationInput) {
+        const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+        lastVaccinationInput.setAttribute("max", today); // Set max attribute to prevent future dates
+    }
+
+    if (lastDewormingInput) {
+        const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+        lastDewormingInput.setAttribute("max", today); // Set max attribute to prevent future dates
+    }
+
+    if (lastHeatCycle) {
+        const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+        lastHeatCycle.setAttribute("max", today); // Set max attribute to prevent future dates
+    }
     // =========================
     // Display Success Messages
     // =========================
@@ -81,8 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
-
-    // Apply the function for the observed symptoms "Other" checkbox
+    
     toggleOtherCheckbox("other_checkbox", "other_symptom");
 
     // Apply the function for other selects

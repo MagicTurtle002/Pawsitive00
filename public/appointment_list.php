@@ -19,7 +19,6 @@ $role = $_SESSION['Role'] ?? 'Role';
 $currentPage = isset($_GET['page']) ? max(0, (int) $_GET['page']) : 0;
 $recordsPerPage = 10;
 $offset = $currentPage * $recordsPerPage;
-
 $where_clause = [];
 $params = [];
 
@@ -29,7 +28,7 @@ if (!empty($_GET['search'])) {
     $where_clause[] = "(Appointments.AppointmentId LIKE ? 
                         OR Pets.Name LIKE ? 
                         OR Appointments.AppointmentCode LIKE ? 
-                        OR Services.ServiceName LIKE ? 
+                       OR COALESCE(Services.ServiceName, '') LIKE ? 
                         OR CONCAT(Owners.FirstName, ' ', Owners.LastName) LIKE ?)";
     $params = array_fill(0, 5, $search);
 }
@@ -73,7 +72,8 @@ $query = "
         Services.ServiceName AS Service,
         Appointments.AppointmentDate,
         Appointments.AppointmentTime,
-        Appointments.Status
+        Appointments.Status,
+        Appointments.Reason
     FROM Appointments
     INNER JOIN Pets ON Appointments.PetId = Pets.PetId
     INNER JOIN Owners ON Pets.OwnerId = Owners.OwnerId
@@ -223,6 +223,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                     <th><a href="#" class="sortable" data-column="PetName">Pet Name</a></th>
                     <th><a href="#" class="sortable" data-column="Status">Status</a></th>
                     <th><a href="#" class="sortable" data-column="Service">Service</a></th>
+                    <th><a href="#" class="sortable" data-column="Action">Actions</a></th>
                 </tr>
             </thead>
             <tbody id="appointmentList">
@@ -252,6 +253,37 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             <td><?= htmlspecialchars($appointment['PetName']) ?></td>
                             <td><?= $status ?></td>
                             <td><?= htmlspecialchars($appointment['Service']) ?></td>
+                            <td>
+                                <?php if ($status === 'Done'): ?>
+                                    <a href="generate_invoice.php?id=<?= $appointment['AppointmentId'] ?>"
+                                        class="btn btn-success btn-sm">Generate Invoice</a>
+
+                                <?php elseif ($status === 'Confirmed'): ?>
+                                    <a href="mark_done.php?id=<?= $appointment['AppointmentId'] ?>"
+                                        class="btn btn-primary btn-sm">Mark as Done</a>
+                                    <a href="start_consultation.php?id=<?= $appointment['AppointmentId'] ?>"
+                                        class="btn btn-info btn-sm">Start Consultation</a>
+                                    <a href="cancel_appointment.php?id=<?= $appointment['AppointmentId'] ?>"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Are you sure you want to cancel this appointment?')">Cancel</a>
+
+                                <?php elseif ($status === 'Pending'): ?>
+                                    <a href="confirm_appointment.php?id=<?= $appointment['AppointmentId'] ?>"
+                                        class="btn btn-success btn-sm">Confirm</a>
+                                    <a href="decline_appointment.php?id=<?= $appointment['AppointmentId'] ?>"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Are you sure you want to decline this appointment?')">Decline</a>
+                                    <a href="reschedule_appointment.php?id=<?= $appointment['AppointmentId'] ?>"
+                                        class="btn btn-warning btn-sm">Reschedule</a>
+
+                                <?php elseif ($status === 'Declined'): ?>
+                                    <span class="text-danger">Reason for cancellation:
+                                        <?= htmlspecialchars($appointment['Reason'] ?? 'No reason provided') ?></span>
+
+                                <?php else: ?>
+                                    <span class="text-muted">No actions available</span>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                         <?php
                     endforeach;
@@ -311,9 +343,64 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                     });
 
                     fetch("../src/fetch_appointments.php?" + queryParams.toString())
-                        .then(response => response.text())
-                        .then(html => {
-                            appointmentList.innerHTML = html;
+                        .then(response => response.json())  // Parse as JSON instead of text
+                        .then(data => {
+                            let tableBody = document.getElementById("appointmentList");
+                            tableBody.innerHTML = ""; // Clear existing table content
+
+                            if (data.length === 0) {
+                                tableBody.innerHTML = `<tr><td colspan="5">No appointments found.</td></tr>`;
+                                return;
+                            }
+
+                            let currentDate = null;
+
+                            data.forEach(appointment => {
+                                let appointmentDate = appointment.AppointmentDate;
+                                let formattedDate = new Date(appointmentDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+                                // If the date changes, insert a new date header row
+                                if (currentDate !== appointmentDate) {
+                                    currentDate = appointmentDate;
+                                    tableBody.innerHTML += `
+                    <tr class="date-header">
+                        <td colspan="5"><strong>${formattedDate}</strong></td>
+                    </tr>`;
+                                }
+
+                                let actionButtons = "";
+
+                                switch (appointment.Status) {
+                                    case "Done":
+                                        actionButtons = `<a href="generate_invoice.php?id=${appointment.AppointmentId}" class="btn btn-success btn-sm">Generate Invoice</a>`;
+                                        break;
+                                    case "Confirmed":
+                                        actionButtons = `<a href="mark_done.php?id=${appointment.AppointmentId}" class="btn btn-primary btn-sm">Mark as Done</a>
+                                     <a href="start_consultation.php?id=${appointment.AppointmentId}" class="btn btn-info btn-sm">Start Consultation</a>
+                                     <a href="cancel_appointment.php?id=${appointment.AppointmentId}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this appointment?')">Cancel</a>`;
+                                        break;
+                                    case "Pending":
+                                        actionButtons = `<a href="confirm_appointment.php?id=${appointment.AppointmentId}" class="btn btn-success btn-sm">Confirm</a>
+                                     <a href="decline_appointment.php?id=${appointment.AppointmentId}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to decline this appointment?')">Decline</a>
+                                     <a href="reschedule_appointment.php?id=${appointment.AppointmentId}" class="btn btn-warning btn-sm">Reschedule</a>`;
+                                        break;
+                                    case "Declined":
+                                        actionButtons = `<span class="text-danger">Reason for cancellation: ${appointment.Reason || 'No reason provided'}</span>`;
+                                        break;
+                                    default:
+                                        actionButtons = `<span class="text-muted">No actions available</span>`;
+                                }
+
+                                let row = `<tr ${appointment.Status === 'Done' || appointment.Status === 'Paid' ? `onclick="goToPetProfile(${appointment.PetId})" style="cursor:pointer; background-color: #f8f9fa;"` : ''}>
+                <td>${appointment.AppointmentId}</td>
+                <td>${appointment.PetName}</td>
+                <td>${appointment.Status}</td>
+                <td>${appointment.Service || 'N/A'}</td>
+                <td>${actionButtons}</td>
+            </tr>`;
+
+                                tableBody.innerHTML += row;
+                            });
                         })
                         .catch(error => console.error("Error fetching appointments:", error));
                 }
@@ -374,6 +461,8 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                     .catch(error => console.error("Error fetching appointments:", error));
             }
         </script>
-        
+        <script></script>
+
 </body>
+
 </html>

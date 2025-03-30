@@ -171,7 +171,7 @@ FROM Pets
 INNER JOIN Owners ON Pets.OwnerId = Owners.OwnerId
 LEFT JOIN Species ON Pets.SpeciesId = Species.Id
 $where_sql
-ORDER BY NextVisit DESC
+ORDER BY PetName ASC, NextVisit ASC
 LIMIT ?, ?;
 ";
 $bindings[] = $offset;

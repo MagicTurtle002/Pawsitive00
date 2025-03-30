@@ -115,13 +115,44 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
         <div class="header">
             <h1>All Activities</h1>
         </div>
+        <div class="actions">
+            <div class="left">
+                <input type="text" id="searchInput" placeholder="Search activities..." oninput="fetchActivities()">
+                <div class="dropdown">
+                    <button class="filter-btn">
+                        <i class="fa fa-filter"></i> Filter
+                    </button>
+                    <div class="dropdown-content">
+                        <strong>Date Filter</strong>
+                        <label><input type="radio" name="dateFilter" value="today" onclick="applyFilters()">
+                            Today</label>
+                        <label><input type="radio" name="dateFilter" value="this_week" onclick="applyFilters()"> This
+                            Week</label>
+                        <label><input type="radio" name="dateFilter" value="this_month" onclick="applyFilters()"> This
+                            Month</label>
+                        <label><input type="radio" name="dateFilter" value="custom" onclick="toggleCustomDate(true)">
+                            Custom Range</label>
 
+                        <div id="customDateFilters" style="display: none;">
+                            <label>Start Date: <input type="date" id="startDate" onchange="applyFilters()"></label>
+                            <label>End Date: <input type="date" id="endDate" onchange="applyFilters()"></label>
+                        </div>
+
+                        <hr>
+
+                        <button type="submit" class="apply-btn">Apply Filter</button>
+                        <button type="button" class="clear-btn" onclick="resetFilters()">Clear Filter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button onclick="window.location.href='export_activities.php'">Export to CSV</button>
         <table class="staff-table">
             <thead>
                 <tr>
                     <th>User Name</th>
                     <th>Role</th>
-                    <th>Page Accessed</th>
+                    <th>Module</th>
                     <th>Activity</th>
                     <th>Timestamp</th>
                 </tr>
@@ -148,8 +179,8 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                         <tr>
                             <td><?= htmlspecialchars($activity['UserName']); ?></td>
                             <td><?= htmlspecialchars($activity['Role']); ?></td>
-                            <td><?= htmlspecialchars($activity['PageAccessed']); ?></td>
-                            <td><?= htmlspecialchars($activity['ActionDetails']); ?></td>
+                            <td><?= htmlspecialchars(ucwords(str_replace('_', ' ', $activity['PageAccessed']))); ?></td>
+                            <td><?= html_entity_decode($activity['ActionDetails']); ?></td>
                             <td><?= htmlspecialchars(date("h:i A", strtotime($activity['CreatedAt']))); ?></td>
                         </tr>
                     <?php endforeach; ?>
@@ -173,6 +204,21 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
         </div>
     </div>
+    <script>
+        setInterval(fetchActivities, 30000); // Refresh every 30 seconds
+    </script>
+    <script>
+        function fetchActivities() {
+            const search = document.getElementById('searchInput').value;
+
+            fetch(`fetch_activities.php?search=${encodeURIComponent(search)}`)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("activityList").innerHTML = data;
+                })
+                .catch(error => console.error("Error fetching activities:", error));
+        }
+    </script>
 </body>
 
 </html>

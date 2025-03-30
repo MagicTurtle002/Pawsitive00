@@ -17,9 +17,24 @@ $appointmentId = (int)$data['appointment_id'];
 $petId = (int)$data['pet_id'];
 $weight = (float)$data['weight'];
 $temperature = (float)$data['temperature'];
+$override = isset($data['override']) ? (bool)$data['override'] : false;
 
-if ($weight <= 0 || $temperature < 30 || $temperature > 45) {
-    echo json_encode(['success' => false, 'message' => 'Invalid weight or temperature.']);
+// ✅ Check for unusual temperature (outside 30°C - 45°C)
+$isUnusualTemp = ($temperature < 30 || $temperature > 45);
+
+if ($weight <= 0) {
+    echo json_encode(['success' => false, 'message' => 'Invalid weight.']);
+    exit;
+}
+
+// ✅ If temperature is unusual and override is NOT set, ask for confirmation
+if ($isUnusualTemp && !$override) {
+    echo json_encode([
+        'success' => false,
+        'warning' => true,
+        'message' => "The temperature entered ({$temperature}°C) is unusual. Do you want to proceed?",
+        'temperature' => $temperature
+    ]);
     exit;
 }
 
@@ -37,9 +52,9 @@ try {
         exit;
     }
 
-    // ✅ Record new weight entry
-    $stmtWeight = $pdo->prepare("INSERT INTO PetWeights (PetId, Weight, RecordedAt) VALUES (:pet_id, :weight, NOW())");
-    $stmtWeight->execute([':pet_id' => $petId, ':weight' => $weight]);
+    // ✅ Insert weight entry
+    $stmtWeight = $pdo->prepare("INSERT INTO PetWeights (PetId, Weight, Temperature, RecordedAt) VALUES (:pet_id, :weight, :temperature, NOW())");
+    $stmtWeight->execute([':pet_id' => $petId, ':weight' => $weight, ':temperature' => $temperature]);
 
     // ✅ Update Pets table with latest weight and temperature
     $stmtPet = $pdo->prepare("UPDATE Pets SET Weight = :weight, Temperature = :temperature WHERE PetId = :pet_id");

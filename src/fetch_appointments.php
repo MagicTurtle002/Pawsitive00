@@ -9,19 +9,17 @@ if (!empty($_GET['search'])) {
     $search = '%' . $_GET['search'] . '%';
     $where_clause[] = "(Pets.Name LIKE ? 
                         OR Appointments.AppointmentCode LIKE ? 
-                        OR Services.ServiceName LIKE ? 
+                        OR COALESCE(Services.ServiceName, '') LIKE ? 
                         OR CONCAT(Owners.FirstName, ' ', Owners.LastName) LIKE ?)";
     $params = array_fill(0, 4, $search);
 }
 
-// Status filter
 if (!empty($_GET['status']) && $_GET['status'] !== "all") {
     $status = $_GET['status'];
     $where_clause[] = "Appointments.Status = ?";
     $params[] = $status;
 }
 
-// Date filter
 if (!empty($_GET['dateFilter'])) {
     if ($_GET['dateFilter'] === "today") {
         $where_clause[] = "Appointments.AppointmentDate = CURDATE()";
@@ -48,8 +46,10 @@ $query = "
         Pets.PetId,
         Pets.Name AS PetName,
         Appointments.AppointmentDate,
+        Appointments.AppointmentTime,
         Appointments.Status,
-        Services.ServiceName
+        Services.ServiceName,
+        COALESCE(Services.ServiceName, 'N/A') AS Service
     FROM Appointments
     INNER JOIN Pets ON Appointments.PetId = Pets.PetId
     INNER JOIN Owners ON Pets.OwnerId = Owners.OwnerId
@@ -61,25 +61,5 @@ $stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $appointments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Group appointments by date
-$currentDate = null;
-if (count($appointments) > 0) {
-    foreach ($appointments as $appointment) {
-        $appointmentDate = date("F j, Y", strtotime($appointment['AppointmentDate']));
-
-        // Display a new header when the date changes
-        if ($currentDate !== $appointmentDate) {
-            $currentDate = $appointmentDate;
-            echo "<tr class='date-header'><td colspan='4'><strong>{$currentDate}</strong></td></tr>";
-        }
-
-        echo "<tr>
-                <td>{$appointment['AppointmentId']}</td>
-                <td>{$appointment['PetName']}</td>
-                <td>{$appointment['Status']}</td>
-                <td>{$appointment['ServiceName']}</td>
-              </tr>";
-    }
-} else {
-    echo "<tr><td colspan='4'>No appointments found.</td></tr>";
-}
+header('Content-Type: application/json');
+echo json_encode($appointments);

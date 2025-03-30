@@ -3,7 +3,7 @@
 $db_host = getenv('DB_HOST') ?: 'localhost'; // Database host (use environment variable or fallback)
 $db_name = getenv('DB_NAME') ?: 'pawsitive'; // Database name
 $db_user = getenv('DB_USER') ?: 'root'; // Database username
-$db_pass = getenv('DB_PASS') ?: ''; // Database password
+$db_pass = getenv('DB_PASS') ?: 'Dan123'; // Database password
 $db_charset = 'utf8mb4'; // Character encoding
 
 // DSN (Data Source Name) for PDO

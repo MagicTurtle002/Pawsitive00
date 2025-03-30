@@ -334,9 +334,6 @@ $follow_up_notes = $_SESSION['form_data']['follow_up_notes'];
                 </div>
             </div>
         </form>
-
-
-
         <form class="staff-form" action="../src/chief_complaint_process.php" method="POST" novalidate>
         <h2>Chief Complaint</h2>
             <input type="hidden" name="appointment_id" value="<?= htmlspecialchars($_GET['appointment_id'] ?? ''); ?>">
@@ -348,6 +345,12 @@ $follow_up_notes = $_SESSION['form_data']['follow_up_notes'];
                             placeholder="Describe the main reason for today's visit..."
                             required><?= htmlspecialchars($patientRecord['ChiefComplaint'] ?? '', ENT_QUOTES); ?></textarea>
                         <small id="chief-complaint-char-count">0 / 300 characters</small>
+                        <?php if (!empty($_SESSION['error_message'])): ?>
+                            <p class="error-text" style="color: red; font-size: 14px; margin-top: 5px;">
+                                <?= htmlspecialchars($_SESSION['error_message']); ?>
+                            </p>
+                            <?php unset($_SESSION['error_message']); // Clear after displaying ?>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -1459,11 +1462,11 @@ $follow_up_notes = $_SESSION['form_data']['follow_up_notes'];
                         <button type="submit" class="confirm-btn" style="font-size: 18px;" onclick="confirmFinishConsultation(event)">Finish Consultation</button>
                     </div>
             </form>
-<script>
-    document.querySelector("form").addEventListener("submit", function (event) {
-    console.log("Form submitted!");
-});
-</script>
+        <script>
+            document.querySelector("form").addEventListener("submit", function (event) {
+            console.log("Form submitted!");
+        });
+        </script>
         <script>
                 function toggleFileUpload(checkbox, fileInputId, customInputId = null) {
                     document.getElementById(fileInputId).style.display = checkbox.checked ? 'block' : 'none';
@@ -1626,6 +1629,6 @@ $follow_up_notes = $_SESSION['form_data']['follow_up_notes'];
             });
             </script>
 
-            <script src="../assets/js/patient_records.js?v=1.0.3"></script>
+            <script src="../assets/js/patient_records.js?v=1.0.5"></script>
 </body>
 </html>
