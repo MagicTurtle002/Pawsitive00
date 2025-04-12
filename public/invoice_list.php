@@ -102,108 +102,98 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice List - Pawsitive</title>
+    <title>Pawsitive</title>
     <link rel="icon" type="image/x-icon" href="../assets/images/logo/LOGO.png">
-    <link rel="stylesheet" href="../assets/css/invoice_list.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/all_activities.css">
     <script src="../assets/js/invoice_list.js"></script>
 </head>
 <body>
 
 <div class="sidebar">
-    <div class="logo">
-        <img src="../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
-    </div>
-    <nav>
-        <h3>Hello, <?= htmlspecialchars($userName) ?></h3>
-        <h4><?= htmlspecialchars($role) ?></h4>
-        <br>
-        <ul class="nav-links">
-            <li><a href="main_dashboard.php">Overview</a></li>
-            <li><a href="record.php">Records</a></li>
-            <li><a href="staff.php">Staff</a></li>
-            <li><a href="appointment.php">Appointments</a></li>
-            <li class="active"><a href="invoice_list.php">Invoices</a></li>
-        </ul>
-    </nav>
-</div>
-
-<div class="main-content">
-    <div class="header">
-        <h1>Invoices</h1>
-        <div class="actions">
-            <div class="left">
-                <input type="text" id="searchInput" placeholder="Search invoices..." oninput="applyFilters()">
-                <div class="dropdown">
-                    <button class="filter-btn">
-                        <i class="fa fa-filter"></i> Filter
-                    </button>
-                    <div class="dropdown-content">
-                        <strong>Status Filter</strong>
-                        <label><input type="radio" name="status" value="all" onclick="applyFilters()"> All</label>
-                        <label><input type="radio" name="status" value="pending" onclick="applyFilters()"> Pending</label>
-                        <label><input type="radio" name="status" value="overdue" onclick="applyFilters()"> Overdue</label>
-                        <label><input type="radio" name="status" value="partial" onclick="applyFilters()"> Partial Payment</label>
-                        <label><input type="radio" name="status" value="paid" onclick="applyFilters()"> Paid</label>
-
-                        <hr>
-
-                        <strong>Date Filter</strong>
-                        <label><input type="radio" name="dateFilter" value="today" onclick="applyFilters()"> Today</label>
-                        <label><input type="radio" name="dateFilter" value="this_week" onclick="applyFilters()"> This Week</label>
-                        <label><input type="radio" name="dateFilter" value="this_month" onclick="applyFilters()"> This Month</label>
-                        <label><input type="radio" name="dateFilter" value="custom" onclick="toggleCustomDate(true)"> Custom Range</label>
-
-                        <div id="customDateFilters" style="display: none;">
-                            <label>Start Date: <input type="date" id="startDate" onchange="applyFilters()"></label>
-                            <label>End Date: <input type="date" id="endDate" onchange="applyFilters()"></label>
-                        </div>
-
-                        <hr>
-
-                        <button type="submit" class="apply-btn">Apply Filter</button>
-                        <button type="button" class="clear-btn" onclick="resetFilters()">Clear Filter</button>
-                    </div>
-                </div>
-            </div>
+        <div class="logo">
+            <img src="../assets/images/logo/LOGO 2 WHITE.png" alt="Pawsitive Logo">
+        </div>
+        <nav>
+            <h3>Hello, <?= htmlspecialchars($userName) ?></h3>
+            <h4><?= htmlspecialchars($role) ?></h4>
+            <br>
+            <ul class="nav-links">
+                <li><a href="main_dashboard.php">
+                        <img src="../assets/images/Icons/Chart 1.png" alt="Chart Icon">Overview</a></li>
+                <li><a href="record.php">
+                        <img src="../assets/images/Icons/Record 1.png" alt="Record Icon">Record</a></li>
+                <li><a href="staff_view.php">
+                        <img src="../assets/images/Icons/Staff 1.png" alt="Contacts Icon">Staff</a></li>
+                <li><a href="appointment.php">
+                        <img src="../assets/images/Icons/Schedule 1.png" alt="Schedule Icon">Schedule</a></li>
+                <li class="active"><a href="invoice_billing_form.php">
+                        <img src="../assets/images/Icons/Billing 3.png" alt="Schedule Icon">Invoice</a></li>
+            </ul>
+        </nav>
+        <div class="sidebar-bottom">
+            <button onclick="window.location.href='settings.php';">
+                <img src="../assets/images/Icons/Settings 1.png" alt="Settings Icon">Settings
+            </button>
+            <button onclick="window.location.href='logout.php';">
+                <img src="../assets/images/Icons/Logout 1.png" alt="Logout Icon">Log out
+            </button>
         </div>
     </div>
 
-    <table class="invoice-table">
-        <thead>
-            <tr>
-                <th>Invoice ID</th>
-                <th>Invoice Number</th>
-                <th>Date Issued</th>
-                <th>Pet Name</th>
-                <th>Owner Name</th>
-                <th>Total Amount</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody id="invoiceList">
-            <?php if (count($invoices) > 0): ?>
-                <?php foreach ($invoices as $invoice): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($invoice['InvoiceId']) ?></td>
-                        <td><?= htmlspecialchars($invoice['InvoiceNumber']) ?></td>
-                        <td><?= htmlspecialchars($invoice['InvoiceDate']) ?></td>
-                        <td><?= htmlspecialchars($invoice['PetName']) ?></td>
-                        <td><?= htmlspecialchars($invoice['OwnerName']) ?></td>
-                        <td>₱<?= number_format($invoice['TotalAmount'], 2) ?></td>
-                        <td><?= htmlspecialchars($invoice['Status']) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr><td colspan="7">No invoices found.</td></tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
+    <div class="main-content">
+        <div class="header">
+        <h1>Invoices</h1>
+        </div>
 
-    <div class="pagination">
-        <a href="?page=<?= max(0, $currentPage - 1) ?>">&laquo; Previous</a>
-        <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
+        <table class="staff-table">
+            <thead>
+                <tr>
+                    <th>Invoice ID</th>
+                    <th>Invoice Number</th>
+                    <th>Date Issued</th>
+                    <th>Pet Name</th>
+                    <th>Owner Name</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="invoiceList">
+                <?php if (count($invoices) > 0): ?>
+                    <?php foreach ($invoices as $invoice): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($invoice['InvoiceId']) ?></td>
+                            <td><?= htmlspecialchars($invoice['InvoiceNumber']) ?></td>
+                            <td><?= htmlspecialchars($invoice['InvoiceDate']) ?></td>
+                            <td><?= htmlspecialchars($invoice['PetName']) ?></td>
+                            <td><?= htmlspecialchars($invoice['OwnerName']) ?></td>
+                            <td>₱<?= number_format($invoice['TotalAmount'], 2) ?></td>
+                            <td><?= htmlspecialchars($invoice['Status']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr><td colspan="7">No invoices found.</td></tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            <a href="?page=<?= max(0, $currentPage - 1) ?>">&laquo; Previous</a>
+            <?php for ($i = 0; $i < $totalPages; $i++): ?>
+                <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
+                    <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active"' : '' ?>><?= $i + 1 ?></a>
+                <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
+                    <span style="display: inline-block; margin-top: 15px;">...</span>
+                <?php endif; ?>
+            <?php endfor; ?>
+            <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
+        </div>
     </div>
-</div>
 
 <script src="../assets/js/invoice_list.js"></script>
 </body>
