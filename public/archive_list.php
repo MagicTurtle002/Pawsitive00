@@ -163,7 +163,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
             <div class="actions">
                 <form method="GET" action="archive_list.php" class="filter-container">
 
-                    <input type="text" id="searchInput" name="search" placeholder="Search confined pets..."
+                    <input type="text" id="searchInput" name="search" placeholder="Search archive pets..."
                         value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
                         oninput="applyFilters()">
 

@@ -3,8 +3,8 @@
   --color-2: #a8ebf0;
   --color-3: #efefef;
   --color-4: #f5f5f5;
-  --color-5: #f4f6f8;
-  --color-6: #6f787c;
+  --color-5: #F4F6F8;
+  --color-6: #6F787C;
 }
 
 * {
@@ -37,12 +37,13 @@ body {
   z-index: 10; /* Keeps the sidebar above other content */
 }
 
+
 .logo {
   display: flex;
   align-items: center;
   color: #ffffff;
   margin-bottom: 50px; /* Adjust this as necessary */
-}
+} 
 
 .logo img {
   width: 210px;
@@ -139,22 +140,16 @@ nav ul li img {
   transition: color 0.3s ease; /* Smooth transition */
 }
 
-nav ul li:focus,
-.sidebar-bottom button:focus,
-.schedule-item button:focus {
+nav ul li:focus, .sidebar-bottom button:focus, .schedule-item button:focus {
   outline: 3px solid var(--color-2);
 }
 
 /* Smooth transitions for interactive elements */
-nav ul li,
-.sidebar-bottom button,
-.schedule-item button {
+nav ul li, .sidebar-bottom button, .schedule-item button {
   transition: all 0.3s ease-in-out;
 }
 
-nav ul li:hover,
-.sidebar-bottom button:hover,
-.schedule-item button:hover {
+nav ul li:hover, .sidebar-bottom button:hover, .schedule-item button:hover {
   transform: translateX(5px); /* Adds a smooth hover effect */
 }
 
@@ -291,8 +286,7 @@ form label {
   margin-bottom: 5px;
 }
 
-form select,
-form input[type="date"] {
+form select, form input[type="date"] {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -302,8 +296,7 @@ form input[type="date"] {
   transition: border-color 0.3s;
 }
 
-form select:hover,
-form input[type="date"]:hover {
+form select:hover, form input[type="date"]:hover {
   border-color: var(--primary-color);
 }
 
@@ -312,7 +305,7 @@ form button[type="submit"]:hover {
 }
 
 .appointment-form-buttons {
-  display: flex;
+  display: flex; 
   justify-content: flex-end; /* Align buttons to the right */
   gap: 15px; /* Space between buttons */
   margin-top: 20px; /* Space between the form and buttons */
@@ -336,7 +329,7 @@ form button[type="submit"]:hover {
 /* Shared styles for both buttons */
 .view-all-btn,
 .appointment-form-buttons .btn-primary {
-  background-color: #156f77 !important; /* Primary color */
+  background-color: #156f77 !important;  /* Primary color */
   color: #ffffff !important;
   border: none !important;
   border-radius: 5px !important;
@@ -352,7 +345,7 @@ form button[type="submit"]:hover {
 }
 
 .btn-primary {
-  background-color: #156f77; /* Primary teal color */
+  background-color: #156f77;  /* Primary teal color */
   color: #ffffff;
   border: none;
   border-radius: 5px;
@@ -425,7 +418,7 @@ form button[type="submit"]:hover {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* Label Styling */
@@ -442,7 +435,7 @@ form button[type="submit"]:hover {
   background-color: #fff;
   color: #333;
   font-size: 14px;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -490,7 +483,7 @@ form button[type="submit"]:hover {
   border: 2px solid #ccc;
   border-radius: 5px;
   font-size: 16px;
-  font-family: "Poppins", sans-serif;
+  font-family: 'Poppins', sans-serif;
   background-color: #fff;
   transition: all 0.3s ease-in-out;
   outline: none;
@@ -543,9 +536,9 @@ form button[type="submit"]:hover {
 }
 
 /* Button Styling */
-.swal2-confirm-btn,
-.swal2-cancel-btn,
-.swal2-edit-btn,
+.swal2-confirm-btn, 
+.swal2-cancel-btn, 
+.swal2-edit-btn, 
 .swal2-start-btn {
   font-weight: bold;
   font-size: 16px;
@@ -557,9 +550,9 @@ form button[type="submit"]:hover {
 }
 
 /* Button Press (Active) Effect */
-.swal2-confirm-btn:active,
-.swal2-cancel-btn:active,
-.swal2-edit-btn:active,
+.swal2-confirm-btn:active, 
+.swal2-cancel-btn:active, 
+.swal2-edit-btn:active, 
 .swal2-start-btn:active {
   transform: scale(0.95);
 }
@@ -609,227 +602,103 @@ form button[type="submit"]:hover {
 /* Make input fields longer */
 .swal2-row input,
 .swal2-row select {
-  flex: 1; /* Allows the input to take up remaining space */
+  flex: 1;  /* Allows the input to take up remaining space */
   padding: 10px;
   border-radius: 5px;
   border: 1px solid #ccc;
-  width: calc(100% - 100px); /* Adjust input field width */
-  max-width: 400px; /* Adjust maximum width */
+  width: calc(100% - 100px);  /* Adjust input field width */
+  max-width: 400px;  /* Adjust maximum width */
 }
 
-.required-asterisk,
-.required {
+.required-asterisk, .required {
   color: red;
   font-weight: bold;
 }
 
-/* Toast Styling */
-#successToast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1050;
-  min-width: 300px;
-  max-width: 400px;
-  background-color: #28a745;
-  /* Success green */
-  color: white;
-  padding: 15px;
-  border-radius: 8px;
-  display: none;
-  /* Hidden by default */
-  font-family: "Poppins", sans-serif;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  /* Subtle shadow */
-  animation: fadeInOut 4s ease-in-out;
-  /* Fade animation */
-}
 
-#successToast.show {
-  display: block;
-  /* Show when active */
-}
-
-#successToast .btn-close {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 18px;
-  cursor: pointer;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-}
-
-/* Toast Fade Animation */
-@keyframes fadeInOut {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
+/* Add responsiveness for tablet screens */
+@media screen and (max-width: 768px) {
+  /* Make the sidebar narrower and fix its position */
+  .sidebar {
+      width: 200px; /* Make sidebar narrower */
+      position: relative; /* Remove fixed position */
+      height: auto; /* Adjust the sidebar height */
   }
 
-  10%,
-  90% {
-    opacity: 1;
-    transform: translateY(0);
+  .sidebar .logo img {
+      width: 180px; /* Adjust logo size */
   }
 
-  100% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-}
-/* Modal Container */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  /* Slightly darker background for focus */
-}
-
-/* Modal Content */
-.modal-content {
-  position: relative;
-  background-color: #fff;
-  margin: 5% auto;
-  padding: 20px;
-  border-radius: 8px;
-  width: 100%;
-  max-width: 500px;
-  /* Increased from 400px to 500px */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-/* Modal Header */
-.modal-header {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #333;
-  padding: 15px 20px;
-  border-bottom: 1px solid #e0e0e0;
-  text-align: center;
-}
-
-.modal-header .btn-close {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  background: none;
-  border: none;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-/* Modal Body */
-.modal-body {
-  padding: 20px;
-  font-family: "Poppins", sans-serif;
-  font-size: 0.95rem;
-  color: #555;
-}
-
-.modal-body p {
-  margin-bottom: 10px;
-}
-
-/* Modal Footer */
-.modal-footer {
-  display: flex;
-  justify-content: space-between;
-  padding: 15px;
-  border-top: 1px solid #e0e0e0;
-}
-
-.modal-footer .btn {
-  font-size: 0.9rem;
-  font-weight: 500;
-  padding: 10px 30px;
-  border-radius: 6px;
-  transition: background-color 0.2s, transform 0.2s ease-in-out;
-}
-
-.modal-footer .btn:hover {
-  transform: scale(1.05);
-}
-
-/* Button Variants */
-.btn {
-  cursor: pointer;
-  outline: none;
-  border: none;
-}
-
-.btn-light {
-  background-color: #f8f9fa;
-  color: #333;
-}
-
-.btn-light:hover {
-  background-color: #e2e6ea;
-}
-
-.btn-outline-danger {
-  color: #dc3545;
-  border: 1px solid #dc3545;
-}
-
-.btn-outline-danger:hover {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-outline-success {
-  color: #28a745;
-  border: 1px solid #28a745;
-}
-
-.btn-outline-success:hover {
-  background-color: #28a745;
-  color: white;
-}
-
-.btn-outline-primary {
-  color: #007bff;
-  border: 1px solid #007bff;
-}
-
-.btn-outline-primary:hover {
-  background-color: #007bff;
-  color: white;
-}
-
-/* Fade-in Animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
+  /* Adjust the main content margin */
+  .main-content {
+      margin-left: 0; /* Remove the margin-left to allow full use of screen width */
+      padding: 10px; /* Add some padding */
   }
 
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Responsive Design */
-@media (max-width: 576px) {
-  .modal-content {
-    width: 90%;
+  /* Stack sidebar items vertically */
+  nav ul li {
+      font-size: 16px; /* Smaller font size for smaller screens */
   }
 
-  .modal-footer {
-    flex-direction: column;
-    gap: 10px;
+  /* Adjust table layout for smaller screens */
+  .staff-table {
+      width: 100%;
+      overflow-x: auto; /* Enable horizontal scrolling for table */
   }
 
-  .modal-footer .btn {
-    width: 100%;
-    /* Full width for better accessibility */
+  .staff-table th, .staff-table td {
+      font-size: 14px; /* Smaller text size */
+      padding: 8px; /* Adjust padding for smaller screens */
+  }
+
+  .pagination a {
+      padding: 6px 12px;
+      font-size: 14px; /* Adjust font size */
+  }
+
+  /* Adjust the action buttons */
+  .action-btn {
+      padding: 6px 12px; /* Adjust padding */
+      font-size: 12px; /* Smaller font size */
+  }
+
+  /* Make the logo and navigation more compact */
+  .sidebar nav ul {
+      padding-left: 10px;
+  }
+
+  .sidebar-bottom button {
+      font-size: 16px; /* Adjust font size for smaller buttons */
+      padding: 8px 16px; /* Adjust padding */
+  }
+
+  /* Hide the sidebar on smaller screens */
+  @media screen and (max-width: 600px) {
+      .sidebar {
+          display: none; /* Hide sidebar on very small screens */
+      }
+
+      .main-content {
+          margin-left: 0; /* Take full width */
+      }
+  }
+
+  /* Adjust font sizes */
+  header h1 {
+      font-size: 20px; /* Smaller header */
+  }
+
+  .pagination a.active {
+      font-size: 14px; /* Smaller pagination font size */
+  }
+
+  .pagination {
+      flex-direction: column; /* Stack pagination links vertically */
+      align-items: center; /* Center the pagination items */
+  }
+
+  /* Adjust table cell padding for smaller screens */
+  .staff-table th, .staff-table td {
+      padding: 8px 5px;
   }
 }

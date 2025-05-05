@@ -641,3 +641,36 @@ h2 {
 .required-asterisk, .required {
     color: red;
 }
+
+@media screen and (max-width: 768px) {
+    .sidebar {
+        width: 0;
+        overflow: hidden;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .form-buttons button {
+        padding: 8px 15px;
+    }
+
+    .sidebar-bottom button {
+        padding: 8px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .form-row label,
+    .form-group label {
+        font-size: 14px;
+    }
+    
+    .form-row input,
+    .form-group input {
+        font-size: 14px;
+    }
+}

@@ -773,3 +773,57 @@ body {
     color: white;
 }
 
+/* Adjustments for tablets (768px and below) */
+@media screen and (max-width: 768px) {
+    /* Adjusting the flex container to stack elements on tablets */
+    .login-container {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .left-panel {
+        display: none; /* Hide left panel for tablets */
+    }
+
+    .right-panel {
+        width: 100%;
+        padding: 20px;
+        border-radius: 0;
+    }
+
+    /* Adjust form title and inputs for better readability */
+    .form-title {
+        font-size: 18px;
+        margin-bottom: 20px; /* Increased spacing */
+    }
+
+    .form-group input {
+        font-size: 14px;
+        padding: 10px; /* Adjust padding for readability */
+        margin-bottom: 20px; /* Increased margin for better spacing */
+    }
+
+    .login-btn {
+        font-size: 14px;
+        padding: 10px;
+        margin-top: 20px; /* More space around buttons */
+    }
+
+    .branding h2 {
+        font-size: 24px;
+    }
+
+    .branding p {
+        font-size: 14px;
+    }
+
+    /* Adjust the footer and any small text */
+    .forgot-password-link {
+        font-size: 12px; /* Make the link smaller but still readable */
+        margin-top: 10px;
+    }
+
+    .form-group.terms {
+        font-size: 12px; /* Adjust font for better readability on tablets */
+    }
+}
