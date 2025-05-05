@@ -4,7 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require_once '../config/dbh.inc.php';
-require_once 'helpers/log_helpers.php'; // Include logging function
+require_once 'helpers/log_helpers.php';
 
 session_start();
 
@@ -25,15 +25,13 @@ if (isset($_GET['pet_id']) && is_numeric($_GET['pet_id'])) {
         if ($stmt->execute([$petId])) {
             $response['success'] = true;
 
-            // Log the archiving action
-            //logActivity($pdo, $userId, $userName, $role, 'archive_pet.php', "Archived pet with ID: $petId");
+        logActivity($pdo, $userId, $userName, $role, 'archive_pet.php', "Archived pet with ID: $petId");
         }
     } catch (PDOException $e) {
         error_log("Error archiving pet: " . $e->getMessage());
         $response['error'] = "Database error occurred.";
     }
 }
-
-header("Location: ../public/record.php?archived=success");
+echo json_encode($response);
 exit;
 ?>

@@ -6,6 +6,67 @@ error_reporting(E_ALL);
 session_start();
 require __DIR__ . '/../config/dbh.inc.php';
 
+header('Content-Type: application/json');
+
+// Validate AJAX request
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    echo json_encode(["status" => "error", "message" => "Invalid request."]);
+    exit();
+}
+
+// Required parameters
+$appointment_id = $_POST['appointment_id'] ?? null;
+$pet_id = $_POST['pet_id'] ?? null;
+$field_name = $_POST['field_name'] ?? null;
+$field_value = $_POST['field_value'] ?? null;
+
+if (!$appointment_id || !$pet_id || !$field_name) {
+    echo json_encode(["status" => "error", "message" => "Missing required parameters."]);
+    exit();
+}
+
+// Sanitize input
+$field_value = is_array($field_value) ? implode(', ', array_map('htmlspecialchars', $field_value)) : trim(htmlspecialchars($field_value, ENT_QUOTES));
+
+// Check if record exists
+$stmt_check = $pdo->prepare("SELECT RecordId FROM PatientRecords WHERE AppointmentId = :appointment_id AND PetId = :pet_id");
+$stmt_check->execute([
+    ':appointment_id' => $appointment_id,
+    ':pet_id' => $pet_id
+]);
+$record = $stmt_check->fetch(PDO::FETCH_ASSOC);
+
+try {
+    if ($record) {
+        // Update only the modified field
+        $sql = "UPDATE PatientRecords SET $field_name = :field_value, UpdatedAt = NOW() WHERE AppointmentId = :appointment_id AND PetId = :pet_id";
+        $stmt_update = $pdo->prepare($sql);
+
+        if ($stmt_update->execute([
+            ':field_value' => $field_value,
+            ':appointment_id' => $appointment_id,
+            ':pet_id' => $pet_id
+        ])) {
+            echo json_encode(["status" => "success", "message" => "Field updated successfully!"]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Failed to update field."]);
+        }
+    } else {
+        echo json_encode(["status" => "error", "message" => "Record not found."]);
+    }
+} catch (PDOException $e) {
+    echo json_encode(["status" => "error", "message" => "Database error: " . $e->getMessage()]);
+}
+?>
+
+<?php
+/*ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+session_start();
+require __DIR__ . '/../config/dbh.inc.php';
+
 $appointment_id = $_POST['appointment_id'] ?? '';
 $pet_id = $_POST['pet_id'] ?? '';
 $chief_complaint = trim(htmlspecialchars($_POST['chief_complaint'] ?? '', ENT_QUOTES));

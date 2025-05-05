@@ -334,7 +334,7 @@ $follow_up_notes = $_SESSION['form_data']['follow_up_notes'];
                 </div>
             </div>
         </form>
-        <form class="staff-form" action="../src/chief_complaint_process.php" method="POST" novalidate>
+        <form class="staff-form" id="chief-complaint-form" action="../src/chief_complaint_process.php" method="POST" novalidate>
         <h2>Chief Complaint</h2>
             <input type="hidden" name="appointment_id" value="<?= htmlspecialchars($_GET['appointment_id'] ?? ''); ?>">
             <input type="hidden" name="pet_id" value="<?= htmlspecialchars($_GET['pet_id'] ?? ''); ?>">
@@ -359,10 +359,8 @@ $follow_up_notes = $_SESSION['form_data']['follow_up_notes'];
                         <label><b>Observed Symptoms:</b></label>
                         <div style="display: flex; flex-wrap: wrap; gap: 20px;">
                             <?php
-                            // List of predefined symptoms
                             $symptoms = ['Vomiting', 'Diarrhea', 'Lethargy', 'Coughing', 'Sneezing'];
 
-                            // Fetch stored symptoms from database
                             $storedSymptoms = isset($patientRecord['ObservedSymptoms']) ? explode(', ', $patientRecord['ObservedSymptoms']) : [];
 
                             foreach ($symptoms as $symptom) :
@@ -599,6 +597,7 @@ $follow_up_notes = $_SESSION['form_data']['follow_up_notes'];
                     </div>
 
                     <div class="form-buttons">
+                        <p id="form-message" style="color: green; font-weight: bold; margin-right: 5%;"></p> 
                         <button type="submit" class="confirm-btn">Save Chief Complaint</button>
                     </div>
         </form>
@@ -1462,6 +1461,51 @@ $follow_up_notes = $_SESSION['form_data']['follow_up_notes'];
                         <button type="submit" class="confirm-btn" style="font-size: 18px;" onclick="confirmFinishConsultation(event)">Finish Consultation</button>
                     </div>
             </form>
+            <script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("chief-complaint-form").addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent default form submission
+
+        let formData = new FormData(this); // Collect form data
+        let submitButton = document.querySelector("button[type=submit]");
+
+        // Disable button to prevent multiple clicks
+        submitButton.disabled = true;
+        submitButton.textContent = "Saving...";
+
+        fetch(this.action, {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.text()) // Process response (Modify as needed)
+        .then(data => {
+            console.log("Form submitted successfully:", data);
+            
+            // Show success message (You can customize this)
+            let messageContainer = document.getElementById("form-message");
+            messageContainer.textContent = "Saved successfully!";
+            messageContainer.style.color = "green";
+            
+            // Re-enable the button
+            submitButton.disabled = false;
+            submitButton.textContent = "Save";
+        })
+        .catch(error => {
+            console.error("Error submitting form:", error);
+
+            // Show error message
+            let messageContainer = document.getElementById("form-message");
+            messageContainer.textContent = "Error saving. Please try again.";
+            messageContainer.style.color = "red";
+
+            // Re-enable the button
+            submitButton.disabled = false;
+            submitButton.textContent = "Save";
+        });
+    });
+});
+</script>
+
         <script>
             document.querySelector("form").addEventListener("submit", function (event) {
             console.log("Form submitted!");

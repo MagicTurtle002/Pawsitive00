@@ -211,6 +211,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <form action="../src/update_profile.php" method="POST" enctype="multipart/form-data" id="profileForm"
                     novalidate>
                     <h3>User Profile</h3>
+                    <hr>
+                    <br>
                     <input type="hidden" name="UserId" value="<?= htmlspecialchars($userId) ?>">
 
                     <div style="display: flex; gap: 10px;">
@@ -280,6 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </tbody>
                         </table>
                     </div>
+                    <br>
                     <button type="submit">Add Role</button>
                 </form>
             </section>

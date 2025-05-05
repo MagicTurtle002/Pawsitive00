@@ -221,7 +221,7 @@ try {
             <span>OR</span>
         </div>
 
-        <form class="staff-form" action="invite_staff2.php" method="POST" enctype="multipart/form-data">
+        <form class="staff-form" action="invite_staff.php" method="POST" enctype="multipart/form-data">
         <h2>Bulk Invite via Excel</h2>
         <br>
             <div class="form-group">
