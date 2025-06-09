@@ -22,3 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
     emailInput.addEventListener("input", checkInputs);
     passwordInput.addEventListener("input", checkInputs);
 });
+
+function goBack() {
+    window.history.back();
+}

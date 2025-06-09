@@ -92,6 +92,35 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="../assets/css/vet_record.css">
+
+    <style>
+        .header {
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .title-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            /* Space between button and heading */
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            /* Adjust color as needed */
+            font-weight: bold;
+        }
+
+        .back-button:hover {
+            color: rgb(44, 130, 68);
+            /* Highlight effect on hover */
+        }
+    </style>
 </head>
 
 <body>
@@ -127,7 +156,10 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
     </div>
     <div class="main-content">
         <div class="header">
-            <h1>Archive Pets</h1>
+            <div class="title-container">
+                <button onclick="goBack()" class="back-button">&#x2039;</button>
+                <h1>Archive Pets</h1>
+            </div>
             <div class="actions">
                 <form method="GET" action="archive_list.php" class="filter-container">
 
@@ -140,7 +172,6 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                             <i class="fa fa-filter"></i> Filter
                         </button>
                         <div class="dropdown-content">
-                            <!-- Date Filter -->
                             <label>
                                 <input type="radio" name="filter" value="all" <?= isset($_GET['filter']) && $_GET['filter'] === 'all' ? 'checked' : ''; ?>> All
                             </label>
@@ -154,7 +185,6 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                                 <input type="radio" name="filter" value="lastMonth" <?= isset($_GET['filter']) && $_GET['filter'] === 'lastMonth' ? 'checked' : ''; ?>> Last Month
                             </label>
                             <hr>
-                            <!-- Ascending / Descending -->
                             <label>
                                 <input type="radio" name="order" value="asc" <?= isset($_GET['order']) && $_GET['order'] === 'asc' ? 'checked' : ''; ?>> Ascending
                             </label>
@@ -201,7 +231,7 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="6">No archived pets found.</td>
+                        <td colspan="7">No archived pets found.</td>
                     </tr>
                 <?php endif; ?>
             </tbody>
@@ -215,17 +245,44 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 <?php unset($_SESSION['success']); // Clear the message after displaying ?>
             <?php endif; ?>
         </div>
-        <div class="pagination">
-            <a href="?page=<?= max(0, $currentPage - 1) ?>">&laquo; Previous</a>
-            <?php for ($i = 0; $i < $totalPages; $i++): ?>
-                <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
-                    <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active"' : '' ?>><?= $i + 1 ?></a>
-                <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
-                    <span style="display: inline-block; margin-top: 15px;">...</span>
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <?php if ($totalPages > 1): ?>
+                    <?php if ($currentPage > 0): ?>
+                        <li><a href="?page=0" aria-label="First">First</a></li>
+                    <?php endif; ?>
+
+                    <?php if ($currentPage > 0): ?>
+                        <li><a href="?page=<?= max(0, $currentPage - 1) ?>" aria-label="Previous">&laquo; Previous</a></li>
+                    <?php endif; ?>
                 <?php endif; ?>
-            <?php endfor; ?>
-            <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
-        </div>
+
+                <?php for ($i = 0; $i < $totalPages; $i++): ?>
+                    <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
+                        <li>
+                            <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active" aria-current="page"' : '' ?>>
+                                <?= $i + 1 ?>
+                            </a>
+                        </li>
+                    <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
+                        <li><span>...</span></li>
+                    <?php endif; ?>
+                <?php endfor; ?>
+
+                <?php if ($totalPages > 1): ?>
+                    <?php if ($currentPage < $totalPages - 1): ?>
+                        <li><a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>" aria-label="Next">Next &raquo;</a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php if ($currentPage < $totalPages - 1): ?>
+                        <li><a href="?page=<?= $totalPages - 1 ?>" aria-label="Last">Last</a></li>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </ul>
+            <p class="pagination-info">Page <?= $currentPage + 1 ?> of <?= $totalPages ?></p>
+        </nav>
+        <script src="../assets/js/main.js"></script>
         <script>
             function applyFilters() {
                 const search = document.getElementById("searchInput").value;

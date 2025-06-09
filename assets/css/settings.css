@@ -233,7 +233,7 @@ header {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
-    background-color: #ffffff; /* Ensures the background is white */
+    background-color: #ffffffc4; /* Ensures the background is white */
 }
 
 .settings-main h3 {
@@ -365,16 +365,20 @@ table td button:hover {
 .scrollable-container {
     max-height: 300px; /* Set a fixed height for scrolling */
     overflow-y: auto; /* Enable vertical scrolling */
-    border: 1px solid #ccc; /* Optional: Adds a border for clarity */
+    overflow-x: auto;
     border-radius: 8px; /* Rounded corners */
     position: relative;
+    width: 100%;
+    display: block;
+    white-space: nowrap;
 }
 
 .permissions-container {
     max-height: 300px; /* Set a fixed height */
     overflow-y: auto; /* Enables vertical scrolling */
-    border: 1px solid #ccc; /* Matches table border for consistency */
+    overflow-x: hidden;
     position: relative;
+    display: block;
 }
 
 /* Keeps the header fixed at the top while scrolling */
@@ -394,7 +398,7 @@ table td button:hover {
 }
 
 .permissions-table {
-    width: 100%;
+    min-width: max-content;
     border-collapse: collapse;
 }
 

@@ -295,17 +295,43 @@ $totalPages = ceil($totalRecords / $recordsPerPage);
                 <?php endif; ?>
             </tbody>
         </table>
-        <div class="pagination">
-            <a href="?page=<?= max(0, $currentPage - 1) ?>">&laquo; Previous</a>
-            <?php for ($i = 0; $i < $totalPages; $i++): ?>
-                <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
-                    <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active"' : '' ?>><?= $i + 1 ?></a>
-                <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
-                    <span style="display: inline-block; margin-top: 15px;">...</span>
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <?php if ($totalPages > 1): ?>
+                    <?php if ($currentPage > 0): ?>
+                        <li><a href="?page=0" aria-label="First">First</a></li>
+                    <?php endif; ?>
+
+                    <?php if ($currentPage > 0): ?>
+                        <li><a href="?page=<?= max(0, $currentPage - 1) ?>" aria-label="Previous">&laquo; Previous</a></li>
+                    <?php endif; ?>
                 <?php endif; ?>
-            <?php endfor; ?>
-            <a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>">Next &raquo;</a>
-        </div>
+
+                <?php for ($i = 0; $i < $totalPages; $i++): ?>
+                    <?php if ($i == 0 || $i == $totalPages - 1 || abs($i - $currentPage) <= 2): ?>
+                        <li>
+                            <a href="?page=<?= $i ?>" <?= $i == $currentPage ? 'class="active" aria-current="page"' : '' ?>>
+                                <?= $i + 1 ?>
+                            </a>
+                        </li>
+                    <?php elseif ($i == 1 || $i == $totalPages - 2): ?>
+                        <li><span>...</span></li>
+                    <?php endif; ?>
+                <?php endfor; ?>
+
+                <?php if ($totalPages > 1): ?>
+                    <?php if ($currentPage < $totalPages - 1): ?>
+                        <li><a href="?page=<?= min($totalPages - 1, $currentPage + 1) ?>" aria-label="Next">Next &raquo;</a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php if ($currentPage < $totalPages - 1): ?>
+                        <li><a href="?page=<?= $totalPages - 1 ?>" aria-label="Last">Last</a></li>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </ul>
+            <p class="pagination-info">Page <?= $currentPage + 1 ?> of <?= $totalPages ?></p>
+        </nav>
         <script>
             document.addEventListener("DOMContentLoaded", function () {
                 const searchInput = document.getElementById("searchInput");

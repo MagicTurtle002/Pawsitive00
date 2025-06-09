@@ -204,14 +204,14 @@ function sendEmailNotification($email, $ownerName, $petName, $serviceName, $appo
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
-        $mail->Host = 'smtp.hostinger.com';
+        $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'no-reply@vetpawsitive.com';
-        $mail->Password = 'Pawsitive3.';
+        $mail->Username = 'danvincentteodoro11@gmail.com';
+        $mail->Password = 'fhvt onlo hdwm wjlx';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
         $mail->Port = 465;
 
-        $mail->setFrom('no-reply@vetpawsitive.com', 'Pawsitive Veterinary Clinic');
+        $mail->setFrom('danvincentteodoro11@gmail.com', 'Pet Adventure Veterinary Clinic');
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             error_log("Invalid email format: $email");

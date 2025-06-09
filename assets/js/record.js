@@ -271,3 +271,47 @@ function closeOtherDropdowns() {
         menu.style.display = "none";
     });
 }
+
+function confirmArchive(petId) {
+  Swal.fire({
+      title: 'Are you sure?',
+      text: 'This action will archive the pet record. You can restore it later from the archive.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, Archive it!',
+      cancelButtonText: 'Cancel',
+  }).then((result) => {
+      if (result.isConfirmed) {
+          fetch(`../src/archive_pets.php?pet_id=${encodeURIComponent(petId)}`)
+              .then(response => response.json())
+              .then(data => {
+                console.log("Server Response:", data);
+                  if (data.success) {
+                      Swal.fire(
+                          'Archived!',
+                          'The pet has been successfully archived.',
+                          'success'
+                      ).then(() => {
+                          location.reload();
+                      });
+                  } else {
+                      Swal.fire(
+                          'Error!',
+                          'An error occurred while archiving the pet. Please try again.',
+                          'error'
+                      );
+                  }
+              })
+              .catch(error => {
+                  console.error('Error:', error);
+                  Swal.fire(
+                      'Error!',
+                      'An error occurred while archiving the pet. Please try again.',
+                      'error'
+                  );
+              });
+      }
+  });
+}
